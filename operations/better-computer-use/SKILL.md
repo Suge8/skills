@@ -1,9 +1,9 @@
 ---
-name: bcu
+name: better-computer-use
 description: "仅当用户明确指定 bcu 或 Better Computer Use 时，用它读取和操作 macOS、Windows 桌面 UI。任务不涉及 GUI 时不用；站点开发诊断用 browser-dev。"
 ---
 
-# bcu 桌面操作
+# Better Computer Use 桌面操作
 
 `bcu` 通过无障碍语义树读取和操作桌面 UI。优先执行带验证条件的语义动作。
 
