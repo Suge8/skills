@@ -17,19 +17,18 @@ description: "仅当用户明确指定 bcu 或 Better Computer Use 时，用它�
 ## 核心循环
 
 ```text
-find-roots → observe-ui → search-ui / expand-ui / inspect-ui → act-ui
+observe-ui → search-ui / expand-ui / inspect-ui → act-ui
 ```
 
 ```bash
-bcu find-roots --app TextEdit --json
-bcu observe-ui --root @r1 --mode semantic --image never --json
+bcu observe-ui --app TextEdit --mode semantic --image never --json
 bcu search-ui --state STATE_ID --role AXTextArea --json
 printf '%s\n' '[{"action":"setText","ref":"@e3","text":"hello"}]' |
   bcu act-ui --state STATE_ID --expect-value hello --timeout 3000 --json -
 ```
 
-1. 用 `find-roots` 找当前 `@r` 根；应用名不确定时先列出，不猜 PID 或窗口。
-2. 用 `observe-ui` 获取不可变 `stateId` 和 `@e` ref。普通读取优先 `semantic + image never`；需要视觉证据才取图。
+1. 已知唯一应用或窗口时直接 `observe-ui --app`；目标不确定、有多个窗口或需要临时根时，先用 `find-roots` 找 `@r`，不要猜 PID。
+2. `observe-ui` 返回不可变 `stateId` 和 `@e` ref。普通读取优先 `semantic + image never`；需要视觉证据才取图。
 3. outline 折叠或目标不明显时，先 `search-ui`，再按需 `expand-ui` 或 `inspect-ui`。不要为了找控件反复截图。
 4. 用同一 `stateId` 的 ref 执行 `act-ui`。优先 `setText`、`press` 等语义动作；坐标只作为最后手段，且只能来自该状态的最新观察。
 5. 动作返回后继状态。下一步使用返回的新 `stateId` 和新 ref；不要复用旧 ref。
