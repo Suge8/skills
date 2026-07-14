@@ -1,6 +1,6 @@
 ---
 name: ui-craft
-description: 用于已有应用 UI 的最终打磨：先识别桌面指针、舒适桌面或触屏密度，再统一控件尺寸、排版、交互状态和动效语言。保留进出场、图标重绘、cross-fade、Popover、Dialog、Toast 等精细动效；不用于品牌落地页、完整重设计或覆盖项目已有设计系统。
+description: 仅用于已有应用 UI 的最终打磨：保留信息架构和设计系统，统一控件尺寸、桌面指针或触屏密度、排版、交互状态和细节动效，包括 Popover、Dialog、Toast。新页面或整体重设计用 impeccable。
 ---
 
 # UI Craft
