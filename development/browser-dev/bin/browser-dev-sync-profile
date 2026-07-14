@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Browser Dev profile sync.
+# Seeds (or refreshes) the dedicated agent profile by lean-copying login state
+# from the user's everyday Helium profile. Excludes caches / history / favicons
+# so the seed stays small (~100M, not the full 1.3G).
+#
+# Usage:
+#   browser-dev-sync-profile           # seed if empty, else refuse (avoid clobber)
+#   browser-dev-sync-profile --force   # delete existing dest and re-seed
+#
+# The user's everyday Helium must be QUIT first, otherwise SQLite DBs
+# (Cookies / Login Data) may be copied mid-write and fail to decrypt.
+
+SRC="${BROWSER_DEV_SOURCE_PROFILE:-$HOME/Library/Application Support/net.imput.helium}"
+DST="${BROWSER_DEV_PROFILE:-$HOME/.browser-dev/profile}"
+FORCE=0
+[ "${1:-}" = "--force" ] && FORCE=1
+
+log() { printf '%s\n' "$*" >&2; }
+fail() { log "Profile sync failed: $*"; exit 1; }
+
+[ -d "$SRC/Default" ] || fail "source profile not found: $SRC"
+
+# Guard the destructive rm -rf below. A misconfigured BROWSER_DEV_PROFILE must
+# never wipe anything outside the dedicated ~/.browser-dev base directory.
+BASE_ABS="$HOME/.browser-dev"
+# Canonicalize WITHOUT requiring the path to exist (resolves .. and symlinks of
+# existing parents). Reject any path that cannot be made canonical.
+canonicalize() {
+  local p="$1" parent leaf
+  [ -n "$p" ] || return 1
+  if [ -d "$p" ]; then ( cd "$p" 2>/dev/null && pwd -P ); return; fi
+  parent="$(dirname "$p")"; leaf="$(basename "$p")"
+  [ -d "$parent" ] || return 1
+  printf '%s/%s\n' "$(cd "$parent" && pwd -P)" "$leaf"
+}
+DST_ABS="$(canonicalize "$DST")" || fail "cannot resolve destination path: $DST"
+BASE_CANON="$(cd "$BASE_ABS" 2>/dev/null && pwd -P || printf '%s\n' "$BASE_ABS")"
+# Hard whitelist: DST must live strictly inside ~/.browser-dev/.
+case "$DST_ABS" in
+  "$BASE_CANON"/?*) : ;;
+  *) fail "destination must be inside $BASE_CANON/ (got: $DST_ABS); set BROWSER_DEV_PROFILE accordingly" ;;
+esac
+
+# Refuse to copy while any Helium is running. We read the source profile's
+# SQLite DBs (Cookies / Login Data) and delete+rebuild the dest, so both the
+# everyday Helium and the dedicated instance must be quit first; a live WAL
+# state copies inconsistently and fails to decrypt.
+if pgrep -f 'Helium.app/Contents/MacOS/Helium' >/dev/null 2>&1; then
+  log "Warning: Helium is running. Quit your everyday Helium (and stop the"
+  log "dedicated browser-dev instance) before syncing, otherwise Cookies /"
+  log "Login Data may copy mid-write and fail to decrypt."
+  fail "Helium running; quit it and retry."
+fi
+
+if [ -d "$DST" ] && [ "$FORCE" != "1" ]; then
+  fail "destination exists: $DST (use --force to delete and re-seed)"
+fi
+
+log "Re-seeding dedicated profile"
+log "  from: $SRC"
+log "  to:   $DST"
+rm -rf "$DST"
+mkdir -p "$DST/Default"
+
+# Top-level: Local State holds the OS-Keychain-wrapped encryption key reference.
+cp -p "$SRC/Local State" "$DST/Local State" 2>/dev/null && log "  + Local State"
+[ -f "$SRC/First Run" ] && cp -p "$SRC/First Run" "$DST/First Run" 2>/dev/null || true
+
+# Default/: login-state whitelist only. Everything else (Cache, History,
+# Favicons, IndexedDB, Service Worker, Sessions) is intentionally excluded.
+( cd "$SRC/Default"
+  for item in \
+    "Cookies" "Cookies-journal" \
+    "Login Data" "Login Data-journal" \
+    "Login Data For Account" "Login Data For Account-journal" \
+    "Web Data" "Web Data-journal" "Account Web Data" "Account Web Data-journal" \
+    "Preferences" "Secure Preferences" \
+    "Local Storage" "Network" \
+    "Extensions" "Extension State" "Local Extension Settings" \
+    "Managed Extension Settings" "Extension Rules" "Extension Scripts" \
+    "Trust Tokens" "Trust Tokens-journal" ; do
+    [ -e "$item" ] && cp -Rp "$item" "$DST/Default/$item" 2>/dev/null && log "  + Default/$item"
+  done
+) || true
+
+# Strip singleton locks that would block the dedicated instance from launching.
+rm -f "$DST/Singleton"* "$DST/Default/Singleton"* "$DST/Default/lockfile" 2>/dev/null || true
+
+log "Done. Seed size: $(du -sh "$DST" 2>/dev/null | cut -f1)"
+log "Note: size grows after first run as the browser writes its own caches."

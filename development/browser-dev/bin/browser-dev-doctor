@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PORT="${BROWSER_DEV_PORT:-9333}"
+HOST="127.0.0.1"
+PROFILE="${BROWSER_DEV_PROFILE:-$HOME/.browser-dev/profile}"
+START=0
+FAILURES=0
+
+usage() {
+  cat <<'EOF'
+Usage: browser-dev doctor [--start]
+
+Checks the local Browser Dev environment without printing private browser data.
+
+Options:
+  --start     Start the dedicated Helium instance before checking CDP.
+  -h, --help  Show this help.
+
+Invalid arguments print this usage and exit 2.
+EOF
+}
+
+case "$#" in
+  0) ;;
+  1)
+    case "$1" in
+      --start) START=1 ;;
+      -h|--help) usage; exit 0 ;;
+      *) usage >&2; exit 2 ;;
+    esac
+    ;;
+  *) usage >&2; exit 2 ;;
+esac
+
+ok() { printf 'OK   %s\n' "$*"; }
+warn() { printf 'WARN %s\n' "$*"; }
+mark_fail() { printf 'FAIL %s\n' "$*"; FAILURES=$((FAILURES + 1)); }
+
+find_helium_bin() {
+  local app="${HELIUM_APP:-}" p
+  if [ -n "$app" ]; then
+    [ -x "$app/Contents/MacOS/Helium" ] && printf '%s\n' "$app/Contents/MacOS/Helium" && return 0
+    return 1
+  fi
+
+  for p in "/Applications/Helium.app" "$HOME/Applications/Helium.app"; do
+    [ -x "$p/Contents/MacOS/Helium" ] && printf '%s\n' "$p/Contents/MacOS/Helium" && return 0
+  done
+
+  if command -v mdfind >/dev/null 2>&1; then
+    p="$(mdfind "kMDItemFSName == 'Helium.app'" | head -n 1 || true)"
+    [ -x "$p/Contents/MacOS/Helium" ] && printf '%s\n' "$p/Contents/MacOS/Helium" && return 0
+  fi
+
+  return 1
+}
+
+check_commands() {
+  local agent_browser_path
+  agent_browser_path="$(command -v agent-browser 2>/dev/null || true)"
+  if [ -n "$agent_browser_path" ]; then
+    ok "agent-browser found: $agent_browser_path"
+  else
+    mark_fail "agent-browser not found in PATH"
+  fi
+
+  if command -v curl >/dev/null 2>&1; then
+    ok "curl found"
+  else
+    mark_fail "curl not found; CDP checks unavailable"
+  fi
+}
+
+check_helium() {
+  local helium_bin
+  helium_bin="$(find_helium_bin || true)"
+  if [ -n "$helium_bin" ]; then
+    ok "Helium binary found: $helium_bin"
+  elif [ -n "${HELIUM_APP:-}" ]; then
+    mark_fail "HELIUM_APP has no Helium binary: $HELIUM_APP"
+  else
+    mark_fail "Helium binary not found. Set HELIUM_APP=/path/to/Helium.app"
+  fi
+}
+
+check_profile() {
+  local size_mb
+  if [ ! -d "$PROFILE" ]; then
+    warn "profile path missing: $PROFILE (created by browser-dev-start)"
+    return
+  fi
+
+  size_mb="$(du -sm "$PROFILE" 2>/dev/null | awk '{print $1}' || true)"
+  if [ -z "$size_mb" ]; then
+    warn "profile path exists but size could not be read: $PROFILE"
+    return
+  fi
+
+  ok "profile path exists: $PROFILE (${size_mb}M)"
+  if [ "$size_mb" -gt 500 ]; then
+    warn "profile is ${size_mb}M (>500M); consider refreshing it when safe"
+  fi
+}
+
+check_cdp() {
+  local version_json tabs_json browser tab_count
+  if ! command -v curl >/dev/null 2>&1; then
+    return
+  fi
+
+  if ! version_json="$(curl -fsS "http://$HOST:$PORT/json/version" 2>/dev/null)"; then
+    if [ "$START" = "1" ]; then
+      mark_fail "CDP /json/version not reachable on $HOST:$PORT after --start"
+    else
+      warn "CDP /json/version not reachable on $HOST:$PORT (browser not running; use doctor --start to verify launch)"
+    fi
+    return
+  fi
+
+  if ! tabs_json="$(curl -fsS "http://$HOST:$PORT/json/list" 2>/dev/null)"; then
+    mark_fail "CDP /json/list not reachable on $HOST:$PORT"
+    return
+  fi
+
+  if ! command -v jq >/dev/null 2>&1; then
+    ok "CDP /json/version reachable on $HOST:$PORT"
+    ok "CDP /json/list reachable on $HOST:$PORT"
+    warn "jq not found; skipping CDP JSON details and tab summary"
+    return
+  fi
+
+  browser="$(printf '%s' "$version_json" | jq -r '.Browser // .browser // "unknown"' 2>/dev/null)" || {
+    mark_fail "CDP /json/version returned invalid JSON"
+    return
+  }
+  ok "CDP /json/version reachable on $HOST:$PORT ($browser)"
+
+  tab_count="$(printf '%s' "$tabs_json" | jq -r 'if type == "array" then length else empty end' 2>/dev/null)" || {
+    mark_fail "CDP /json/list returned invalid JSON"
+    return
+  }
+  if [ -z "$tab_count" ]; then
+    mark_fail "CDP /json/list did not return a JSON array"
+    return
+  fi
+
+  ok "CDP /json/list tabs: $tab_count"
+  if [ "$tab_count" -gt 0 ]; then
+    printf '%s' "$tabs_json" | jq -r '
+      def clean_title:
+        (. // "(untitled)")
+        | gsub("[\\r\\n\\t]+"; " ")
+        | if length > 60 then .[0:60] + "…" else . end;
+      def clean_url:
+        (. // "")
+        | sub("[?#].*$"; "");
+      .[0:5]
+      | to_entries[]
+      | "OK   tab [" + ((.key + 1) | tostring) + "] " + (.value.title | clean_title) + " — " + (.value.url | clean_url)
+    '
+  fi
+  if [ "$tab_count" -gt 5 ]; then
+    warn "tab summary truncated to first 5 of $tab_count"
+  fi
+}
+
+if [ "$START" = "1" ]; then
+  if "$DIR/browser-dev-start" >/dev/null 2>&1; then
+    ok "browser-dev-start completed"
+  else
+    warn "browser-dev-start exited non-zero; continuing diagnostics"
+  fi
+fi
+
+check_commands
+check_helium
+check_profile
+check_cdp
+
+if [ "$FAILURES" -gt 0 ]; then
+  exit 1
+fi
+exit 0

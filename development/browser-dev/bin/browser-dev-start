@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Browser Dev launches a DEDICATED Helium instance for the agent.
+# It uses its own user-data-dir and debugging port, so it runs in parallel
+# with the user's everyday Helium and NEVER quits or restarts it.
+
+PORT="${BROWSER_DEV_PORT:-9333}"
+HOST="127.0.0.1"
+PROFILE="${BROWSER_DEV_PROFILE:-$HOME/.browser-dev/profile}"
+TIMEOUT_STEPS="${BROWSER_DEV_TIMEOUT_STEPS:-40}"
+LOCK_DIR="${TMPDIR:-/tmp}/browser-dev-start-$PORT.lock"
+
+log() { printf '%s\n' "$*" >&2; }
+fail() { log "Browser Dev start failed: $*"; exit 1; }
+
+need() {
+  command -v "$1" >/dev/null 2>&1 || fail "missing command: $1"
+}
+
+cdp_ready() {
+  command -v curl >/dev/null 2>&1 || return 1
+  curl -fsS "http://$HOST:$PORT/json/version" >/dev/null 2>&1
+}
+
+# Acquire a start lock so two concurrent agents don't both spawn an instance
+# (the old design's race that caused the quit/restart loop).
+acquire_lock() {
+  for _ in $(seq 1 60); do
+    if mkdir "$LOCK_DIR" 2>/dev/null; then
+      trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
+      return 0
+    fi
+    cdp_ready && return 1   # someone else already brought it up
+    sleep 0.5
+  done
+  return 1
+}
+
+find_helium_bin() {
+  local app="${HELIUM_APP:-}"
+  if [ -n "$app" ]; then
+    [ -x "$app/Contents/MacOS/Helium" ] && printf '%s\n' "$app/Contents/MacOS/Helium" && return 0
+    fail "HELIUM_APP has no Helium binary: $app"
+  fi
+  local p
+  for p in "/Applications/Helium.app" "$HOME/Applications/Helium.app"; do
+    [ -x "$p/Contents/MacOS/Helium" ] && printf '%s\n' "$p/Contents/MacOS/Helium" && return 0
+  done
+  if command -v mdfind >/dev/null 2>&1; then
+    p="$(mdfind "kMDItemFSName == 'Helium.app'" | head -n 1 || true)"
+    [ -x "$p/Contents/MacOS/Helium" ] && printf '%s\n' "$p/Contents/MacOS/Helium" && return 0
+  fi
+  return 1
+}
+
+need agent-browser
+need curl
+
+# A long-lived agent-browser daemon may already be bound to a different port.
+# `--cdp <port>` does not re-point a running daemon, so reconnect explicitly.
+reconnect_daemon() {
+  agent-browser connect "$PORT" >/dev/null 2>&1 || true
+}
+
+# Already up? Just reuse it (re-point the daemon in case it held an old port).
+if cdp_ready; then
+  reconnect_daemon
+  log "Browser Dev CDP ready on $PORT (dedicated instance)"
+  exit 0
+fi
+
+if ! acquire_lock; then
+  if cdp_ready; then
+    reconnect_daemon
+    log "Browser Dev CDP ready on $PORT (started by a concurrent run)"
+    exit 0
+  fi
+  fail "could not acquire start lock and CDP not ready on $PORT"
+fi
+
+HELIUM_BIN="$(find_helium_bin || true)"
+[ -n "$HELIUM_BIN" ] || fail "Helium binary not found. Set HELIUM_APP=/path/to/Helium.app"
+
+mkdir -p "$PROFILE"
+
+set -- \
+  --user-data-dir="$PROFILE" \
+  --remote-debugging-port="$PORT" \
+  --no-first-run \
+  --no-default-browser-check
+# Headless by default (Chromium 132+ unified headless: same browser code,
+# extensions/login/screenshots all work, never steals the user's viewport).
+# BROWSER_DEV_HEADED=1 opts into a visible window (watch flows, captcha, anti-bot).
+MODE=headless
+if [ "${BROWSER_DEV_HEADED:-0}" = "1" ]; then
+  MODE=headed
+else
+  set -- "$@" --headless --window-size=1440,900
+fi
+set -- "$@" about:blank
+
+log "Starting a dedicated $MODE Helium instance on port $PORT (profile: $PROFILE)"
+# Spawn the binary directly (not `open`) so it runs as our own detached child:
+# a single window, its own profile, its own port. The user's Helium is untouched.
+# Passing a startup URL guarantees one visible window opens.
+"$HELIUM_BIN" "$@" \
+  >/dev/null 2>&1 &
+disown || true
+
+for _ in $(seq 1 "$TIMEOUT_STEPS"); do
+  if cdp_ready; then
+    reconnect_daemon
+    agent-browser --cdp "$PORT" get url >/dev/null 2>&1 || true
+    log "Browser Dev CDP ready on $PORT (dedicated instance)"
+    exit 0
+  fi
+  sleep 0.5
+done
+
+fail "could not connect to dedicated Helium CDP on $PORT"
