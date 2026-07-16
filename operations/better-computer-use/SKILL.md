@@ -1,6 +1,6 @@
 ---
 name: better-computer-use
-description: "仅当用户明确指定 bcu 或 Better Computer Use 时，用它读取和操作 macOS、Windows 桌面 UI。任务不涉及 GUI 时不用；站点开发诊断用 browser-dev。"
+description: "仅当用户明确指定 bcu 或 Better Computer Use 时，用它读取和操作 macOS、Windows 桌面 UI。任务不涉及 GUI 时不用；站点开发诊断用 flow-browser-use。"
 ---
 
 # Better Computer Use 桌面操作
@@ -51,6 +51,6 @@ bcu wait-for --state STATE_ID --text Saved --timeout 3000 --json
 bcu observe-ui --app Finder --mode fused --image always --json
 ```
 
-浏览器页面可经 `bcu browser launch` 打开，再沿用相同的 observe/search/act 流程。网页前端调试仍使用 `browser-dev`。
+浏览器页面可经 `bcu browser launch` 打开，再沿用相同的 observe/search/act 流程。网页前端调试仍使用 `flow-browser-use`。
 
 完整命令参数见 [references/commands.md](references/commands.md)，错误恢复见 [references/errors.md](references/errors.md)。

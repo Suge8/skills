@@ -2,20 +2,20 @@
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PORT="${BROWSER_DEV_PORT:-9333}"
+PORT="${FLOW_BROWSER_PORT:-9333}"
 HOST="127.0.0.1"
-PROFILE="${BROWSER_DEV_PROFILE:-$HOME/.browser-dev/profile}"
+PROFILE="${FLOW_BROWSER_PROFILE:-$HOME/.flow-browser/profile}"
 START=0
 FAILURES=0
 
 usage() {
   cat <<'EOF'
-Usage: browser-dev doctor [--start]
+Usage: flow-browser doctor [--start]
 
-Checks the local Browser Dev environment without printing private browser data.
+Checks the local Flow Browser environment without printing private browser data.
 
 Options:
-  --start     Start the dedicated Helium instance before checking CDP.
+  --start     Start the dedicated CloakBrowser instance before checking CDP.
   -h, --help  Show this help.
 
 Invalid arguments print this usage and exit 2.
@@ -38,22 +38,14 @@ ok() { printf 'OK   %s\n' "$*"; }
 warn() { printf 'WARN %s\n' "$*"; }
 mark_fail() { printf 'FAIL %s\n' "$*"; FAILURES=$((FAILURES + 1)); }
 
-find_helium_bin() {
-  local app="${HELIUM_APP:-}" p
-  if [ -n "$app" ]; then
-    [ -x "$app/Contents/MacOS/Helium" ] && printf '%s\n' "$app/Contents/MacOS/Helium" && return 0
+find_cloak_bin() {
+  local bin="${FLOW_BROWSER_BIN:-}" p
+  if [ -n "$bin" ]; then
+    [ -x "$bin" ] && printf '%s\n' "$bin" && return 0
     return 1
   fi
-
-  for p in "/Applications/Helium.app" "$HOME/Applications/Helium.app"; do
-    [ -x "$p/Contents/MacOS/Helium" ] && printf '%s\n' "$p/Contents/MacOS/Helium" && return 0
-  done
-
-  if command -v mdfind >/dev/null 2>&1; then
-    p="$(mdfind "kMDItemFSName == 'Helium.app'" | head -n 1 || true)"
-    [ -x "$p/Contents/MacOS/Helium" ] && printf '%s\n' "$p/Contents/MacOS/Helium" && return 0
-  fi
-
+  p="$(ls -d "$HOME/.cloakbrowser"/chromium-*/Chromium.app/Contents/MacOS/Chromium 2>/dev/null | sort -V | tail -n 1 || true)"
+  [ -n "$p" ] && [ -x "$p" ] && printf '%s\n' "$p" && return 0
   return 1
 }
 
@@ -73,22 +65,29 @@ check_commands() {
   fi
 }
 
-check_helium() {
-  local helium_bin
-  helium_bin="$(find_helium_bin || true)"
-  if [ -n "$helium_bin" ]; then
-    ok "Helium binary found: $helium_bin"
-  elif [ -n "${HELIUM_APP:-}" ]; then
-    mark_fail "HELIUM_APP has no Helium binary: $HELIUM_APP"
+check_cloak() {
+  local cloak_bin
+  cloak_bin="$(find_cloak_bin || true)"
+  if [ -n "$cloak_bin" ]; then
+    ok "CloakBrowser binary found: $cloak_bin"
+  elif [ -n "${FLOW_BROWSER_BIN:-}" ]; then
+    mark_fail "FLOW_BROWSER_BIN is not executable: $FLOW_BROWSER_BIN"
   else
-    mark_fail "Helium binary not found. Set HELIUM_APP=/path/to/Helium.app"
+    mark_fail "CloakBrowser binary not found. Run: cloakbrowser install"
+  fi
+
+  # Encryption key exists once CloakBrowser has run; sync-profile needs it.
+  if security find-generic-password -s "Chromium Safe Storage" -a Chromium >/dev/null 2>&1; then
+    ok "Keychain: Chromium Safe Storage present (profile sync possible)"
+  else
+    warn "Keychain: Chromium Safe Storage missing; run flow-browser-start once before sync-profile"
   fi
 }
 
 check_profile() {
   local size_mb
   if [ ! -d "$PROFILE" ]; then
-    warn "profile path missing: $PROFILE (created by browser-dev-start)"
+    warn "profile path missing: $PROFILE (created by flow-browser-start)"
     return
   fi
 
@@ -167,15 +166,15 @@ check_cdp() {
 }
 
 if [ "$START" = "1" ]; then
-  if "$DIR/browser-dev-start" >/dev/null 2>&1; then
-    ok "browser-dev-start completed"
+  if "$DIR/flow-browser-start" >/dev/null 2>&1; then
+    ok "flow-browser-start completed"
   else
-    warn "browser-dev-start exited non-zero; continuing diagnostics"
+    warn "flow-browser-start exited non-zero; continuing diagnostics"
   fi
 fi
 
 check_commands
-check_helium
+check_cloak
 check_profile
 check_cdp
 
