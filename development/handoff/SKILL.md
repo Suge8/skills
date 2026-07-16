@@ -23,7 +23,7 @@ argument-hint: 下一个会话要做什么？
 - **未决问题**：还没拍板的事，别让下一个 agent 以为已经定了
 - **下一步**：按顺序列，第一步要具体到能直接执行
 - **相关文件**：涉及的文件绝对路径清单
-- **建议 skills**：下一个会话该用哪些 skill（如 diagnose、better-test、ship）
+- **建议 skills**：下一个会话该用哪些 skill（如 diagnose、flow-better-test、ship）
 
 **2. 启动提示词**，直接打印在回复末尾的代码块里，用户原样粘贴到新会话：
 

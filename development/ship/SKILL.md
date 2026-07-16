@@ -1,5 +1,6 @@
 ---
 name: ship
+disable-model-invocation: true
 description: 发布/提交流程：用户说 ship、发布、提交、推送、commit、更新版号、changelog、打 tag、开源准备时使用，凡是要把工作区改动变成提交/版本/Release 的时刻都算，即使用户只说了"提交一下"。按仓库自身风格做细粒度原子提交、更新版本与 changelog、盯 CI 到绿。不用于：写代码、修 bug、PR review。
 ---
 # Ship
@@ -40,6 +41,8 @@ docs(changelog): note session persistence
 而不是一个 `feat: update session stuff` 装下全部。判断标准：revert 任意一个 commit，其余仍应独立成立。
 
 ## Step 3 — 仅 Y：发布
+
+发布顺序是硬边界：先完成 Step 2 的全部用户改动提交，再修改版本与 CHANGELOG 并创建 release commit；tag 必须指向这个最终 release commit。禁止先提交 release 元数据、再把业务改动补在 tag 前后。
 
 1. 按 semver 判定新版号（用户没指定时自己判定，执行前一句话告知，不阻塞）
 2. 更新版本文件 + CHANGELOG：新条目从本次 commits 生成，用户向语言，不写实现细节；双语仓库两种语言都写；文风走 stop-slop

@@ -13,7 +13,7 @@ description: 项目一致性体检与文档补齐：新项目初始化、项目�
 - 有无 UI（前端框架、src-tauri、routes 目录等信号）
 - 开源信号（LICENSE 存在？git remote 是公开仓库？用户说过要开源？）
 - 现有文档盘点：AGENTS.md、CONTEXT.md、docs/PRODUCT.md、docs/DESIGN.md、README、CONTRIBUTING、SECURITY、CHANGELOG、docs/adr/
-- 验证链现状：有没有 agent 可独立运行的测试命令（对照 better-test 的 references/toolchains.md 判断达标与否）
+- 验证链现状：有没有 agent 可独立运行的测试命令（对照 flow-better-test 的 references/toolchains.md 判断达标与否）
 
 ## Step 2 — 体检表
 
@@ -35,7 +35,7 @@ PRODUCT.md 分级：产品项目用完整版（impeccable 的格式）；工具/
 
 **位置总原则**：高频入口（README/LICENSE/CHANGELOG/AGENTS/CONTEXT）在根；低频社区件在 `.github/`；深度内容（PRODUCT/DESIGN/adr/开发文档）在 `docs/`。已存在于其他合法位置的不迁移——位置不是问题，双份才是。
 
-**体检项（只报告，绝不动手）**：验证链是否达标（达标四问见 better-test Step 0）。不达标就在表里写一行现状 + 推荐工具链，让用户拿去找 better-test 建。
+**体检项（只报告，绝不动手）**：验证链是否达标（达标四问见 flow-better-test Step 0）。不达标就在表里写一行现状 + 推荐工具链，让用户拿去找 flow-better-test 建。
 
 ## Step 3 — 分节确认
 

@@ -5,7 +5,7 @@ description: 项目宣传物料工坊：用户说"做物料/宣传图/hero 图/�
 
 # Promo（物料工坊）
 
-编排者，自己不生成任何东西：logo 归 logo skill、AI 图归 gpt-image、文案归 copywriting + stop-slop、截图归 browser-dev/系统工具。本 skill 管的是：搞清项目是什么 → 缺什么物料 → 按正确的工具链生产 → 落盘成套。
+编排者，自己不生成任何东西：logo 归 logo skill、AI 图归 gpt-image、文案归 copywriting + stop-slop、截图归 flow-browser-use/系统工具。本 skill 管的是：搞清项目是什么 → 缺什么物料 → 按正确的工具链生产 → 落盘成套。
 
 ## Step 0 — 建立语境（物料质量的上游）
 
@@ -33,6 +33,6 @@ description: 项目宣传物料工坊：用户说"做物料/宣传图/hero 图/�
 
 ## 质量红线
 
-- 图上文字一律 HTML 叠加，禁止让 AI 渲染文字（必崩）
+- 图上文字分场景：需要品牌字体一致、中文、长文案、后续还要改词 → HTML 叠加；短英文装饰大字、手写感/涂鸦字可以让 AI 渲染（gpt-image-1 后已可靠），但生成后必须逐字母核对，错一个字母即废图
 - 截图内容必须是真实感数据，禁止 lorem ipsum、空列表、测试账号名
 - 尺寸必须精确匹配目标平台（表在 SHOTS.md），不许"差不多然后被平台裁烂"

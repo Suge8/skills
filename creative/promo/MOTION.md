@@ -6,7 +6,7 @@
 |---|---|---|
 | Web / 浏览器扩展 | Playwright 脚本驱动操作 + `recordVideo` 录制 | 全自动，可重复 |
 | CLI / TUI | **VHS**：写 .tape 脚本直出 GIF/MP4 | 全自动，改脚本重跑即可 |
-| 桌面 app | `screencapture -v out.mov` 录屏 + computer-use 驱动操作 | **实验性**：computer-use 未实测，首次做好人工搭手准备 |
+| 桌面 app | `screencapture -v out.mov` 录屏 + better-computer-use 驱动操作 | **实验性**：better-computer-use 未实测，首次做好人工搭手准备 |
 
 ## VHS（pi / pi-flow 的演示利器）
 

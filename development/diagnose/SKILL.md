@@ -112,6 +112,6 @@ Perf branch。对性能回归，logs 通常是错工具。改为：建立 baseli
 - [ ] 所有 `[DEBUG-...]` instrumentation 已移除（grep 前缀）
 - [ ] throwaway prototypes 已删除（或移动到清楚标记的 debug 位置）
 - [ ] 在 commit message 中说明最终正确的假设 —— 让下一个 debugger 学到东西
-- [ ] 宣称修复完成时遵守系统规范的二选一说法：P1 闭环的重跑结果就是证据，不必另取；无法重跑则按 better-test 的手段补证
+- [ ] 宣称修复完成时遵守系统规范的二选一说法：P1 闭环的重跑结果就是证据，不必另取；无法重跑则按 flow-better-test 的手段补证
 
 然后问：什么本可以防止这个 bug？如果答案涉及架构变化（没有好的 test seam、tangled callers、hidden coupling），带着具体信息交给 `/improve-codebase-architecture` skill。修复完成后再给这个建议，不要提前 —— 你现在的信息比开始时更多。

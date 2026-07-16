@@ -31,5 +31,6 @@ brave-search "东京 拉面 推荐" --country JP
 ## 何时用
 
 - 找准确 URL、官方站点、最新发布/新闻、精确报错原文 → brave。
+- 公开 X 原帖用 `site:x.com/<handle>/status` 加精确关键词；`--freshness` 无结果时去掉后重试。Brave 只覆盖已索引的公开页面，不保证完整账号、回复或线程。
 - 语义理解、代码示例、API 用法 → exa。
-- 已知 URL 取内容 → curl；JS 渲染页 → browser-dev。
+- 已知 URL 取内容 → curl；JS 渲染页 → flow-browser-use。

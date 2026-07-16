@@ -1,32 +1,31 @@
-# Closing the Loop — reconcile, issues
+# 闭环：reconcile 与计划复核
 
-The advisor's job doesn't end at the plan. This file covers the follow-through flow: keeping the plans alive and reviewing executed work (`reconcile`).
+顾问在计划写完后仍负责保持计划有效，但边界不变：**不编辑源代码，不派发执行**。计划由用户交给 pi-flow、新会话或人工执行；顾问只像技术负责人一样复核。
 
-The founding rule survives unchanged: **the advisor never edits source code, and never dispatches execution.** Plans are self-contained deliverables; how they get executed is the user's decision (pi-flow pointed at the plan file, a fresh session, by hand). The advisor's follow-through is review — like a tech lead who doesn't push commits to your branch.
+## 在 `reconcile` 中复核已执行计划
 
----
+把已执行改动当成按规格提交的 PR：
 
-## Reviewing executed plans (inside `reconcile`)
+1. **重跑所有完成标准。** 不相信执行报告，以当前工作树结果为准。
+2. **检查范围。** 把 diff 与计划的范围内文件比较；未记录的范围外修改直接判复核失败。
+3. **阅读完整 diff。** 判断是否解决“为什么重要”中的真实问题，并遵守计划列出的仓库约定。
+4. **审计新测试。** 执行者可能通过空断言等方式满足命令；必须读测试实际验证了什么。
 
-When the user returns after executing a plan, review like a tech lead reviewing a PR against the spec — never fix anything yourself:
+有记录的偏差按实际价值判断，不机械驳回。执行者遇到真实障碍、做了最小适应并说明理由时，只要仍服务于计划意图且范围合理，可以通过；未记录偏差视为失败。
 
-1. **Re-run every done criterion.** Don't trust the execution report — verify on the current tree.
-2. **Scope compliance**: diff the executed changes against the plan's in-scope list. Any file outside scope fails review, full stop.
-3. **Read the full diff.** Judge it against "Why this matters" (does it solve the actual problem?) and the repo conventions named in the plan (does it look like the rest of the codebase?).
-4. **Audit the new tests.** Executors game criteria — a test that asserts nothing meaningful passes `pnpm test` and proves nothing. Read what the tests assert.
+结论：
 
-**Documented deviations are judged on merit, not reflex-blocked.** An executor that hit a real obstacle, adapted minimally, and recorded why has done the right thing — approve if the adaptation serves the plan's intent and stays in scope; treat *undocumented* deviations as review failures. Verdicts: pass → mark DONE in the index; fixable gaps → write the specific feedback into the plan and hand off again (max 2 rounds); otherwise → mark BLOCKED with the reason and rewrite the plan with what was learned.
+- 通过：在索引标记 `DONE`；
+- 可修缺口：把具体反馈写入计划，再交回执行，最多两轮；
+- 无法修正：标记 `BLOCKED`，写明原因，并根据新事实重写计划。
 
----
+## `reconcile`：保持 `plans/` 可执行
 
-## `reconcile` — keep `plans/` alive
+读取 `plans/README.md` 和全部计划，按状态处理：
 
-Process what happened since the last session. Read `plans/README.md` and every plan file, then per status:
+- **DONE**：低成本抽查完成标准在当前 HEAD 仍成立，并在索引记录已验证。计划文件保留作为历史。
+- **BLOCKED**：读取原因，调查代码中的真实障碍。方法未根本变化时原地刷新；方法已变化时创建新编号；不再值得做则标记 `REJECTED` 并写一行理由。
+- **IN PROGRESS（陈旧）**：提示用户执行可能中断；检查未提交修改或废弃分支。
+- **TODO**：运行漂移检查。漂移后先确认发现仍存在；存在则刷新“当前状态”片段和规划 SHA，已经被其他改动解决则标记 `REJECTED（独立修复）`。
 
-- **DONE** — spot-check that the done criteria still hold on the current HEAD (cheap ones only). Mark verified in the index. Don't delete plan files — they're the record.
-- **BLOCKED** — read the reason. Investigate the underlying obstacle in the codebase. Either rewrite the plan around it (new number if the approach changed fundamentally, in-place refresh otherwise) or mark REJECTED with one line of rationale.
-- **IN PROGRESS** (stale) — flag it to the user; an execution probably died mid-run. Check for uncommitted changes or an abandoned branch.
-- **TODO** — run the drift check. If drifted: re-verify the finding still exists (it may have been fixed in passing), then refresh the "Current state" excerpts and `Planned at` SHA. If the finding is gone, mark REJECTED ("fixed independently").
-
-Finish with a short report: what's verified done, what was refreshed, what's rejected, and what's executable right now.
-
+最后只报告：哪些已验证完成、哪些已刷新、哪些被驳回、哪些现在可执行。不得借复核之名直接修代码。
