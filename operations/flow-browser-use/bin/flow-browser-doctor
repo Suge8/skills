@@ -165,6 +165,28 @@ check_cdp() {
   fi
 }
 
+# flow-browser-console 依赖 CloakBrowser 反检测补丁漏堵的 legacy Console domain；
+# 上游随时可能补掉，这里用临时 data: tab 实际验证一次读回链路。
+check_console_fallback() {
+  local marker tab_json tab_id out
+  curl -fsS "http://$HOST:$PORT/json/version" >/dev/null 2>&1 || return  # 实例没跑，check_cdp 已报告
+  command -v node >/dev/null 2>&1 || { warn "node not found; skipping console fallback check"; return; }
+  marker="FLOW_DOCTOR_CONSOLE_$$"
+  tab_json="$(curl -fsS -X PUT "http://$HOST:$PORT/json/new?data:text/html,<script>console.log('$marker')</script>" 2>/dev/null)" || {
+    warn "could not open probe tab; skipping console fallback check"
+    return
+  }
+  tab_id="$(printf '%s' "$tab_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' 2>/dev/null)"
+  sleep 0.5
+  out="$("$DIR/flow-browser-console" "$marker" --wait 1 2>/dev/null || true)"
+  [ -n "$tab_id" ] && curl -fsS "http://$HOST:$PORT/json/close/$tab_id" >/dev/null 2>&1
+  if printf '%s' "$out" | grep -q "$marker"; then
+    ok "console fallback (legacy Console domain) readable"
+  else
+    mark_fail "console fallback broken — CloakBrowser may have patched legacy Console domain; flow-browser-console is blind"
+  fi
+}
+
 if [ "$START" = "1" ]; then
   if "$DIR/flow-browser-start" >/dev/null 2>&1; then
     ok "flow-browser-start completed"
@@ -177,6 +199,7 @@ check_commands
 check_cloak
 check_profile
 check_cdp
+check_console_fallback
 
 if [ "$FAILURES" -gt 0 ]; then
   exit 1

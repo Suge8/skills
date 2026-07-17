@@ -25,7 +25,7 @@
 ```bash
 ./bin/flow-browser doctor          # 只读检查，不启动浏览器
 ./bin/flow-browser doctor --start  # 显式启动后检查
-FLOW_BROWSER_HEADED=1 ./bin/flow-browser-start  # 需要可见窗口时（看流程/验证码/反爬）
+FLOW_BROWSER_HEADED=1 ./bin/flow-browser-start  # 仅限存登录态到专属 profile / 反爬需真窗口；其他“要看”场景走 Orca（见 SKILL.md 选择浏览器）
 ```
 
 ## 打开 / Tab
@@ -50,9 +50,11 @@ FLOW_BROWSER_HEADED=1 ./bin/flow-browser-start  # 需要可见窗口时（看流
 
 ## 报错 / 请求
 
+`errors` / `console` 在 CloakBrowser 上永远为空（反检测补丁抑制事件），取 console 用 `flow-browser-console`；详见 SKILL.md “Console 与缓冲”。
+
 ```bash
-./bin/flow-browser errors
-./bin/flow-browser console
+./bin/flow-browser-console                    # 第一个非内部 tab，含历史重放
+./bin/flow-browser-console <url子串> --wait 5  # 指定 tab，收集窗口 5s
 ./bin/flow-browser network requests
 ./bin/flow-browser network requests --type xhr,fetch
 ./bin/flow-browser network requests --status 400-499

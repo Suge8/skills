@@ -1,12 +1,21 @@
 ---
 name: flow-browser-use
-description: 操作和调试已知网页：用专属浏览器打开页面，支持登录态、导航、点击、填写、DOM、截图、console、network 和前端问题排查。
-allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bash(./bin/flow-browser-sync-profile:*), Bash(agent-browser:*)
+description: 操作和调试已知网页：用专属浏览器打开页面，支持登录态、导航、点击、填写、DOM、截图、console、network 和前端问题排查；用户要亲眼看、预览 dev server 或手机上看时走 Orca 内嵌浏览器分支。
+allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bash(./bin/flow-browser-console:*), Bash(./bin/flow-browser-sync-profile:*), Bash(agent-browser:*), Bash(/Applications/Orca.app/Contents/Resources/bin/orca:*)
 ---
 
 # Flow Browser Use
 
-`./bin/flow-browser` 控制专属 CloakBrowser（反检测 Chromium）：独立 profile `~/.flow-browser/profile`（登录态同步自用户 Helium）+ 独立端口 `9333`。**默认无头**——截图、snapshot、console/network、登录态全部可用，不抢用户视口。绝不动用户的日常浏览器。
+`./bin/flow-browser` 控制专属 CloakBrowser（反检测 Chromium）：独立 profile `~/.flow-browser/profile`（登录态同步自用户 Helium）+ 独立端口 `9333`。**默认无头**——截图、snapshot、network、登录态全部可用（console 见下），不抢用户视口。绝不动用户的日常浏览器。
+
+## 选择浏览器
+
+| 场景 | 用 |
+|---|---|
+| 后台自动化 / 登录态 / 反爬 / 抓取（默认） | flow-browser（无头 CloakBrowser） |
+| 用户要看：预览 dev server、亲眼看流程、手机上看、人工解验证码 | Orca 内嵌浏览器（pane 开 tab，不抢视口，见下节） |
+| 纯净隔离测试 / 完整未捕获异常排障 | `agent-browser --session <name>`（自带 Chromium） |
+| 给专属 profile 存密码登录态 / 反爬必须真窗口 | `FLOW_BROWSER_HEADED=1`（唯一还需要有头 CloakBrowser 的场景） |
 
 ## 入口
 
@@ -15,7 +24,7 @@ allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bas
 /Users/sugeh/.agents/skills/operations/flow-browser-use/bin/flow-browser <cmd>   # wrapper，默认连 9333
 ```
 
-- 有头（用户要亲眼看流程 / 验证码 / 反爬）：`FLOW_BROWSER_HEADED=1 … flow-browser-start`。模式启动时定死，已有 9333 实例不切换；切模式先 `./bin/flow-browser stop` 再启动。
+- 有头需求按「选择浏览器」表路由；`FLOW_BROWSER_HEADED=1 … flow-browser-start` 的模式启动时定死，已有 9333 实例不切换；切模式先 `./bin/flow-browser stop` 再启动。
 - 必须经 wrapper 或显式 `--cdp`；裸 `agent-browser open` 会绕过专属 profile。
 - 用户说"已经打开/已登录"：先读现有 tabs，不要 `open` 导航当前页。以 `/json/list` 为事实源：
 
@@ -27,11 +36,16 @@ curl -s http://127.0.0.1:9333/json/list
 ## 标准流
 
 ```txt
-start → open/tab → snapshot -i → errors/console/network → action → wait → snapshot -i
+start → open/tab → snapshot -i → network/console 兑底检查 → action → wait → snapshot -i
 ```
 
 - 优先 `snapshot -i`（只取交互元素，输出减半）；需要完整结构才全量 snapshot；视觉问题用 `screenshot`。
-- 页面跳转后旧 `@eN` ref 失效，重新 snapshot。报错先查 `errors / console / network`。
+- 页面跳转后旧 `@eN` ref 失效，重新 snapshot。报错先查 `network requests`，console 见下节。
+
+## Console 与缓冲
+
+- CloakBrowser 反检测补丁抑制 `Runtime.consoleAPICalled/exceptionThrown`：`console` / `errors` 命令在专属实例上**永远为空**（network 不受影响）。取 console 用 `./bin/flow-browser-console [url子串] [--wait 秒]`——legacy Console domain 未被堵，attach 即重放该 tab 全部历史消息；未捕获异常捕获不到，需要完整异常时按「选择浏览器」表换实例。
+- `console/network` 缓冲是实例级：并行 agent / 多 tab 会混入其他页面的请求，`network requests` 用 `--filter <url子串>` 收窄。
 
 ## 性能与并行
 
@@ -46,6 +60,20 @@ start → open/tab → snapshot -i → errors/console/network → action → wai
 - 命令速查 [references/commands.md](references/commands.md)；参数不确定读 `agent-browser skills get core --full`；系统性 QA 读 `skills get dogfood`；Electron 读 `skills get electron`。
 - `./bin/flow-browser doctor`（只读，不启动）/ `doctor --start`（验证启动链）；输出 OK/WARN/FAIL，WARN 不是失败。
 - 登录态过期：`./bin/flow-browser stop` 后 `./bin/flow-browser-sync-profile --force`，重新 start 生效。用户的日常 Helium **无需退出**（SQLite 在线快照 + Cookie 密钥转录）；首次同步会弹两次 Keychain 授权。密码（Login Data）不同步，需要密码的站点用 `FLOW_BROWSER_HEADED=1` 登录一次即持久保留。改源/目标用 `FLOW_BROWSER_SOURCE_PROFILE` / `FLOW_BROWSER_PROFILE`。
+
+## Orca 预览（给用户看的页面）
+
+用户要亲眼看、手机远程看、预览 dev server、人工解验证码时，不用有头 CloakBrowser，直接开进 Orca 内嵌浏览器（桌面 pane + 手机 app 原生可见，带 Web/Mobile 视口切换；用户可直接在 pane 里点选交互）：
+
+```bash
+ORCA=/Applications/Orca.app/Contents/Resources/bin/orca
+$ORCA tab create --url <url> --json    # 开进当前 worktree 的浏览器 pane
+$ORCA snapshot --json                  # 后续 goto/click/fill/wait/screenshot 同 agent-browser 语义，加 --json
+$ORCA console --limit 50 --json        # 标准 Chromium，console/network 完整可用
+```
+
+- tab 作用域是当前 worktree；`orca status --json` 可验 Orca 在跑，Orca 未运行则回退 flow-browser。
+- 它是用户 UI 的一部分：只开用户要看的页面，不做高频自动化轰炸；不要顺手关用户还在看的 tab。
 
 ## 定位 fallback 与 CDP 逃生舱
 
