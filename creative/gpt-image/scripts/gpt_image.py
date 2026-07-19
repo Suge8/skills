@@ -22,7 +22,23 @@ def load_auth(path: Path) -> tuple[str, str]:
     return access_token, account_id
 
 
-def build_payload(prompt: str, model: str) -> dict:
+def build_payload(
+    prompt: str,
+    model: str,
+    size: str | None = None,
+    quality: str | None = None,
+    refs: list[Path] | None = None,
+) -> dict:
+    tool: dict = {"type": "image_generation", "output_format": "png"}
+    if size:
+        tool["size"] = size
+    if quality:
+        tool["quality"] = quality
+    content: list[dict] = [{"type": "input_text", "text": prompt}]
+    for ref in refs or []:
+        mime = "image/png" if ref.suffix.lower() == ".png" else "image/jpeg"
+        encoded = base64.b64encode(ref.read_bytes()).decode()
+        content.append({"type": "input_image", "image_url": f"data:{mime};base64,{encoded}"})
     return {
         "model": model,
         "instructions": (
@@ -32,10 +48,10 @@ def build_payload(prompt: str, model: str) -> dict:
         "input": [
             {
                 "role": "user",
-                "content": [{"type": "input_text", "text": prompt}],
+                "content": content,
             }
         ],
-        "tools": [{"type": "image_generation", "output_format": "png"}],
+        "tools": [tool],
         "tool_choice": "auto",
         "parallel_tool_calls": False,
         "stream": True,
@@ -80,7 +96,7 @@ def generate(args) -> dict:
         "Accept": "text/event-stream",
         "User-Agent": "gpt-image-skill/1.0",
     }
-    payload = build_payload(args.prompt, args.model)
+    payload = build_payload(args.prompt, args.model, args.size, args.quality, args.ref)
     image_item = None
     for event in iter_sse(ENDPOINT, payload, headers, args.timeout):
         for item in walk(event):
@@ -108,6 +124,12 @@ def parse_args():
     parser.add_argument("--auth", type=Path, default=Path.home() / ".codex/auth.json")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--timeout", type=int, default=240)
+    parser.add_argument(
+        "--ref", action="append", type=Path, default=[],
+        help="Reference image path. Repeatable.",
+    )
+    parser.add_argument("--size", help="e.g. 1024x1024, 1024x1536, 1536x1024")
+    parser.add_argument("--quality", help="low, medium, high")
     return parser.parse_args()
 
 
