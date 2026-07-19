@@ -5,16 +5,23 @@
 | 项目类型 | 工具 | 要点 |
 |---|---|---|
 | Web | flow-browser-use | 设精确视口 + 2x deviceScaleFactor 直出高清；亮/暗两套 |
-| 浏览器扩展 | Playwright `launchPersistentContext` + `--load-extension` | popup/sidepanel 都有 URL 可直接开页截图 |
+| 浏览器扩展 | Playwright `launchPersistentContext` + `--load-extension` | popup/sidepanel 有 URL 可直接开页截图；UI 若由 IndexedDB/Dexie 重建，seed 数据库造真实感会话比驱动真实操作稳 |
 | 桌面 app | 原生 `screencapture -l <窗口ID>` | 先把窗口 set 到目标尺寸再截；带系统圆角阴影版直接用，进 HTML 合成用 `-o` 去阴影版 |
 | CLI / TUI | `freeze --execute "<命令>"` 或 freeze 截取输出 | 直出带窗口 chrome 的精美 SVG/PNG |
 
-桌面窗口两条命令：
+桌面窗口：先 set 尺寸，再按 `-l <CGWindowID>` 截指定窗口（被遮挡也能截、不抢焦点）。
 
 ```bash
 osascript -e 'tell app "System Events" to set size of window 1 of process "CuePad" to {1280, 800}'
-screencapture -o -l $(osascript -e 'tell app "CuePad" to id of window 1') raw.png
-# AppleScript 拿不到 id 时兜底：python3 -c 用 Quartz CGWindowListCopyWindowInfo 按 app 名找 kCGWindowNumber
+screencapture -o -l <CGWindowID> raw.png
+# 可靠取 CGWindowID：AppleScript 的 window id ≠ CGWindowID、python3 常无 Quartz，最稳用 Swift 按 PID
+swift - "$(pgrep -x '进程名')" <<'SWIFT'
+import CoreGraphics
+let pid = Int(CommandLine.arguments[1])!
+let ws = (CGWindowListCopyWindowInfo([.optionOnScreenOnly,.excludeDesktopElements], kCGNullWindowID) as! [[String:Any]])
+  .filter { $0["kCGWindowOwnerPID"] as? Int == pid && $0["kCGWindowLayer"] as? Int == 0 }
+print(ws.max { ($0["kCGWindowBounds"] as! [String:Double])["Width"]! < ($1["kCGWindowBounds"] as! [String:Double])["Width"]! }?["kCGWindowNumber"] as? Int ?? 0)
+SWIFT
 ```
 
 **原始截图纪律**：真实感数据（有内容的会话/列表，不是空状态和 lorem）；界面收拾干净（关无关弹窗、满电池心态）；同一批物料用同一套数据保持连贯。
@@ -24,6 +31,17 @@ screencapture -o -l $(osascript -e 'tell app "CuePad" to id of window 1') raw.pn
 写一个本地临时 HTML：目标平台精确尺寸的画布 + 背景（VISUAL 链 B 的底图，或 CSS 渐变）+ 截图（圆角 + 阴影 + 可选轻微透视）+ 标题文案（copywriting 出、stop-slop 过、DESIGN.md 的字体色板）→ flow-browser-use 按画布尺寸整屏截图 → 成图。
 
 要点：截图放 2x 源图缩小显示才锐利；文案层级最多两级（大标题 + 一行副题）；构图留呼吸感，宁空勿挤。
+
+零依赖出图：数据驱动写临时 HTML，headless Chrome 按精确尺寸直接截，不用 Playwright。
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless=new --screenshot=out.png --window-size=1280,640 \
+  --force-device-scale-factor=1 --hide-scrollbars \
+  --default-background-color=00000000 file:///tmp/canvas.html
+```
+
+关键手法：画布按目标尺寸 1:1 布局；截图 `<img>` 放 2x 源图靠 CSS 缩小才锐；logo 免抠图——白底黑标用 `mix-blend-mode:multiply`、黑底白标用 `screen`。
 
 ## 平台尺寸表（成图必须精确匹配）
 

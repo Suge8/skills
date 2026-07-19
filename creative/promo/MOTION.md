@@ -6,7 +6,15 @@
 |---|---|---|
 | Web / 浏览器扩展 | Playwright 脚本驱动操作 + `recordVideo` 录制 | 全自动，可重复 |
 | CLI / TUI | **VHS**：写 .tape 脚本直出 GIF/MP4 | 全自动，改脚本重跑即可 |
-| 桌面 app | `screencapture -v out.mov` 录屏 + better-computer-use 驱动操作 | **实验性**：better-computer-use 未实测，首次做好人工搭手准备 |
+| 桌面 app | `screencapture -v -l <CGWindowID> out.mov` 录指定窗口（被遮挡也录、不抢焦点；窗口 ID 获取见 SHOTS.md 桌面块）+ better-computer-use 驱动 | **实验性**：bcu 未实测，首次做好人工搭手准备 |
+
+## 浏览器扩展录制：先过授权关
+
+真实站点上跑扩展 demo，得先拿到站点权限，全是坑：
+
+- CDP `Extensions.loadUnpacked` 装的扩展是会话级，optional 授权每次启动重置——授权序列要在每次 launch 后重跑。
+- 别离线改 `Secure Preferences`（有 MAC 校验会被 Chrome 打回）。正路：`developerPrivate.addHostPermission` 预登记通配 host + `developerPrivate.updateExtensionConfiguration` 开 userScripts，之后 headless 下 `permissions.request` 静默自动授予（无原生气泡）并写进 profile。
+- Chrome 137+ 砍了 `--load-extension` 只能 CDP 装；反检测浏览器（如 CloakBrowser）会随机化 tab id 误杀 target tab，录扩展用原生 Chrome。
 
 ## VHS（pi / pi-flow 的演示利器）
 
