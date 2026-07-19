@@ -24,6 +24,9 @@
 | 写官网/落地页/产品描述的营销文案 | 提 copywriting（成稿过 stop-slop 去 AI 味） | copywriting |
 | 写/重写 README | 提 readme | crafting-effective-readmes |
 | 做宣传物料：hero 图/社媒图/商店截图/演示 GIF/3D 资产 | **"给 XX 做物料"** | promo |
+| 主题→运动优先视频方案（反 PPT） | 提 motion-director | motion-director |
+| Remotion 写 composition / Studio / 渲染 | 提 remotion-best-practices；项目在 `~/content-create` | remotion-best-practices |
+| 模型直出带音轨短 MP4 | 提 video-gen | video-gen |
 
 ## 三个新习惯（最重要）
 
@@ -36,6 +39,7 @@
 - **搜索**：exa（语义/代码搜索）、brave（精确关键词/找网址）、context7（库文档）
 - **验证**：flow-better-test 的养链部分是自动的（系统层强制：改动收工前确认有覆盖，没有就补或取证）。你只做验收：完成报告带 ✅ 证据就信；带 ⚠️ 未验证就照步骤花 30 秒验；啥都不带就说"你确定修好了吗"——这句老话就是触发器
 - **工具**：flow-browser-use（网页调试）、better-computer-use（桌面操控，也是桌面 app 取证兑底）、ssh、web-clone（仿站）、gsap（动画）、logo、gpt-image、stop-slop（去 AI 味文案）、search-skills（翻归档技能）
+- **视频三件套**（不互斥）：motion-director 出方案 → remotion-best-practices 在 `~/content-create` 落地；或 video-gen 直出短片。后两者与导演层可叠加
 - **归档里留着备用的**：office 五件套（docx/pdf/pptx/xlsx/obsidian，交作业时说"用归档的 pptx"）、其余已被现有 skill 覆盖不用碰
 
 ## 组合套路
