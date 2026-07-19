@@ -91,7 +91,8 @@ MODE=headless
 if [ "${FLOW_BROWSER_HEADED:-0}" = "1" ]; then
   MODE=headed
 else
-  set -- "$@" --headless --window-size=1440,900
+  # --mute-audio：无头实例用户看不见也关不掉，禁止它出声（AutoMusic 等 autoplay 场景）
+  set -- "$@" --headless --window-size=1440,900 --mute-audio
 fi
 set -- "$@" about:blank
 
