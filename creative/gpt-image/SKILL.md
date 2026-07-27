@@ -1,7 +1,6 @@
 ---
-disable-model-invocation: true
 name: gpt-image
-description: 用本地 Codex ChatGPT 订阅认证和托管 image_generation 工具生成 PNG 图片。用于用户要生成图片，海报等。
+description: 用本地 Codex ChatGPT 订阅认证和托管 image_generation 工具生成 PNG 图片。用于需要生成图片、海报、插图等场景。
 ---
 
 # GPT Image
