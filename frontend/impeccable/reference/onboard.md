@@ -167,6 +167,14 @@ Projects help you organize your work and collaborate with your team.
 
 ## Empty State Design
 
+**Progressive disclosure first (the chrome is earned)**: when a container is empty, do not render the
+controls that only make sense once content exists — search, filters, sort, counts, bulk actions, and
+secondary entry points that depend on existing content. Give the whole area to one centred guide:
+one line of status, one line of next step, one (at most two) actions. Those controls appear only after
+content exists, in the same position they will occupy later. Capabilities that are not reachable yet
+(locked features, selling points) get one line of copy — never an entry point that leads to an empty room.
+Source: Getting Real §9.4 The Blank Slate; NN/g "Designing Empty States in Complex Applications".
+
 Every empty state needs:
 
 ### What Will Be Here
@@ -179,7 +187,9 @@ Every empty state needs:
 [Create project] or [Import from template]
 
 ### Visual Interest
-Illustration or icon (not just text on blank page)
+Brand mark or icon first; reach for illustration only when the product voice supports it. When an
+illustration is genuinely needed, generate it in the product's own palette and lighting (gpt-image /
+promo skill) rather than importing a third-party illustration style.
 
 ### Contextual Help
 "Need help getting started? [Watch 2-min tutorial]"
