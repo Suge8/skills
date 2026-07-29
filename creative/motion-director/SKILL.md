@@ -4,7 +4,6 @@ description: >
   运动优先的 AI 视频导演，把主题做成真动画而非 PPT 式讲解。用于用户给主题/想法/文章/脚本/brief
   要自由创作动画视频；以及定视觉隐喻、运动语法、场景节拍、组件选择、生图需求、HyperFrames/Remotion
   实现策略与反 PPT 质检时。
-disable-model-invocation: true
 metadata:
   provisional: true
 ---
@@ -92,11 +91,45 @@ metadata:
 
 静态图像必须以裁切、遮罩、视差、揭示、光扫、深度层或形变来做动画。静图加文字不够。
 
-### 7. 实现路线
+### 7. 视觉开发闸门（两道，写任何动画代码前）
 
-本机默认用 Remotion 做可编程动效视频。源项目：`/Users/sugeh/content-create`。写 composition 前加载并遵循 `remotion-best-practices`。
+直接从方案跳到动画实现 = 未经视觉设计就进入制作，是成片平庸的头号根因。
 
-仅当用户明确要求模型直出短片时改走 `video-gen`。仅对真正受益的特定视觉层使用 Lottie/Rive/Three.js。
+1. **风格 bake-off**：按 `references/editorial-collage.md` §1 挑 2-3 个候选风格，每个风格出
+   1 张代表性静态板（gpt-image 或代码草图）。用户在场则给用户挑；全自动时自己按主题
+   年代/文化/调性判定并说明理由。
+2. **Hero Frame**：选定风格后，先做 3-6 张关键节拍的导演板（静帧），过一遍
+   `references/anti-ppt-gate.md` 的反 AI 味清单与排版硬规格，再写运动代码。
+   静帧不值得看，动起来也不值得看。
+
+### 8. 旁白与声音
+
+带旁白的成片用 Fish Audio TTS（中文自然度第一梯队），禁止用 macOS `say` 出成片（仅限测时间线占位）：
+
+```bash
+python3 /Users/sugeh/.agents/skills/creative/motion-director/scripts/fish_tts.py \
+  "旁白文本" --out /absolute/path/line-01.mp3 [--voice <reference_id>]
+```
+
+规则：
+
+- **audio-first timing**：逐句生成旁白，脚本返回每句实际 `duration`，画面节拍跟声音排；禁止先写死时长再塞声音。
+- 音色：默认音色可用；更好的做法是在 fish.audio 挑中文音色，`--voice` 传 reference_id。
+- 默认 `s2.1-pro-free`（免费，质量同 pro）；量产或要 SLA 时充 API credit 后 `--model s2.1-pro`。
+
+### 9. 实现路线（三条，按主题路由）
+
+| 路线 | 适用 | 栈 |
+|---|---|---|
+| **A · Remotion 纯代码** | 数据图表、UI/产品演示、几何系统 | content-create + 编辑组件集 |
+| **B · 编辑拼贴** | 人物、历史、文化、情绪、品牌叙事 | gpt-image 造素材 → Remotion 驱动，读 `references/editorial-collage.md` |
+| **C · 模型直出** | 用户点名要实拍质感短片 | `video-gen`（Grok/Seedance） |
+
+A、B 共享同一引擎：源项目 `/Users/sugeh/content-create`，编辑感组件集在
+`src/editorial/`（PaperField / PhotoCutout / TornReveal / MarkerStroke / TapeLabel /
+EditorialChart / EvidenceFrame / CameraStage + `useStepped` 步进运动）。
+写 composition 前加载并遵循 `remotion-best-practices`。路线 B 中个别镜头需要有机微动
+（人物动作类）时，单镜走 Seedance `--first-frame` 补。仅对真正受益的特定视觉层使用 Lottie/Rive/Three.js。
 
 如果用户要求完整制作，继续进入制作，而不是停在方案：
 
@@ -104,7 +137,7 @@ metadata:
 - 渲染：`npx remotion render <CompositionId> out/<name>.mp4`
 - contact sheet / 静帧：`npx remotion still ...` 或抽帧，产物放同项目 `out/` 与可选 `质检/`
 
-### 8. 反 PPT 闸门
+### 10. 反 PPT 闸门
 
 实现前与最终交付前，阅读 `references/anti-ppt-gate.md`。若方案未通过，先重写运动方案再写代码。
 
@@ -117,7 +150,7 @@ metadata:
 - 同一卡片布局反复出现，没有有意义的运动变化
 - 用户要的是视频，产出却只是分镜
 
-### 9. 质检与完成
+### 11. 质检与完成
 
 在宣称视频完成前：
 
@@ -142,4 +175,5 @@ metadata:
 ## 参考
 
 - `references/motion-grammar.md`：视觉隐喻与运动原语。
-- `references/anti-ppt-gate.md`：否决幻灯片式视频的检查清单。
+- `references/anti-ppt-gate.md`：否决幻灯片式视频的检查清单 + 反 AI 味清单 + 排版硬规格。
+- `references/editorial-collage.md`：编辑拼贴路线（风格选型、生图五段式、叙事弧、Remotion 动效语汇）。
