@@ -42,6 +42,33 @@ default、hover、selected、disabled 不做多份资源。SVG 用 `currentColor
 
 全部用填充会让激活态失去信号。变体切换按 SKILL.md 第 7 节的 cross-fade 处理，槽位固定。
 
+### Cross-fade 配方（无依赖）
+
+两个图标同时留在 DOM，一个绝对定位叠在另一个上面；因为都不卸载，进出场都能用可中断的 transition 完成。非绝对定位的那个撑起槽位尺寸：
+
+```html
+<span class="icon-swap" data-active>
+  <svg class="icon-active">…</svg>
+  <svg class="icon-inactive">…</svg>
+</span>
+```
+
+```css
+.icon-swap { position: relative; display: inline-flex; }
+.icon-swap .icon-active { position: absolute; inset: 0; }
+.icon-swap svg {
+  transition: opacity var(--duration-state) var(--ease-state),
+              scale var(--duration-state) var(--ease-state);
+}
+.icon-swap:not([data-active]) .icon-active,
+.icon-swap[data-active] .icon-inactive {
+  opacity: 0;
+  scale: 0.25;
+}
+```
+
+项目已用 Motion 时改用 `AnimatePresence mode="popLayout"` 加 `initial={false}`，语义相同；不为图标切换新增动效依赖。
+
 ## 按渲染尺寸设计
 
 - 每个图标都要在它实际最小的渲染尺寸（通常 16px）下检查是否仍可辨认；细内部线条和紧凑内白在小尺寸会糊成一团。

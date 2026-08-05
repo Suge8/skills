@@ -34,7 +34,7 @@ description: 产品 UI 的细节规范与打磨：统一控件尺寸、输入密
 - 默认水平 padding：`compact` 10–12px，`comfortable` 12–16px，`touch` 16–20px；图标按钮保持正方形。
 - 文字与图标间距 6–8px。不要因按钮含图标就额外放大高度。
 - 密度由 token 或组件 variant 控制，例如 `control-height`、`control-padding-x`、`icon-size`；禁止每个组件各写一套尺寸。
-- 同心圆角遵循 `outer radius = inner radius + padding`；圆角服务于组件层级，不随控件高度机械取满。
+- 同心圆角遵循 `outer radius = inner radius + padding`；两层间距超过 24px 时视为独立表面，各自取值不强套公式。圆角服务于组件层级，不随控件高度机械取满。
 
 ## 2. 排版与间距
 
@@ -147,7 +147,8 @@ description: 产品 UI 的细节规范与打磨：统一控件尺寸、输入密
 - 动画预算与操作频率成反比：键盘快捷键、命令面板开合等每日上百次的操作不加进出场动画；delight 只留给低频或首次体验。
 - 进出场和即时反馈默认缓出；屏内连续位移或形变使用 ease-in-out；匀速循环才使用 linear。需要即时响应的交互不用 ease-in。
 - Motion 必须表达状态、层级、方向或操作结果。静态内容不因“需要高级感”而自动入场。
-- Enter 与 exit 走同一空间路径；exit 通常为 enter 时长的 70–80%，距离更短。
+- 动效不得是唯一反馈通道：动画传达的状态变化必须同时有颜色、图标或文字等静态线索，reduced-motion 或错过动画的用户仍能得知结果。
+- Enter 与 exit 走同一空间路径；exit 通常为 enter 时长的 70–80%，距离更短。交互高频重复或退场不传递空间信息时，直接移除不播动画。
 - 动画必须从当前呈现值继续，可中断、反向且不排队。异步状态由事件、Promise、transitionend 或 observer 驱动。
 - 位移、缩放和进出场默认动画 transform/opacity；状态反馈可以过渡颜色。布局或材质属性仅在语义需要且目标设备验证流畅时使用。
 - `prefers-reduced-motion: reduce` 下取消位移、旋转、缩放、布局重排和 stagger 的插值过程，直接呈现终态；保留短 opacity/color 反馈。定义静态布局所需的 transform 可以保留。
