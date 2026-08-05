@@ -1,6 +1,6 @@
 ---
 name: ui-craft
-description: 产品 UI 的细节规范与打磨：统一控件尺寸、输入密度、表单标注、反馈、空态与渐进披露、排版和细节动效，包括 Popover、Dialog、Toast；也删除重复页眉、同义描述和显而易见的 UI 说明。用于已有界面打磨，也为新建界面提供尺寸与动效默认值；整体方向、设计系统和品牌页面用 impeccable。
+description: 产品 UI 的细节规范与打磨：统一控件尺寸、输入密度、表单标注、反馈、空态与渐进披露、排版和细节动效，包括 Popover、Dialog、Toast；也删除重复页眉、同义描述和显而易见的 UI 说明；用户点名 better-ui / better-colors / better-typography / better-accessibility 等 interfaces 参考时也用本 skill。用于已有界面打磨，也为新建界面提供尺寸与动效默认值；整体方向、设计系统和品牌页面用 impeccable。
 ---
 
 # UI Craft
@@ -16,6 +16,16 @@ description: 产品 UI 的细节规范与打磨：统一控件尺寸、输入密
 3. 原生桌面应用优先使用 AppKit、SwiftUI、WinUI 等系统控件尺寸；下表主要供 Web、Electron 和自绘界面使用。
 4. 同一界面只保留一个默认密度。组件因业务需要例外时，用语义变体，不散落魔法值。
 5. 窗口变宽时增加内容、列或面板，不按视口比例放大控件。
+
+### 深度参考路由（vendored，按需读取）
+
+| 触发 | 读取 |
+|---|---|
+| 点名 better-colors，或任务涉及调色板生成、OKLCH、对比度修复、gamut、主题色 | `reference/colors/index.md` |
+| 点名 better-typography，或任务涉及选字体配对、可变字体、OpenType、字阶体系 | `reference/typography/index.md` |
+| 点名 better-accessibility，或需要超出第 9 节的无障碍深查：焦点陷阱、ARIA 模式、读屏、live region | `reference/accessibility/index.md` |
+
+用户说“试试 better-ui / better-layout / better-writing”时不需额外读取：其增量已裁决并入本文，直接按本文执行；与本文冲突的上游固定值（如统一 scale 0.96、入场默认 blur）不采纳。三个 vendored 集合内部互引 better-* skill 的语句按此表映射到本地 reference 或本文对应章节。
 
 ## 1. 密度与控件尺寸
 

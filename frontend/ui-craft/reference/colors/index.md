@@ -1,8 +1,4 @@
----
-name: better-colors
-description: "OKLCH 色彩参考：调色板生成、对比度、gamut 处理与 Tailwind 主题。显式调用。"
-disable-model-invocation: true
----
+<!-- vendored from jakubkrehel/skills (MIT), commit a6733339; upstream skill: better-colors -->
 
 # OKLCH Colors
 

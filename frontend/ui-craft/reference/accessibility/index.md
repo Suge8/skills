@@ -1,8 +1,4 @@
----
-name: better-accessibility
-description: "无障碍工程参考：焦点与键盘、ARIA 语义、表单、读屏、命中区、动效与缩放。显式调用。"
-disable-model-invocation: true
----
+<!-- vendored from jakubkrehel/skills (MIT), commit a6733339; upstream skill: better-accessibility -->
 
 # Accessibility that comes with the craft
 

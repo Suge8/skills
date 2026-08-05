@@ -1,8 +1,4 @@
----
-name: better-typography
-description: "Web 排版参考：选字体与配对、可变字体、OpenType、字阶、换行截断、下划线与选区细节。显式调用。"
-disable-model-invocation: true
----
+<!-- vendored from jakubkrehel/skills (MIT), commit a6733339; upstream skill: better-typography -->
 
 # Great typography
 
