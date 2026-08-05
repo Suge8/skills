@@ -24,6 +24,7 @@ description: 产品 UI 的细节规范与打磨：统一控件尺寸、输入密
 | 点名 better-colors，或任务涉及调色板生成、OKLCH、对比度修复、gamut、主题色 | `reference/colors/index.md` |
 | 点名 better-typography，或任务涉及选字体配对、可变字体、OpenType、字阶体系 | `reference/typography/index.md` |
 | 点名 better-accessibility，或需要超出第 9 节的无障碍深查：焦点陷阱、ARIA 模式、读屏、live region | `reference/accessibility/index.md` |
+| 点名 better-interface，或要求整体/全面审查 | 按本文「审查输出》执行；逆向覆盖无障碍、排版、配色三域时分别读对应 `index.md`，发现合并为一份报告，不分域出六份 |
 
 用户说“试试 better-ui / better-layout / better-writing”时不需额外读取：其增量已裁决并入本文，直接按本文执行；与本文冲突的上游固定值（如统一 scale 0.96、入场默认 blur）不采纳。三个 vendored 集合内部互引 better-* skill 的语句按此表映射到本地 reference 或本文对应章节。
 
