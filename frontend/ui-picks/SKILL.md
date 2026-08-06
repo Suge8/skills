@@ -1,6 +1,6 @@
 ---
 name: ui-picks
-description: 个人 UI 库选型表：需要动效组件、canvas 特效、AI 聊天界面等能力时查表选库，按指定方式安装最新版本；用户说"选型库 / 我的库 / 用什么库"时也使用。
+description: 个人 UI 库选型表：需要动效组件、图标动效、canvas 特效、AI 聊天界面、字体搭配等能力时查表选库，按指定方式安装最新版本；用户说"选型库 / 我的库 / 用什么库"时也使用。
 ---
 
 # UI Picks
@@ -49,11 +49,24 @@ description: 个人 UI 库选型表：需要动效组件、canvas 特效、AI �
 - 安装：React `npm i @paper-design/shaders-react`；其他框架（Svelte/Vue/Solid 等）用零依赖核心包 `npm i @paper-design/shaders`，在挂载钩子里用 `ShaderMount` 对着容器元素初始化。官方 0.0.x 下会发 breaking change，必须 pin 精确版本。
 - 与 Canvas UI 分工：Paper Shaders 是纯背景/纹理层不承载交互；要 WebGL 效果覆盖可交互 DOM 才用 Canvas UI。
 
+### morphicons — SVG 图标 morph 动效（React / Vue / Svelte / RN / vanilla）
+
+- 任意 stroke 图标平滑变形到另一个（menu→X、play→pause 等），可中断弹簧物理，零配置零依赖 ~6-8KB；站点 [morphicons.com](https://www.morphicons.com)，机读 <https://www.morphicons.com/llms.txt>（完整 API 在 llms-full.txt）。
+- 安装：`npm i morphicons`，按框架取 `morphicons/react|vue|svelte|react-native|dom` 入口；图标以数据形式导入（装 `lucide` 包，不是 `lucide-react` 组件）。SSR 干净、默认 `aria-hidden`、自动尊重 reduced-motion。
+- 红线：只支持 stroke 图标（Lucide/Tabler/Heroicons outline/Iconoir 等）；filled 图标（Material Symbols、Phosphor fill）能解析但变形效果不对。非 24×24 网格的包先用 `fitIcon` 重排一次。
+
 ### assistant-ui — 产品内 AI 聊天界面（React/TS）
 
 - 线程、流式输出、Markdown、工具调用 UI 等 ChatGPT 级交互；站点 [assistant-ui.com](https://www.assistant-ui.com)，文档读 <https://www.assistant-ui.com/llms.txt>。
 - 安装：已有项目 `npx assistant-ui@latest init`，新项目 `npx assistant-ui@latest create`；或直接装 `@assistant-ui/react` + 对应 runtime 包（如 `@assistant-ui/react-ai-sdk`）。
 - 属于产品 UI：样式与密度对齐项目设计系统，不套库默认主题了事。
+
+### 字体来源 — Fontshare（拉丁）+ 中文免费梯队（CJK）
+
+- 拉丁标题/正文选型用 [fontshare.com](https://www.fontshare.com)：ITF 出品免费商用（Satoshi、General Sans、Clash Display 等），质量对标付费字体；接入走官方 API `<link>` 或下载 offline kit。
+- 红线：Closed Source 字体按 ITF FFL —— 禁改字体文件、禁再分发（含传给外包设计师）；全库无 CJK，中文界面只能做英文/数字层，必须配中文回退字体栈。
+- 中文选型直接用质量梯队：UI 正文选 MiSans / 阿里巴巴普惠体 3.0 / HarmonyOS Sans（大厂定制体，免费池屏显天花板）；标题出彩用得意黑（OFL，官方明确不适合正文和手机界面）；文艺/阅读用霞鹜文楷、思源宋体。新字体筛选看[猫啃网](https://www.maoken.com)；要 Fontshare 级惊艳只能走商业授权（字由/方正）。
+- 中文 webfont 必须分包（单文件 10-20MB）：自托管用 [中文网字计划](https://chinese-font.netlify.app/zh-cn/)的 `cn-font-split` 切包，或其字图 CDN（域名迁移中以官网为准）；它只当分包工具用，不当字体库逛——它的池子不做质量筛选。
 
 ## 加新库
 
