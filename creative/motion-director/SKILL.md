@@ -4,6 +4,7 @@ description: >
   运动优先的 AI 视频导演，把主题做成真动画而非 PPT 式讲解。用于用户给主题/想法/文章/脚本/brief
   要自由创作动画视频；以及定视觉隐喻、运动语法、场景节拍、组件选择、生图需求、HyperFrames/Remotion
   实现策略与反 PPT 质检时。
+disable-model-invocation: true
 metadata:
   provisional: true
 ---

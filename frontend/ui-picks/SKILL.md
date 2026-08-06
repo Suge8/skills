@@ -1,8 +1,6 @@
 ---
 name: ui-picks
 description: 个人 UI 库选型表：需要动效组件、canvas 特效、AI 聊天界面等能力时查表选库，按指定方式安装最新版本；用户说"选型库 / 我的库 / 用什么库"时也使用。
-metadata:
-  provisional: true
 ---
 
 # UI Picks
@@ -15,20 +13,34 @@ metadata:
 2. 先查 `package.json`。项目已用表内库直接用；已用竞品（如别的 chat UI 库）时提示本表推荐，但不擅自换依赖。
 3. 每个场景只推荐一个库，说明用途一句话，属于请求范围就直接安装接线。
 4. 特效层不得牺牲内容层：文字保持可选中、链接可点击、核心信息不依赖特效呈现。
-5. 装饰性动效仅限 brand/marketing 场景（落地页、portfolio、hero 的标志性时刻）；产品 UI、Dashboard、表单不用。落地后仍受 impeccable 反 AI 痕迹检查与 ui-craft 性能、reduced-motion 门禁约束。
+5. 装饰性动效不限场景：落地页、portfolio 之外，webapp、产品 UI 也可按需用，好看且服务体验即可；落地后仍受 impeccable 反 AI 痕迹检查与 ui-craft 性能、reduced-motion 门禁约束。
 
 ## 选型表
 
-### React Bits — 装饰性文字动画、动态背景、hero 特效
+### Amicro — 卡片编排微交互（React）
 
-- 站点 [reactbits.dev](https://reactbits.dev)；选组件先读 <https://reactbits.dev/llms.txt>，再从文档拉对应变体源码（JS/TS × CSS/Tailwind 四种）。
-- Copy-paste 分发，源码落进项目自由改；不装整库依赖。
-- Vue 用 [vue-bits](https://github.com/DavidHDev/vue-bits)，Svelte 用 [svelte-bits](https://github.com/DavidHDev/svelte-bits)，同作者同模式。
+- Cover-flow、扇形展开、arc、time-machine 等卡片空间编排和微转场；站点 [amicro.vercel.app](https://amicro.vercel.app)。
+- 获取：从站点组件页直接复制源码进项目（依赖 Motion）。官方 `npx @subhanhq/amicro@latest add` 实测不可用（npm 包无可执行入口，2026-08 验证），修复前不要用。
+- 无 llms.txt，文档是纯客户端渲染，选组件靠站点浏览。
+- 落地后按 ui-craft 的弹簧与空间连续性纪律收口（同一几何关系派生、可中断、reduced-motion）。
+
+### OriginKit — 文字动效 / 光标特效 / 图片画廊 / 背景动画（React / Framer）
+
+- 约 160 个免费动效组件：文字特效、光标特效、图片画廊、背景动画和 hero/features 等营销 sections；站点 [originkit.dev](https://www.originkit.dev)。
+- 获取：`npx originkit@latest add <compid>`（shadcn 式源码分发，落进 `components/originkit/`，deps 自动装，`add` 消耗账号 quota）；机读靠 MCP `https://mcp.originkit.dev/mcp`（list_components / get_component / search / fetch，可按 react/nextjs/vite 适配源码），无 llms.txt 和 registry.json。
+- 红线：产品处于 BETA；组件按 Framer 优先编写，React 侧落地后检查 Framer 绑定剥离干净（`"use client"`、no-op shim 无残留）。
+- 分工：Amicro 管卡片空间编排，Canvas UI 管 WebGL 覆盖交互 DOM，Paper Shaders 管纯背景纹理；文字/光标/画廊类动效归这里。
+
+### Fluid Functionalism — 成品感产品 UI 组件（React / shadcn registry）
+
+- 23 个产品 UI 组件（Button、Dialog、Select、Tabs、Table 等）含 AI 聊天视觉件（ChatMessage、ThinkingIndicator、ThinkingSteps、AskUserQuestions）；设计理念是动效传达语义、hover 即预览，与 ui-craft 门禁契合。
+- 获取：`npx shadcn@latest add https://www.fluidfunctionalism.com/r/<组件>.json`（源码复制分发）；机读清单读 <https://www.fluidfunctionalism.com/r/registry.json>（53 项，含 hooks 与 surface/spring token），不要用 `/r/base/` 路径（仅部分组件存在）。系统文档在 [fluidfunctionalism.com/docs](https://www.fluidfunctionalism.com/docs)，无 llms.txt。
+- 与 assistant-ui 分工：这里是纯视觉组件；需要线程、流式、工具调用等完整 chat runtime 时用 assistant-ui，两者可搭配。
 
 ### Canvas UI — WebGL / shader 特效叠在可交互的真实 DOM 上
 
 - 流体、火焰、玻璃、Shatter、VHS 等效果覆盖实时界面；站点 [canvasui.dev](https://canvasui.dev)，清单读 <https://canvasui.dev/llms.txt>。
-- 安装：`npx shadcn@latest add @canvas-ui/<组件>-react`（`react` 可换 `solid`/`vue`/`svelte`/`vanilla`）；也可把 shadcn MCP 指向该 registry。
+- 获取：`npx shadcn@latest add @canvas-ui/<组件>-react`（`react` 可换 `solid`/`vue`/`svelte`/`vanilla`）；也可把 shadcn MCP 指向该 registry。这是源码复制分发：组件落进 `components/canvasui/` 自由改，不把库装成依赖。
 - 红线：完整效果依赖实验性 html-in-canvas API（Chrome/Edge 140+ 且开 flag），其余浏览器降级为 WebGL overlay。上线前必须实测降级表现；移动端验证功耗与帧率。
 
 ### Paper Shaders — 轻量 shader 背景/纹理（mesh gradient、噪声、dot 等）
