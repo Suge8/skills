@@ -33,6 +33,8 @@ python3 /Users/sugeh/.agents/skills/creative/video-gen/scripts/seedance_video.py
 - `--resolution`：`480p`（默认，最省）/ `720p` / `1080p`
 - `--ratio`：`16:9`（默认）/ `9:16` / `1:1` / `adaptive`
 - `--no-audio`：默认带 AI 配音/音效，加此 flag 省掉
+- `--first-frame` / `--last-frame`：首/尾帧图片（本地路径或 URL，尾帧需搭配首帧）
+- `--ref`：参考图，可重复最多 9 张；与首尾帧互斥（网关限制）
 - 按量计费：默认 mini + 480p + 5 秒已是最省组合，用户要求高质量再升 `--resolution 720p` 或换模型
 
 长 prompt 两个脚本都可 pipe stdin。

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Generate an MP4 via Seedance (volc-native task API behind a new-api gateway)."""
 import argparse
+import base64
 import json
+import mimetypes
 import sys
 import time
 import urllib.error
@@ -58,6 +60,16 @@ def download(url: str, out: Path):
         out.write_bytes(response.read())
 
 
+def as_image_url(src: str) -> str:
+    if src.startswith(("http://", "https://", "data:", "asset://")):
+        return src
+    path = Path(src).expanduser().resolve()
+    if not path.is_file():
+        fail(f"image not found: {path}")
+    mime = mimetypes.guess_type(path.name)[0] or "image/png"
+    return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("prompt", nargs="?", help="video description; omit to read stdin")
@@ -68,6 +80,10 @@ def main():
     parser.add_argument("--ratio", default="16:9",
                         help="16:9 | 9:16 | 1:1 | 4:3 | 3:4 | 21:9 | adaptive")
     parser.add_argument("--no-audio", action="store_true")
+    parser.add_argument("--first-frame", help="image path or URL the video starts on")
+    parser.add_argument("--last-frame", help="image path or URL the video ends on")
+    parser.add_argument("--ref", action="append", default=[],
+                        help="reference image path or URL, repeatable (max 9)")
     parser.add_argument("--timeout", type=int, default=600, help="seconds (default 600)")
     args = parser.parse_args()
 
@@ -77,12 +93,28 @@ def main():
     out = Path(args.out).expanduser().resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
 
+    # 网关拒绝首尾帧与参考图混用
+    if args.ref and (args.first_frame or args.last_frame):
+        fail("--ref cannot be combined with --first-frame/--last-frame")
+    if args.last_frame and not args.first_frame:
+        fail("--last-frame requires --first-frame")
+    if len(args.ref) > 9:
+        fail("at most 9 --ref images")
+
+    images = [("first_frame", args.first_frame), ("last_frame", args.last_frame)]
+    images += [("reference_image", path) for path in args.ref]
+    content = [{"type": "text", "text": prompt}] + [
+        {"type": "image_url", "role": role, "image_url": {"url": as_image_url(src)}}
+        for role, src in images if src
+    ]
+
     base, key = load_config()
     created = json.loads(api(base, key, TASKS_PATH, {
         "model": args.model,
-        # 网关校验要求 prompt 字段，火山原生格式用 input 数组，双发保兼容
+        # 网关校验要求 prompt 字段，火山原生格式用数组，双发保兼容
         "prompt": prompt,
-        "input": [{"type": "text", "text": prompt}],
+        "input": content,
+        "content": content,
         "resolution": args.resolution,
         "ratio": args.ratio,
         "duration": args.duration,
