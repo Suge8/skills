@@ -7,7 +7,7 @@ description: "用公开 orca CLI 操作 Orca 应用：worktree、终端、仓库
 
 本文件是发现入口（stub），不是使用指南。完整且与版本匹配的 Orca CLI 参考由 `orca` 二进制自身提供——刻意不写进本文件，以免与真正执行命令的二进制脱节。
 
-当 Orca 运行中的编辑器/runtime 是事实源时使用 Orca：Orca 管理的 worktree、文件夹上下文、终端、仓库、automation、worktree 评论，以及 Orca 应用内嵌的浏览器。触发词包括 "$orca-cli"、"Orca worktree"、"子 worktree"、"在 worktree 里起 codex/claude"、"读/等/发 Orca 终端"、"完整交接（handoff/handover）"、"把这个交给另一个 agent"、"控制 Orca 里的浏览器"。与 Orca 状态无关时用普通 shell 工具。
+当 Orca 运行中的编辑器/runtime 是事实源时使用 Orca：Orca 管理的 worktree、文件夹上下文、终端、仓库、automation、worktree 评论，以及 Orca 应用内嵌的浏览器。在 worktree/终端里起 agent、或创建 automation 选 `--provider` 时，agent 与模型选型读 `~/.agents/docs/worker-preferences.md`（单一事实源）。触发词包括 "$orca-cli"、"Orca worktree"、"子 worktree"、"在 worktree 里起 codex/claude"、"读/等/发 Orca 终端"、"完整交接（handoff/handover）"、"把这个交给另一个 agent"、"控制 Orca 里的浏览器"。与 Orca 状态无关时用普通 shell 工具。
 
 ## 为本会话确定 CLI
 
