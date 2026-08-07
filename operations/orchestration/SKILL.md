@@ -5,60 +5,38 @@ description: "用 Orca orchestration 做受监督的多 agent 协调：任务 DA
 
 # Orca Orchestration
 
-This file is a discovery stub, not the usage guide. The full, version-matched Orca
-orchestration reference is served by the `orca` binary itself — kept out of this file on
-purpose so it can never drift from the binary that will actually run your commands.
+本文件是发现入口（stub），不是使用指南。完整且与版本匹配的 Orca orchestration 参考由 `orca` 二进制自身提供——刻意不写进本文件，以免与真正执行命令的二进制脱节。
 
-Engage Orca orchestration whenever you need structured multi-agent coordination: threaded
-messages, blocking ask/reply flows, task dispatch, worker_done/escalation waits, task DAGs,
-decision gates, coordinator loops, or decomposing work across agents. Use the orca-cli skill
-instead for full ownership handoffs ("hand off", "handoff", "handover", "give this to
-another agent", "another worktree") when the user did not ask to supervise, monitor, wait
-for results, or coordinate a DAG — and for ordinary terminal control, shell commands,
-worktree management, and the built-in browser. Coordination requires real Orca runtime
-state; never substitute a non-Orca subagent tool.
+需要结构化多 agent 协调时使用 Orca orchestration：消息线程、阻塞式 ask/reply、任务 dispatch、worker_done/escalation 等待、任务 DAG、decision gate、coordinator 循环，或把工作拆分给多个 agent。完整所有权交接（"hand off / handoff / handover / 交给另一个 agent / 另一个 worktree"）在用户没有要求监督、等待结果或协调 DAG 时用 orca-cli skill，普通终端控制、shell 命令、worktree 管理和内置浏览器也用 orca-cli。协调依赖真实的 Orca runtime 状态；绝不用非 Orca 的 subagent 工具替代。
 
-## Resolve the CLI for this session
+派发 worker 前，agent 与模型选型读 `~/.agents/docs/worker-preferences.md`（单一事实源）。
 
-Choose the executable once and reuse it for every later command:
+## 为本会话确定 CLI
 
-- If the `ORCA_CLI_COMMAND` environment variable is set, use its value. Orca exports this
-  for managed WSL sessions.
-- Otherwise, in a dev checkout whose session exposes `ORCA_DEV_REPO_ROOT`, use `orca-dev`.
-- Otherwise, on Linux outside an Orca-managed terminal, use `orca-ide`. Never run bare
-  `orca` there — outside Orca's terminals it normally resolves to the
-  GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.
-- Otherwise, use `orca`.
+只解析一次可执行文件，后续所有命令复用：
 
-Below, `ORCA` is a placeholder for the executable you resolved. Substitute it before
-running anything; do not create a shell variable or run `ORCA` literally. This works the
-same way in POSIX shells, PowerShell, and cmd.exe.
+- 设置了 `ORCA_CLI_COMMAND` 环境变量就用它的值。Orca 为受管 WSL 会话导出该变量。
+- 否则，在暴露 `ORCA_DEV_REPO_ROOT` 的开发检出会话里用 `orca-dev`。
+- 否则，在 Orca 受管终端之外的 Linux 上用 `orca-ide`。绝不要在那里裸跑 `orca`——在 Orca 终端之外它通常解析为 GNOME Orca 屏幕阅读器（`/usr/bin/orca`），会在用户机器上开始语音朗读。
+- 其余情况用 `orca`。
 
-If the selected executable cannot run, report its exact error and stop. Do not fall through
-to another executable, which could silently target a different Orca build.
+下文 `ORCA` 是已解析可执行文件的占位符。运行前先替换；不要创建 shell 变量，也不要按字面运行 `ORCA`。POSIX shell、PowerShell 和 cmd.exe 中同理。
 
-## Load the full guide before running Orca commands
+选定的可执行文件跑不起来就报告确切错误并停止。不要回落到其他可执行文件——那可能悄悄指向另一个 Orca 构建。
+
+## 运行 Orca 命令前先加载完整指南
 
 ```text
 ORCA skills get orchestration
 ```
 
-That prints the complete, version-matched guide for the exact binary that will handle your
-next commands — task creation and dispatch, injected lifecycle preambles, worker_done
-authority, decision gates, and coordinator loops. Read it first, then run the specific
-command you need.
+它会打印与即将处理命令的二进制完全匹配的完整指南——任务创建与 dispatch、注入的生命周期前导词、worker_done 权威、decision gate 和 coordinator 循环。先读它，再运行需要的具体命令。
 
-Don't guess subcommands or flags from memory or from a cached copy of this stub. They
-change between Orca releases, and this file deliberately no longer lists them. Confirm the
-app is up with `ORCA status --json` (start it with `ORCA open --json` if needed), and
-prefer `--json` for agent-driven calls.
+不要凭记忆或本 stub 的缓存副本猜子命令和参数。它们随 Orca 版本变化，本文件有意不再罗列。用 `ORCA status --json` 确认应用在运行（需要时用 `ORCA open --json` 启动），agent 调用优先加 `--json`。
 
-## If an older Orca does not recognize `skills get`
+## 旧版 Orca 不认识 `skills get` 时
 
-Use this fallback only when the selected binary explicitly reports that `skills get` is an
-unknown command. Another failure is not proof of an older binary; report it rather than
-guessing or changing executables. For a confirmed pre-guide binary, use only this bounded,
-read-only bootstrap to orient. Do not dead-end and do not invent commands:
+仅当选定的二进制明确报告 `skills get` 是未知命令时才用此回退。其他失败不能证明是旧二进制；如实报告，不要猜测或更换可执行文件。对确认的旧版二进制，只用下面这组有界、只读的引导命令定位现状。不要卡死，也不要发明命令：
 
 ```text
 ORCA status --json
@@ -66,6 +44,4 @@ ORCA orchestration task-list --json
 ORCA terminal list --json
 ```
 
-Then tell the user that updating Orca restores the full, version-matched guide via
-`ORCA skills get orchestration`. Beyond these commands, ask the user rather than guessing a
-command surface this older binary may not support.
+然后告诉用户：升级 Orca 后可通过 `ORCA skills get orchestration` 恢复完整的版本匹配指南。超出这些命令的操作问用户，不要猜这个旧二进制可能不支持的命令面。
