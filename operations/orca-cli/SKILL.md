@@ -1,9 +1,6 @@
 ---
 name: orca-cli
-description: "用公开 orca CLI 操作 Orca 应用：worktree、终端、仓库、automation 和内嵌浏览器；用户说 $orca、要在 Orca 里开 worktree/终端、读取或等待终端输出、做完整所有权交接（handoff）时使用。受监督的多 agent 协调用 orchestration；Orca 之外的桌面 UI 用 better-computer-use。"
-disable-model-invocation: true
-metadata:
-  provisional: true
+description: "用公开 orca CLI 操作 Orca 应用：worktree、终端、仓库、automation 和内嵌浏览器；用户说 $orca、要在 Orca 里开 worktree/终端、读取终端输出、做所有权交接（handoff）时使用。受监督的多 agent 协调用 orchestration；Orca 之外的桌面 UI 用 bcu。"
 ---
 
 # Orca CLI

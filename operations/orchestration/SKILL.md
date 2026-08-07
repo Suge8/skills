@@ -1,9 +1,6 @@
 ---
 name: orchestration
-description: "用 Orca orchestration 做受监督的多 agent 协调：任务 DAG、dispatch、worker_done/escalation 等待、阻塞式 ask/reply、decision gate 和 coordinator 循环；用户明确要求监督、等待 worker 结果或协调任务依赖时使用。完整所有权交接和普通终端控制用 orca-cli；需要 Orca runtime 并开启实验特性。"
-disable-model-invocation: true
-metadata:
-  provisional: true
+description: "用 Orca orchestration 做受监督的多 agent 协调：任务 DAG、dispatch、worker_done/escalation、阻塞式 ask/reply、decision gate 和 coordinator 循环；用户明确要求监督 worker、汇总 worker_done 或协调任务依赖时用。worker 选型读 ~/.agents/docs/worker-preferences.md。所有权交接和普通终端控制用 orca-cli。"
 ---
 
 # Orca Orchestration
