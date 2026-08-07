@@ -33,15 +33,3 @@ ORCA skills get orchestration
 它会打印与即将处理命令的二进制完全匹配的完整指南——任务创建与 dispatch、注入的生命周期前导词、worker_done 权威、decision gate 和 coordinator 循环。先读它，再运行需要的具体命令。
 
 不要凭记忆或本 stub 的缓存副本猜子命令和参数。它们随 Orca 版本变化，本文件有意不再罗列。用 `ORCA status --json` 确认应用在运行（需要时用 `ORCA open --json` 启动），agent 调用优先加 `--json`。
-
-## 旧版 Orca 不认识 `skills get` 时
-
-仅当选定的二进制明确报告 `skills get` 是未知命令时才用此回退。其他失败不能证明是旧二进制；如实报告，不要猜测或更换可执行文件。对确认的旧版二进制，只用下面这组有界、只读的引导命令定位现状。不要卡死，也不要发明命令：
-
-```text
-ORCA status --json
-ORCA orchestration task-list --json
-ORCA terminal list --json
-```
-
-然后告诉用户：升级 Orca 后可通过 `ORCA skills get orchestration` 恢复完整的版本匹配指南。超出这些命令的操作问用户，不要猜这个旧二进制可能不支持的命令面。
