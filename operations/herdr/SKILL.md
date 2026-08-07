@@ -129,11 +129,11 @@ herdr agent start reviewer --kind pi --pane <returned-pane-id> -- <agent-args...
 herdr agent prompt reviewer "审查当前 diff，只报告可执行的发现。" --wait --timeout 120000
 ```
 
-代码审查优先用 pi 内置的 flow 插件：发送 `/review` 激活对抗性审查循环，自动多轮优化；期间可随时插话调整方向，发 esc 停止循环：
+代码审查优先用 pi 内置的 flow 插件：发送 `/review` 激活对抗性审查循环，自动多轮优化；期间可随时插话调整方向。循环运行时 flow 拦截 pi 的中断键位，发 esc 或 ctrl+c 都能停止循环：
 
 ```bash
 herdr agent prompt reviewer "/review" --wait --timeout 300000
-herdr agent send-keys reviewer esc
+herdr agent send-keys reviewer esc   # 或 ctrl+c
 ```
 
 `agent prompt` 会按 pane 的实时 bracketed-paste 模式原子地提交文本和编码后的回车。常规工作用 `--wait` 就够：它等待第一个稳定的 `idle`、`done` 或 `blocked` 状态。不要用 `--until` 重复这些默认值。
