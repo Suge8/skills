@@ -202,6 +202,22 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 - 两个及以上 worker 时，一个 worker 一个命名 tab（`herdr tab create`，tab 名与 agent 名一致），不要把多个 worker 挤进同一 tab 的分屏——手机端 Collie 按 Space→Tab 导航，命名 tab 直接对应推送里的名字。单个临时 helper 仍按上文兄弟 pane 处理；此规则优先于「不要创建 tab」的默认约束。
 - 会改代码的 worker 各自隔离到独立 git worktree（语法现查 `herdr worktree`，或直接 `git worktree add`），pane 的 cwd 指向该 worktree；多个 worker 禁止共享同一 checkout，否则必然互踩。
 - 验收通过后清理：关闭该 worker 的 tab/pane（只关自己创建的）并删除其临时 worktree，保持牧群只显示活跃工作；需要留存的调试现场按用户要求保留。
+- supervisor 静默不等于没事件：工作树有新改动或进程在吃 CPU 但收不到消息时，主动 `herdr agent list` + `agent read` 对账，别猜「worker 在慢慢干」。
+
+### 验收纪律（工具无关，源自 Orca 时期实战）
+
+指挥官不逐行读 diff——那是最弱的验证，也不扩展。按项分工具：
+
+- 机械项一条命令判：commit body 非空、改动清单没夹带、worker 报的验证命令裸退出码。
+- 代码质量派对抗性 review（`/review`），指挥官读结论、裁分歧。触发条件：改动碰门禁/发布/安全/共享契约，或新增了别人会依赖的不变量。
+- 行为正确性交给测试与 CI，不在本地复跑一遍；收益类主张必须由实测数字兑现，估计值不许写进永久记录。
+- 只剩三件事必须指挥官自己判：新引入的失败面有没有守门、跨 worker 会不会打架、要不要打回。
+
+### PR 与任务书（工具无关，源自 Orca 时期实战）
+
+- worker「完成」= 本地提交 + 送审（diff 摘要 + commit message 全文 + 验证证据），默认禁止自行 push 或开 PR；审完只有打回或放行两个出口。
+- 打回给判据不给答案，否则 worker 的独立验证价值归零。已推才发现问题：`--amend` + `--force-with-lease`，不关闭重开（会丢评论线程与 CI 历史）。
+- 派活前自问「我会拿哪些判据打回」，凡是会打回的都写进任务书并给范例来源（如「先看 `git log origin/main -5` 的提交信息格式」）。同一缺陷在多个 worker 身上同时出现，是任务书的缺陷不是 worker 的——修模板，别逐个纠正。
 
 ## 安全与协作规则
 
