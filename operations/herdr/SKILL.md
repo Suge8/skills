@@ -199,8 +199,8 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 - 每次开始处理用户消息、或完成一件事后，先跑一次 `herdr agent list` 扫全部 worker 状态；有 `blocked` 优先处理，有 `done` 验收。
 - 收到 `[herdr-supervisor]` 消息（来自 `~/.pi/agent/extensions/herdr-supervisor.ts`，仅在本 Pi 运行于 Herdr 受管 pane 时激活）：按消息列出的 worker 逐个 `herdr agent read <名称>` 查看现场，再决定 prompt 纠偏、`/review`、验收或收尾；处理完不要重复轮询。
 - worker 选型与 `/review` 发送规则读 `~/.agents/docs/worker-preferences.md`。
-- 两个及以上 worker 时，一个 worker 一个命名 tab（`herdr tab create`，tab 名与 agent 名一致），不要把多个 worker 挤进同一 tab 的分屏——手机端 Collie 按 Space→Tab 导航，命名 tab 直接对应推送里的名字。单个临时 helper 仍按上文兄弟 pane 处理；此规则优先于「不要创建 tab」的默认约束。
-- 会改代码的 worker 各自隔离到独立 git worktree（语法现查 `herdr worktree`，或直接 `git worktree add`），pane 的 cwd 指向该 worktree；多个 worker 禁止共享同一 checkout，否则必然互踩。
+- 两个及以上 worker 时，一个 worker 一个命名 tab（`herdr tab create --workspace "$HERDR_WORKSPACE_ID"`，tab 名与 agent 名一致），不要把多个 worker 挤进同一 tab 的分屏——手机端 Collie 按 Space→Tab 导航，命名 tab 直接对应推送里的名字。tab/worktree 等创建类命令省略 `--workspace` 会落到 UI 聚焦的 workspaceＭＭ那可能是用户正在看的别处（踩过：worker tab 开进了用户的 .ssh workspace）。单个临时 helper 仍按上文兄弟 pane 处理；此规则优先于「不要创建 tab」的默认约束。
+- 会改代码的 worker 各自隔离到独立 git worktree，优先 `herdr worktree create --workspace "$HERDR_WORKSPACE_ID"`（路径由 Herdr 管理，语法现查 `herdr worktree`）；用裸 `git worktree add` 时路径放 /tmp 或仓库旁目录。pane 的 cwd 指向该 worktree；多个 worker 禁止共享同一 checkout，否则必然互踩。
 - 验收通过后清理：关闭该 worker 的 tab/pane（只关自己创建的）并删除其临时 worktree，保持牧群只显示活跃工作；需要留存的调试现场按用户要求保留。
 - supervisor 静默不等于没事件：工作树有新改动或进程在吃 CPU 但收不到消息时，主动 `herdr agent list` + `agent read` 对账，别猜「worker 在慢慢干」。
 
