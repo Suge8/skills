@@ -25,7 +25,7 @@
 ```bash
 ./bin/flow-browser doctor          # 只读检查，不启动浏览器
 ./bin/flow-browser doctor --start  # 显式启动后检查
-FLOW_BROWSER_HEADED=1 ./bin/flow-browser-start  # 仅限存登录态到专属 profile / 反爬需真窗口；其他“要看”场景走 Orca（见 SKILL.md 选择浏览器）
+FLOW_BROWSER_HEADED=1 ./bin/flow-browser-start  # 存登录态到专属 profile / 反爬需真窗口 / 用户要在 agent 会话里看（见 SKILL.md 选择浏览器）
 ```
 
 ## 打开 / Tab

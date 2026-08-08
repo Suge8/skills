@@ -1,7 +1,7 @@
 ---
 name: flow-browser-use
-description: 操作和调试已知网页：用专属浏览器打开页面，支持登录态、导航、点击、填写、DOM、截图、console、network 和前端问题排查；用户要亲眼看、预览 dev server 或手机上看时走 Orca 内嵌浏览器分支。
-allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bash(./bin/flow-browser-console:*), Bash(./bin/flow-browser-sync-profile:*), Bash(agent-browser:*), Bash(/Applications/Orca.app/Contents/Resources/bin/orca:*)
+description: 操作和调试已知网页：用专属浏览器打开页面，支持登录态、导航、点击、填写、DOM、截图、console、network 和前端问题排查；用户要亲眼看或预览 dev server 时走有头分支。
+allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bash(./bin/flow-browser-console:*), Bash(./bin/flow-browser-sync-profile:*), Bash(agent-browser:*)
 ---
 
 # Flow Browser Use
@@ -13,9 +13,9 @@ allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bas
 | 场景 | 用 |
 |---|---|
 | 后台自动化 / 登录态 / 反爬 / 抓取（默认） | flow-browser（无头 CloakBrowser） |
-| 用户要看：预览 dev server、亲眼看流程、手机上看、人工解验证码 | Orca 内嵌浏览器（pane 开 tab，不抢视口，见下节） |
+| 用户要看：预览 dev server、亲眼看流程 | 纯预览用 `open <url>` 开在用户默认浏览器；需要 agent 登录态或人工解验证码用 `FLOW_BROWSER_HEADED=1` |
 | 纯净隔离测试 / 完整未捕获异常排障 | `agent-browser --session <name>`（自带 Chromium） |
-| 给专属 profile 存密码登录态 / 反爬必须真窗口 | `FLOW_BROWSER_HEADED=1`（唯一还需要有头 CloakBrowser 的场景） |
+| 给专属 profile 存密码登录态 / 反爬必须真窗口 | `FLOW_BROWSER_HEADED=1`（有头 CloakBrowser） |
 
 ## 入口
 
@@ -60,20 +60,6 @@ start → open/tab → snapshot -i → network/console 兑底检查 → action �
 - 命令速查 [references/commands.md](references/commands.md)；参数不确定读 `agent-browser skills get core --full`；系统性 QA 读 `skills get dogfood`；Electron 读 `skills get electron`。
 - `./bin/flow-browser doctor`（只读，不启动）/ `doctor --start`（验证启动链）；输出 OK/WARN/FAIL，WARN 不是失败。
 - 登录态过期：`./bin/flow-browser stop` 后 `./bin/flow-browser-sync-profile --force`，重新 start 生效。用户的日常 Helium **无需退出**（SQLite 在线快照 + Cookie 密钥转录）；首次同步会弹两次 Keychain 授权。密码（Login Data）不同步，需要密码的站点用 `FLOW_BROWSER_HEADED=1` 登录一次即持久保留。改源/目标用 `FLOW_BROWSER_SOURCE_PROFILE` / `FLOW_BROWSER_PROFILE`。
-
-## Orca 预览（给用户看的页面）
-
-用户要亲眼看、手机远程看、预览 dev server、人工解验证码时，不用有头 CloakBrowser，直接开进 Orca 内嵌浏览器（桌面 pane + 手机 app 原生可见，带 Web/Mobile 视口切换；用户可直接在 pane 里点选交互）：
-
-```bash
-ORCA=/Applications/Orca.app/Contents/Resources/bin/orca
-$ORCA tab create --url <url> --json    # 开进当前 worktree 的浏览器 pane
-$ORCA snapshot --json                  # 后续 goto/click/fill/wait/screenshot 同 agent-browser 语义，加 --json
-$ORCA console --limit 50 --json        # 标准 Chromium，console/network 完整可用
-```
-
-- tab 作用域是当前 worktree；`orca status --json` 可验 Orca 在跑，Orca 未运行则回退 flow-browser。
-- 它是用户 UI 的一部分：只开用户要看的页面，不做高频自动化轰炸；不要顺手关用户还在看的 tab。
 
 ## 定位 fallback 与 CDP 逃生舱
 
