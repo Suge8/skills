@@ -12,7 +12,7 @@ description: "仅当用户明确要求使用归档 skill 时触发；查看 arch
 - `archived-skills/creative/`：文案、README、图像。
 - `archived-skills/development/`：开发、调试、工程治理、skill 维护。
 - `archived-skills/frontend/`：UI、React、shadcn、Magic UI。
-- `archived-skills/operations/`：SSH、1Panel、服务器运维。
+- `archived-skills/operations/`：SSH、1Panel、服务器运维、Orca 编排（orca-cli/orchestration）。
 - `archived-skills/search/`：浏览器、代码库、文档、网络搜索。
 - `archived-skills/office/`：PDF、Office、Obsidian。
 
