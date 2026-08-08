@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: "控制 Herdr 终端复用器：仅当用户明确提到 herdr，要求查看或控制它的 workspace、tab、pane 分屏布局、命令进程或 pane 里运行的 agent 时使用；不要仅因任务想要后台终端、委派或并行就触发；需要在受管 pane 内运行（HERDR_ENV=1）。"
+description: "控制 Herdr 终端复用器：用户提到 herdr，要求查看或控制它的 workspace、tab、pane 分屏布局、命令进程或 pane 里的 agent 时使用；要派多个 worker 并行干活、委派开发任务、监督验收 worker 或汇总完成结果时也使用；单纯想后台跑一条命令不触发；需要在受管 pane 内运行（HERDR_ENV=1）。"
 ---
 
 # Herdr
