@@ -31,3 +31,14 @@ ORCA skills get orca-cli
 它会打印与即将处理命令的二进制完全匹配的完整指南——worktree、交接、终端、automation 和内置浏览器。先读它，再运行需要的具体命令。
 
 不要凭记忆或本 stub 的缓存副本猜子命令和参数。它们随 Orca 版本变化，本文件有意不再罗列。用 `ORCA status --json` 确认应用在运行（需要时用 `ORCA open --json` 启动），agent 调用优先加 `--json`。
+
+## TUI 原生 slash 命令（本地经验）
+
+`/review` 等命令由目标 TUI 解析，必须作为一条独立输入原样发送。先确认目标 handle 并等待 TUI 空闲，再用直接终端输入：
+
+```text
+ORCA terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
+ORCA terminal send --terminal <handle> --text "/review" --enter --json
+```
+
+`--text` 只能包含 slash 命令及其参数。禁止拼接说明、任务上下文、Markdown 或 Orca 生命周期前导词；禁止把 slash 命令放进 `worktree create --prompt`、`task-create --spec`、`orchestration dispatch --inject` 或 orchestration 消息后期待它被解析。`--inject` 会包装任务和生命周期说明，不是原样终端输入。受监督任务先单独建立 orchestration 生命周期，等 TUI 再次空闲后另发 slash 命令。后续回答也分开发送，不与 slash 命令合并。
