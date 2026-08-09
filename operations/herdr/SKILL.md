@@ -213,6 +213,7 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
   接续最近会话；跨目录用 `pi --session <jsonl路径>`；保留原件分叉用 `pi --fork`。
   恢复后第一句必须对齐磁盘状态（告知「你的 PR 已合并/现场是重建的」），否则 agent 按过时
   记忆行动。早关的真实代价因此是「一次恢复操作 + 状态对齐」，不是上下文永久丢失。
+- worker 叙事与状态冲突时信状态：正文说「已开工/继续做」但 agent_status=idle 就是已停——宣布计划不等于执行，按未完成处理（催动或打回）。踩过：worker 宣布 PR 计划后未执行即停，指挥官把该完成推送误判为质检轮间隙噪音，双向空等死锁。
 - supervisor 静默不等于没事件：工作树有新改动或进程在吃 CPU 但收不到消息时，主动 `herdr agent list` + `agent read` 对账，别猜「worker 在慢慢干」。
 
 ### 验收纪律（工具无关，源自 Orca 时期实战）
