@@ -132,7 +132,7 @@ herdr agent prompt reviewer "/review" --wait --timeout 300000
 herdr agent send-keys reviewer esc   # 或 ctrl+c
 ```
 
-`agent prompt` 会按 pane 的实时 bracketed-paste 模式原子地提交文本和编码后的回车。常规工作用 `--wait` 就够：它等待第一个稳定的 `idle`、`done` 或 `blocked` 状态。不要用 `--until` 重复这些默认值。
+`agent prompt` 会按 pane 的实时 bracketed-paste 模式原子地提交文本和编码后的回车；对 working 中的 agent 也可提交（排队语义），给忙碌 worker 追加指令无需等 idle。常规工作用 `--wait` 就够：它等待第一个稳定的 `idle`、`done` 或 `blocked` 状态。不要用 `--until` 重复这些默认值。
 
 从非 working 状态发出的 prompt 必须在五秒内产生可观测的生命周期变化，否则 Herdr 返回 `agent_prompt_stalled` 而不是无限等待。这个等待跟踪的是生命周期状态而非单个回合：如果 agent 已在工作，当前回合的完成也可能满足它。
 
@@ -187,9 +187,9 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 
 颜色和终端样式本身是证据时用 `--format ansi`，否则用 text。
 
-`--lines` 会向 Herdr 请求 pane 可用屏幕和宿主回滚缓冲中的更多行。如果增大它也看不到已完成回复的更多内容，pane 里的 agent 很可能运行在终端备用屏上：离开备用屏的行不会进入 Herdr 的宿主回滚缓冲，加大行数也找不回来。
+`--lines` 会向 Herdr 请求 pane 可用屏幕和宿主回滚缓冲中的更多行。全屏 agent（备用屏）的历史 0.8.0 起可自动读取：agent 处于 idle 且请求行数超过可见屏幕时，`agent read --lines N` 会自动滚屏收集完整历史并复位视口；agent 在 working/blocked/unknown 时返回 `agent_not_idle`——等 idle 重试或改用 `--source visible`。
 
-读取失败后，让 agent 把完整回复以 Markdown 写入临时目录并只回复文件路径，然后直接读文件。这只是兜底手段，不要在最初的 prompt 里就要求文件输出。
+仍读不全时，让 agent 把完整回复以 Markdown 写入临时目录并只回复文件路径，然后直接读文件。这只是兜底手段，不要在最初的 prompt 里就要求文件输出。
 
 ## 多 worker 协调（本地经验）
 
@@ -199,7 +199,7 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 
 - 永不 wait-loop：不要用阻塞的 `agent wait` 占住自己的回合等 worker。派发后直接结束当前工作或回应用户。
 - 每次开始处理用户消息、或完成一件事后，先跑一次 `herdr agent list` 扫全部 worker 状态；有 `blocked` 优先处理，有 `done` 验收。
-- 收到 `[herdr-supervisor]` 消息（来自 `~/.pi/agent/extensions/herdr-supervisor.ts`，仅在本 Pi 运行于 Herdr 受管 pane 时激活）：按消息列出的 worker 逐个 `herdr agent read <名称>` 查看现场，再决定 prompt 纠偏、`/review`、验收或收尾；处理完不要重复轮询。依赖它前必须知道的运行条件：① 扩展在会话启动时加载，会话早于扩展安装/改动的要先 `/reload` 再指望它唤醒；② 它只监督本 workspace 的 worker（与「worker 开在指挥官自己 workspace」纪律配套），跨 workspace 的事件不投递；③ 命名 worker 连续 working 超阈值（默认 30 分钟）无任何状态转换会收到疑似卡死通知——先 read 现场判断是真卡死（如僵尸 CI watch）还是长任务，再决定打断或继续等；④ 只有命名 worker（`agent start` 起的名）的完成会被推送，用户看没看过其 tab 都推；未命名 pane（用户自己的会话）永不推送——所以 worker 必须用 `agent start` 命名启动，不要徒手在 pane 里敲 `pi`。
+- 收到 `[herdr-supervisor]` 消息（来自 `~/.pi/agent/extensions/herdr-supervisor.ts`，仅在本 Pi 运行于 Herdr 受管 pane 时激活）：按消息列出的 worker 逐个 `herdr agent read <名称>` 查看现场，再决定 prompt 纠偏、`/review`、验收或收尾；处理完不要重复轮询。依赖它前必须知道的运行条件：① 扩展在会话启动时加载，会话早于扩展安装/改动的要先 `/reload` 再指望它唤醒；② 它只监督本 workspace 的 worker（与「worker 开在指挥官自己 workspace」纪律配套），跨 workspace 的事件不投递；③ 命名 worker 连续 working 超阈值（默认 30 分钟）无任何状态转换会收到疑似卡死通知——先 read 现场判断是真卡死（如僵尸 CI watch）还是长任务，再决定打断或继续等；④ 只有命名 worker（`agent start` 起的名）的完成会被推送，用户看没看过其 tab 都推；未命名 pane（用户自己的会话）永不推送——所以 worker 必须用 `agent start` 命名启动；接手手动开的会话用 `herdr agent rename <pane_id> <name>` 命名，即纳入推送与看门狗。
 - worker 选型与 `/review` 发送规则读 `~/.agents/docs/worker-preferences.md`。
 - 两个及以上 worker 时，一个 worker 一个命名 tab（`herdr tab create --workspace "$HERDR_WORKSPACE_ID"`，tab 名与 agent 名一致），不要把多个 worker 挤进同一 tab 的分屏——手机端 Collie 按 Space→Tab 导航，命名 tab 直接对应推送里的名字。tab/worktree 等创建类命令省略 `--workspace` 会落到 UI 聚焦的 workspace——那可能是用户正在看的别处（踩过：worker tab 开进了用户的 .ssh workspace）。单个临时 helper 仍按上文兄弟 pane 处理；此规则优先于「不要创建 tab」的默认约束。
 - 会改代码的 worker 各自隔离到独立 git worktree，优先 `herdr worktree create --workspace "$HERDR_WORKSPACE_ID"`（路径由 Herdr 管理，语法现查 `herdr worktree`）；用裸 `git worktree add` 时路径放 /tmp 或仓库旁目录。pane 的 cwd 指向该 worktree；多个 worker 禁止共享同一 checkout，否则必然互踩。
