@@ -193,6 +193,8 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 
 ## 多 worker 协调（本地经验）
 
+用户要无人值守长跑（「过夜跑」「我睡了」「挂机推进到底」）：读 [references/overnight.md](references/overnight.md)，按该框架接管全程。
+
 协调多个 worker 时的纪律：
 
 - 永不 wait-loop：不要用阻塞的 `agent wait` 占住自己的回合等 worker。派发后直接结束当前工作或回应用户。
