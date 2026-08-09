@@ -198,6 +198,7 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 协调多个 worker 时的纪律：
 
 - 永不 wait-loop：不要用阻塞的 `agent wait` 占住自己的回合等 worker。派发后直接结束当前工作或回应用户。
+- 等外部事件（CI/部署/长构建）不空等也不轮询：后台 shell 链桥接 `nohup sh -c '<阻塞等待命令>; herdr agent prompt <需要结果的 agent> "<事件>已出结果，去收"' &`——把外部完成翻译成定向唤醒，唤醒对象通常是自己。终局任务必须挂桥：全场再无其他事件源时，结果落地无人接。
 - 每次开始处理用户消息、或完成一件事后，先跑一次 `herdr agent list` 扫全部 worker 状态；有 `blocked` 优先处理，有 `done` 验收。
 - 收到 `[herdr-supervisor]` 消息（来自 `~/.pi/agent/extensions/herdr-supervisor.ts`，仅在本 Pi 运行于 Herdr 受管 pane 时激活）：按消息列出的 worker 逐个 `herdr agent read <名称>` 查看现场，再决定 prompt 纠偏、`/review`、验收或收尾；处理完不要重复轮询。依赖它前必须知道的运行条件：① 扩展在会话启动时加载，会话早于扩展安装/改动的要先 `/reload` 再指望它唤醒；② 它只监督本 workspace 的 worker（与「worker 开在指挥官自己 workspace」纪律配套），跨 workspace 的事件不投递；③ 命名 worker 连续 working 超阈值（默认 30 分钟）无任何状态转换会收到疑似卡死通知——先 read 现场判断是真卡死（如僵尸 CI watch）还是长任务，再决定打断或继续等；④ 只有命名 worker（`agent start` 起的名）的完成会被推送，用户看没看过其 tab 都推；未命名 pane（用户自己的会话）永不推送——所以 worker 必须用 `agent start` 命名启动；接手手动开的会话用 `herdr agent rename <pane_id> <name>` 命名，即纳入推送与看门狗。
 - worker 选型与 `/review` 发送规则读 `~/.agents/docs/worker-preferences.md`。
