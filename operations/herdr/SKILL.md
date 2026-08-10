@@ -108,8 +108,12 @@ herdr pane split --current --direction right --cwd "$PWD" --no-focus
 可用的 shell pane 必须停在交互式提示符：shell 本身在前台，没有前台命令、编辑器或 agent 在跑。用一个有意义的唯一名称在该 pane 启动 agent。kind 与模型选型读 `~/.agents/docs/worker-preferences.md`（单一事实源）。
 
 ```bash
-herdr agent start reviewer --kind pi --pane <returned-pane-id>
+herdr agent start reviewer --kind pi --pane <returned-pane-id> -- --name "↳审查改动"
 ```
+
+pi 的 `--name` 设置会话名，`↳` 标记子代理身份，后面写这个 worker 在做什么。侧栏第二行渲染成 `reviewer · ↳审查改动`：左边的 herdr 名和第一行的 workspace 已经表达了身份与归属，会话名只补「在干什么」，别重复。侧栏宽 26 列且中文双宽，任务描述控制在 4-6 个中文字，超出从尾部截断。
+
+从返回的 `.result.agent.agent_session.value` 记下会话文件路径。这是 worker 的永久身份证：pane、tab、worktree 全没了它还在，恢复时靠它精确定位。
 
 运行 `herdr agent` 查看已安装的 kind 列表和选项。原生 agent 参数只放在 `--` 之后：
 
