@@ -216,8 +216,12 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
   踩过：8021 行删除的 worker 在 post-merge 还在排队时被释放连带 worktree 删除。
   清理时只关自己创建的 tab/pane；需要留存的调试现场按用户要求保留。
 - 关闭 pane / 删除 worktree **不等于**丢失 worker：pi 会话按目录持久化在
-  `~/.pi/agent/sessions/`（删 worktree 不影响）。恢复：重建同路径 worktree 后在其内 `pi -c`
-  接续最近会话；跨目录用 `pi --session <jsonl路径>`；保留原件分叉用 `pi --fork`。
+  `~/.pi/agent/sessions/`（删 worktree 不影响）。恢复一律用派活时记下的会话路径：
+  `pi --session <完整 jsonl 路径>`。完整路径在任意目录都直接原地打开，不提示不复制；只想翻记录
+  不必重建 worktree，要原地继续干活则先重建同路径 worktree；保留原件分叉用 `pi --fork`。
+  `pi -c` 只是兜底：它取当前目录下 mtime 最新的会话，目录里有多个会话或原进程可能还活着时
+  会接错，只在手头没路径且确认目录只有一个已退出会话时用。光有 UUID 而跨目录时 pi 会问
+  要不要 fork 到当前目录，不会原地打开。
   恢复后第一句必须对齐磁盘状态（告知「你的 PR 已合并/现场是重建的」），否则 agent 按过时
   记忆行动。早关的真实代价因此是「一次恢复操作 + 状态对齐」，不是上下文永久丢失。
 - worker 叙事与状态冲突时信状态：正文说「已开工/继续做」但 agent_status=idle 就是已停——宣布计划不等于执行，按未完成处理（催动或打回）。踩过：worker 宣布 PR 计划后未执行即停，指挥官把该完成推送误判为质检轮间隙噪音，双向空等死锁。
