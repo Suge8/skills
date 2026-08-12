@@ -1,6 +1,6 @@
 ---
 name: diagnose
-description: 针对 bug 和性能回归的纪律化诊断。复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试。用于描述性能回归时及所有需要 debug，诊断，排查时
+description: 针对 bug 和性能回归的纪律化诊断。复现 → 最小化 → 假设 → 插桩 → 修复 → 回归验证。用于描述性能回归时及所有需要 debug，诊断，排查时
 ---
 
 # Diagnose
@@ -17,7 +17,9 @@ bug 的纪律。只有在明确说明理由时才跳过阶段。
 
 ### 构造闭环的方法 —— 大致按这个顺序尝试
 
-1. **失败测试**，放在能触达 bug 的任何 seam —— unit、integration、e2e。
+优先复用最接近真实故障的现有信号；没有再构造一次性闭环，不为获得红灯先添加持久测试。
+
+1. 运行能触达 bug 的现有 unit、integration 或 e2e 测试。
 2. 对运行中的 dev server 使用 **Curl / HTTP script**。
 3. 用 fixture input 做 **CLI invocation**，把 stdout 和 known-good snapshot 做 diff。
 4. **Headless browser script**（Playwright / Puppeteer / Browser Dev）—— 驱动 UI，断言 DOM/console/network。
@@ -87,28 +89,27 @@ bug 的纪律。只有在明确说明理由时才跳过阶段。
 
 Perf branch。对性能回归，logs 通常是错工具。改为：建立 baseline measurement（timing harness、`performance.now()`、profiler、query plan），然后 bisect。先测量，再修。
 
-## Phase 5 — Fix + regression test
+## Phase 5 — Fix + regression protection
 
-在 fix 前写 regression test —— 但只有存在正确 seam 时才写。
+Phase 1 的闭环已经提供修复前失败信号，不为套红绿流程重复写测试。先用 flow-better-test 的测试价值门判断 minimised repro 是否值得成为持久测试；只有它保护重要合同、能抓住可信回归且存在稳定正确 seam 时才保留。
 
 正确 seam 是：test 按 bug 在 call site 发生时的真实模式来 exercise 它。如果唯一可用 seam 太浅（bug 需要多个 callers，但你只有 single-caller test；unit test 无法复现触发 bug 的 chain），那里的 regression test 会给 false confidence。
 
-如果没有正确 seam，这本身就是发现。记下来。代码库架构阻止了 bug 被锁定。把它标记给下一阶段。
+通过价值门时：
 
-如果存在正确 seam：
+1. 把 minimised repro 转成该 seam 上的 failing test，确认它因当前缺陷失败。
+2. 应用 fix。
+3. 看 regression test pass。
+4. 对原始（未最小化）场景重跑 Phase 1 feedback loop。
 
-1. 把 minimised repro 转成该 seam 上的 failing test。
-2. 看它 fail。
-3. 应用 fix。
-4. 看它 pass。
-5. 对原始（未最小化）场景重跑 Phase 1 feedback loop。
+不通过价值门或没有正确 seam 时，不添加持久测试；应用 fix 后重跑原始闭环，并记录理由。
 
 ## Phase 6 — Cleanup + post-mortem
 
 宣称完成前必须做：
 
 - [ ] 原始 repro 不再复现（重跑 Phase 1 loop）
-- [ ] regression test 通过（或记录了缺少 seam）
+- [ ] regression test 通过（或记录了未通过价值门 / 缺少 seam）
 - [ ] 所有 `[DEBUG-...]` instrumentation 已移除（grep 前缀）
 - [ ] throwaway prototypes 已删除（或移动到清楚标记的 debug 位置）
 - [ ] 在 commit message 中说明最终正确的假设 —— 让下一个 debugger 学到东西
