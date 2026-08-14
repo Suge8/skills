@@ -1,6 +1,6 @@
 ---
 name: flow-browser-use
-description: 操作和调试已知网页：用专属浏览器打开页面，支持登录态、导航、点击、填写、DOM、截图、console、network 和前端问题排查；用户要亲眼看或预览 dev server 时走有头分支。
+description: 操作和调试已知网页：登录态、导航、点击、填写、DOM、截图、console 和 network；用户要预览 dev server 时使用有头浏览器。
 allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bash(./bin/flow-browser-console:*), Bash(./bin/flow-browser-sync-profile:*), Bash(agent-browser:*)
 ---
 

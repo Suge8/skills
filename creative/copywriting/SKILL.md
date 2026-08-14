@@ -1,252 +1,46 @@
 ---
 name: copywriting
-description: "Use for writing or improving persuasive website and product copy: headlines, hero sections, CTAs, value propositions, landing pages, pricing pages, feature pages, and product descriptions."
+description: 撰写或优化以转化为目标的网站和产品文案：标题、Hero、CTA、价值主张、落地页、定价页、功能页和产品描述。普通文稿去 AI 味用 stop-slop。
 metadata:
   version: 2.0.0
+  source: coreyhaines31/marketingskills
 ---
 
 # Copywriting
 
-You are an expert conversion copywriter. Your goal is to write marketing copy that is clear, compelling, and drives action.
+写清楚、可信且促进行动的营销文案。
 
-## Before Writing
+## 开始前
 
-**Check for product marketing context first:**
-If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+先读取已有产品与营销事实源：`.agents/product-marketing.md`、`.claude/product-marketing.md`、旧版 `product-marketing-context.md`，以及项目的 PRODUCT、README 和当前页面。只补问会改变成稿的缺口：
 
-Gather this context (ask if not provided):
+- 页面类型与唯一主行动；
+- 目标用户、痛点、异议和用户自己的说法；
+- 产品、差异、结果与可核实证据；
+- 流量来源和访客已知信息。
 
-### 1. Page Purpose
-- What type of page? (homepage, landing page, pricing, feature, about)
-- What is the ONE primary action you want visitors to take?
+信息足够就直接写，不要求完整 brief。不得编造统计、客户评价或能力。
 
-### 2. Audience
-- Who is the ideal customer?
-- What problem are they trying to solve?
-- What objections or hesitations do they have?
-- What language do they use to describe their problem?
+## 写作原则
 
-### 3. Product/Offer
-- What are you selling or offering?
-- What makes it different from alternatives?
-- What's the key transformation or outcome?
-- Any proof points (numbers, testimonials, case studies)?
+- 清晰优先于机巧，具体优先于抽象。
+- 把功能连接到用户获得的结果，使用客户语言而不是公司术语。
+- 每个区段只推进一个论点，顺序形成完整说服链。
+- CTA 写“动作 + 获得物”，避免 Submit、Learn More 等空泛标签。
+- 保持项目既有语气；没有事实支持时降低主张强度，不用夸张补洞。
 
-### 4. Context
-- Where is traffic coming from? (ads, organic, email)
-- What do visitors already know before arriving?
+完整页面或需要结构模板时读取 [文案框架](references/copy-frameworks.md)；长页面转场生硬时才读取 [自然转场](references/natural-transitions.md)。
 
----
+## 页面重点
 
-## Copywriting Principles
+- **首页**：先讲最广泛的核心价值，再给不同意图清晰入口。
+- **落地页**：一个主张、一个主 CTA，标题与流量来源一致。
+- **定价页**：帮助用户选套餐，回答差异、适用对象和购买顾虑。
+- **功能页**：功能 → 收益 → 结果，并给出试用路径。
+- **产品描述**：先说明用途和差异，再补规格与限制。
 
-### Clarity Over Cleverness
-If you have to choose between clear and creative, choose clear.
+## 输出
 
-### Benefits Over Features
-Features: What it does. Benefits: What that means for the customer.
+先给可直接使用的成稿，按页面区段组织。只有标题和 CTA 值得比较时给 2–3 个候选；用户未要求时不附逐段写作课或大段理由。
 
-### Specificity Over Vagueness
-- Vague: "Save time on your workflow"
-- Specific: "Cut your weekly reporting from 4 hours to 15 minutes"
-
-### Customer Language Over Company Language
-Use words your customers use. Mirror voice-of-customer from reviews, interviews, support tickets.
-
-### One Idea Per Section
-Each section should advance one argument. Build a logical flow down the page.
-
----
-
-## Writing Style Rules
-
-### Core Principles
-
-1. **Simple over complex** — "Use" not "utilize," "help" not "facilitate"
-2. **Specific over vague** — Avoid "streamline," "optimize," "innovative"
-3. **Active over passive** — "We generate reports" not "Reports are generated"
-4. **Confident over qualified** — Remove "almost," "very," "really"
-5. **Show over tell** — Describe the outcome instead of using adverbs
-6. **Honest over sensational** — Fabricated statistics or testimonials erode trust and create legal liability
-
-### Quick Quality Check
-
-- Jargon that could confuse outsiders?
-- Sentences trying to do too much?
-- Passive voice constructions?
-- Exclamation points? (remove them)
-- Marketing buzzwords without substance?
-
-For thorough line-by-line review, use the **copy-editing** skill after your draft.
-
----
-
-## Best Practices
-
-### Be Direct
-Get to the point. Don't bury the value in qualifications.
-
-❌ Slack lets you share files instantly, from documents to images, directly in your conversations
-
-✅ Need to share a screenshot? Send as many documents, images, and audio files as your heart desires.
-
-### Use Rhetorical Questions
-Questions engage readers and make them think about their own situation.
-- "Hate returning stuff to Amazon?"
-- "Tired of chasing approvals?"
-
-### Use Analogies When Helpful
-Analogies make abstract concepts concrete and memorable.
-
-### Pepper in Humor (When Appropriate)
-Puns and wit make copy memorable—but only if it fits the brand and doesn't undermine clarity.
-
----
-
-## Page Structure Framework
-
-### Above the Fold
-
-**Headline**
-- Your single most important message
-- Communicate core value proposition
-- Specific > generic
-
-**Example formulas:**
-- "{Achieve outcome} without {pain point}"
-- "The {category} for {audience}"
-- "Never {unpleasant event} again"
-- "{Question highlighting main pain point}"
-
-**For comprehensive headline formulas**: See [references/copy-frameworks.md](references/copy-frameworks.md)
-
-**For natural transition phrases**: See [references/natural-transitions.md](references/natural-transitions.md)
-
-**Subheadline**
-- Expands on headline
-- Adds specificity
-- 1-2 sentences max
-
-**Primary CTA**
-- Action-oriented button text
-- Communicate what they get: "Start Free Trial" > "Sign Up"
-
-### Core Sections
-
-| Section | Purpose |
-|---------|---------|
-| Social Proof | Build credibility (logos, stats, testimonials) |
-| Problem/Pain | Show you understand their situation |
-| Solution/Benefits | Connect to outcomes (3-5 key benefits) |
-| How It Works | Reduce perceived complexity (3-4 steps) |
-| Objection Handling | FAQ, comparisons, guarantees |
-| Final CTA | Recap value, repeat CTA, risk reversal |
-
-**For detailed section types and page templates**: See [references/copy-frameworks.md](references/copy-frameworks.md)
-
----
-
-## CTA Copy Guidelines
-
-**Weak CTAs (avoid):**
-- Submit, Sign Up, Learn More, Click Here, Get Started
-
-**Strong CTAs (use):**
-- Start Free Trial
-- Get [Specific Thing]
-- See [Product] in Action
-- Create Your First [Thing]
-- Download the Guide
-
-**Formula:** [Action Verb] + [What They Get] + [Qualifier if needed]
-
-Examples:
-- "Start My Free Trial"
-- "Get the Complete Checklist"
-- "See Pricing for My Team"
-
----
-
-## Page-Specific Guidance
-
-### Homepage
-- Serve multiple audiences without being generic
-- Lead with broadest value proposition
-- Provide clear paths for different visitor intents
-
-### Landing Page
-- Single message, single CTA
-- Match headline to ad/traffic source
-- Complete argument on one page
-
-### Pricing Page
-- Help visitors choose the right plan
-- Address "which is right for me?" anxiety
-- Make recommended plan obvious
-
-### Feature Page
-- Connect feature → benefit → outcome
-- Show use cases and examples
-- Clear path to try or buy
-
-### About Page
-- Tell the story of why you exist
-- Connect mission to customer benefit
-- Still include a CTA
-
----
-
-## Voice and Tone
-
-Before writing, establish:
-
-**Formality level:**
-- Casual/conversational
-- Professional but friendly
-- Formal/enterprise
-
-**Brand personality:**
-- Playful or serious?
-- Bold or understated?
-- Technical or accessible?
-
-Maintain consistency, but adjust intensity:
-- Headlines can be bolder
-- Body copy should be clearer
-- CTAs should be action-oriented
-
----
-
-## Output Format
-
-When writing copy, provide:
-
-### Page Copy
-Organized by section:
-- Headline, Subheadline, CTA
-- Section headers and body copy
-- Secondary CTAs
-
-### Annotations
-For key elements, explain:
-- Why you made this choice
-- What principle it applies
-
-### Alternatives
-For headlines and CTAs, provide 2-3 options:
-- Option A: [copy] — [rationale]
-- Option B: [copy] — [rationale]
-
-### Meta Content (if relevant)
-- Page title (for SEO)
-- Meta description
-
----
-
-## Related Skills
-
-- **copy-editing**: For polishing existing copy (use after your draft)
-- **cro**: If page structure/strategy needs work, not just copy
-- **emails**: For email copywriting
-- **popups**: For popup and modal copy
-- **ab-testing**: To test copy variations
+如果用户的核心诉求是删除套话、机械排比或 AI 痕迹，改用 `stop-slop`。营销成稿确实出现这些问题时，再用它做最后一遍编辑，不默认叠加两个 Skill。

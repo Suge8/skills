@@ -13,7 +13,7 @@ description: 个人 UI 库选型表：需要动效组件、图标动效、canvas
 2. 先查 `package.json`。项目已用表内库直接用；已用竞品（如别的 chat UI 库）时提示本表推荐，但不擅自换依赖。
 3. 每个场景只推荐一个库，说明用途一句话，属于请求范围就直接安装接线。
 4. 特效层不得牺牲内容层：文字保持可选中、链接可点击、核心信息不依赖特效呈现。
-5. 装饰性动效不限场景：落地页、portfolio 之外，webapp、产品 UI 也可按需用，好看且服务体验即可；落地后仍受 impeccable 反 AI 痕迹检查与 ui-craft 性能、reduced-motion 门禁约束。
+5. 装饰性动效不限场景：落地页、portfolio 之外，webapp、产品 UI 也可按需用，好看且服务体验即可；落地后按 ui-craft 检查 AI 模板痕迹、性能和 reduced-motion。
 
 ## 选型表
 
@@ -36,6 +36,13 @@ description: 个人 UI 库选型表：需要动效组件、图标动效、canvas
 - 23 个产品 UI 组件（Button、Dialog、Select、Tabs、Table 等）含 AI 聊天视觉件（ChatMessage、ThinkingIndicator、ThinkingSteps、AskUserQuestions）；设计理念是动效传达语义、hover 即预览，与 ui-craft 门禁契合。
 - 获取：`npx shadcn@latest add https://www.fluidfunctionalism.com/r/<组件>.json`（源码复制分发）；机读清单读 <https://www.fluidfunctionalism.com/r/registry.json>（53 项，含 hooks 与 surface/spring token），不要用 `/r/base/` 路径（仅部分组件存在）。系统文档在 [fluidfunctionalism.com/docs](https://www.fluidfunctionalism.com/docs)，无 llms.txt。
 - 与 assistant-ui 分工：这里是纯视觉组件；需要线程、流式、工具调用等完整 chat runtime 时用 assistant-ui，两者可搭配。
+
+### Beautiful UI — AI-native 产品界面原语（React / TypeScript）
+
+- 19 个高完成度交互原语，覆盖思考态、流式回答、人工审批、工具调用、聊天、数据表和 AI 编辑器；站点 [beautiful-ui-five.vercel.app](https://beautiful-ui-five.vercel.app/)。
+- 获取：每个示例右上角直接 Copy code 或 View code；无 llms.txt、registry 和 CLI，只能按站内组件目录人工选取。源码会引用站点 CSS token、共享 atoms，部分组件另需 `glimm`、`liveline` 或 `iconoir-react`，落地时按实际 import 补齐并接入项目设计系统。
+- 红线：站点未公开 LICENSE 或使用条款，商用复制前先确认授权；示例里的 mock 数据、定时状态流和主题类名不是生产实现，必须换成真实业务状态并补 reduced-motion。
+- 分工：这里只取 AI 交互的视觉与状态表达；线程、流式传输、工具协议等 chat runtime 仍用 assistant-ui，通用产品控件用 Fluid Functionalism。
 
 ### Canvas UI — WebGL / shader 特效叠在可交互的真实 DOM 上
 

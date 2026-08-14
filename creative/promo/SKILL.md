@@ -1,15 +1,15 @@
 ---
 name: promo
-description: 项目宣传物料工坊：用户说"做物料/宣传图/hero 图/社媒图/OG 图/商店截图/演示 GIF/演示视频/README 配图"，或项目要发布、开源、上架缺视觉物料时使用。读 PRODUCT/DESIGN 文档定基调，按物料类型分支执行，产物落盘 design/promo/。不用于：应用内 UI 设计（impeccable）、单独 logo（logo skill 直接用）。
+description: 制作项目宣传物料：Hero/OG/社媒图、商店截图、README 配图和演示 GIF/视频。根据项目现状产出到 design/promo/；应用 UI 用 ui-craft，单独 Logo 用 gpt-image。
 ---
 
 # Promo（物料工坊）
 
-编排者，自己不生成任何东西：logo 归 logo skill、AI 图归 gpt-image、文案归 copywriting + stop-slop、截图归 flow-browser-use/系统工具。本 skill 管的是：搞清项目是什么 → 缺什么物料 → 按正确的工具链生产 → 落盘成套。
+编排者，自己不生成任何东西：Logo 和 AI 图归 gpt-image、文案归 copywriting + stop-slop、截图归 flow-browser-use/系统工具。本 skill 管的是：搞清项目是什么 → 缺什么物料 → 按正确的工具链生产 → 落盘成套。
 
 ## Step 0 — 建立语境（物料质量的上游）
 
-1. 读 `docs/PRODUCT.md`（定位、给谁、卖点）和 `docs/DESIGN.md`（色板、字体、气质）——这是所有物料的事实源。都缺时建议先跑 project-setup；用户不想跑就问最小三件事：项目是什么、给谁用、想要什么气质
+1. 读取用户请求、README、现有界面和品牌资产；`DESIGN.md` 存在时作为线索并与代码核对。仍缺关键信息时只问：项目是什么、给谁用、想要什么气质
 2. 判定项目类型（决定截图/录制工具链）：**web / 浏览器扩展 / 桌面 app / CLI-TUI**
 3. 盘点已有物料：`design/` 目录、README 里的图、商店页现状
 

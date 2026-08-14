@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: "控制 Herdr 终端复用器：用户提到 herdr，要求查看或控制它的 workspace、tab、pane 分屏布局、命令进程或 pane 里的 agent 时使用；要派多个 worker 并行干活、委派开发任务、监督验收 worker 或汇总完成结果时也使用；说过夜跑、长任务、挂机、无人值守推进到底这类长跑委托时也使用；单纯想后台跑一条命令不触发；需要在受管 pane 内运行（HERDR_ENV=1）。"
+description: "控制 Herdr 终端复用器。只有用户明确提到 Herdr，或明确要求使用 Herdr 查看或控制 pane、tab、workspace、命令或 agent 时才使用。不能仅因任务适合后台终端、委派或并行工作就使用。需要在受管 pane 内运行（HERDR_ENV=1）。"
 ---
 
 # Herdr
@@ -105,17 +105,13 @@ herdr pane split --current --direction right --cwd "$PWD" --no-focus
 
 需要时把 `right` 换成 `down`。从 `.result.pane.pane_id` 读取新 pane ID。
 
-可用的 shell pane 必须停在交互式提示符：shell 本身在前台，没有前台命令、编辑器或 agent 在跑。用一个有意义的唯一名称在该 pane 启动 agent。kind 与模型选型读 `~/.agents/docs/worker-preferences.md`（单一事实源）。
+可用的 shell pane 必须停在交互式提示符：shell 本身在前台，没有前台命令、编辑器或 agent 在跑。用一个有意义的唯一名称在该 pane 启动受支持的 agent：
 
 ```bash
-herdr agent start reviewer --kind pi --pane <returned-pane-id> -- --name "↳审查改动"
+herdr agent start reviewer --kind codex --pane <returned-pane-id>
 ```
 
-pi 的 `--name` 设置会话名，`↳` 标记子代理身份，后面写这个 worker 在做什么。侧栏第二行渲染成 `reviewer · ↳审查改动`：左边的 herdr 名和第一行的 workspace 已经表达了身份与归属，会话名只补「在干什么」，别重复。侧栏宽 26 列且中文双宽，任务描述控制在 4-6 个中文字，超出从尾部截断。
-
-从返回的 `.result.agent.agent_session.value` 记下会话文件路径。这是 worker 的永久身份证：pane、tab、worktree 全没了它还在，恢复时靠它精确定位。
-
-运行 `herdr agent` 查看已安装的 kind 列表和选项。原生 agent 参数只放在 `--` 之后：
+运行 `herdr agent` 查看已安装的 kind 列表和选项。用户要求的 kind 按要求使用。原生 agent 参数只放在 `--` 之后：
 
 ```bash
 herdr agent start reviewer --kind pi --pane <returned-pane-id> -- <agent-args...>
@@ -127,13 +123,6 @@ herdr agent start reviewer --kind pi --pane <returned-pane-id> -- <agent-args...
 
 ```bash
 herdr agent prompt reviewer "审查当前 diff，只报告可执行的发现。" --wait --timeout 120000
-```
-
-代码审查优先用 pi 内置的 flow 插件：发送 `/review` 激活对抗性审查循环，自动多轮优化；期间可随时插话调整方向。循环运行时 flow 拦截 pi 的中断键位，发 esc 或 ctrl+c 都能停止循环：
-
-```bash
-herdr agent prompt reviewer "/review" --wait --timeout 300000
-herdr agent send-keys reviewer esc   # 或 ctrl+c
 ```
 
 `agent prompt` 会按 pane 的实时 bracketed-paste 模式原子地提交文本和编码后的回车；对 working 中的 agent 也可提交（排队语义），给忙碌 worker 追加指令无需等 idle。常规工作用 `--wait` 就够：它等待第一个稳定的 `idle`、`done` 或 `blocked` 状态。不要用 `--until` 重复这些默认值。
@@ -191,56 +180,9 @@ herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 
 颜色和终端样式本身是证据时用 `--format ansi`，否则用 text。
 
-`--lines` 会向 Herdr 请求 pane 可用屏幕和宿主回滚缓冲中的更多行。全屏 agent（备用屏）的历史 0.8.0 起可自动读取：agent 处于 idle 且请求行数超过可见屏幕时，`agent read --lines N` 会自动滚屏收集完整历史并复位视口；agent 在 working/blocked/unknown 时返回 `agent_not_idle`——等 idle 重试或改用 `--source visible`。
+`--lines` 会向 Herdr 请求 pane 可用屏幕和宿主回滚缓冲中的更多行。若增加行数仍无法显示已完成响应的更多内容，pane 可能正在备用屏上运行 agent。退出备用屏的行不会进入 Herdr 宿主回滚缓冲，因此增加行数无法恢复这些内容。
 
 仍读不全时，让 agent 把完整回复以 Markdown 写入临时目录并只回复文件路径，然后直接读文件。这只是兜底手段，不要在最初的 prompt 里就要求文件输出。
-
-## 多 worker 协调（本地经验）
-
-用户要无人值守长跑（「过夜跑」「长任务」「我睡了」「挂机推进到底」「你自己做完」）：读 [references/overnight.md](references/overnight.md)，按该框架接管全程。
-
-协调多个 worker 时的纪律：
-
-- 永不 wait-loop：不要用阻塞的 `agent wait` 占住自己的回合等 worker。派发后直接结束当前工作或回应用户。
-- 等外部事件（CI/部署/长构建）不空等也不轮询：后台 shell 链桥接 `nohup sh -c '<阻塞等待命令>; herdr agent prompt <需要结果的 agent> "<事件>已出结果，去收"' &`——把外部完成翻译成定向唤醒，唤醒对象通常是自己。终局任务必须挂桥：全场再无其他事件源时，结果落地无人接。
-- 每次开始处理用户消息、或完成一件事后，先跑一次 `herdr agent list` 扫全部 worker 状态；有 `blocked` 优先处理，有 `done` 验收。
-- 收到 `[herdr-supervisor]` 消息（来自 `~/.pi/agent/extensions/herdr-supervisor.ts`，仅在本 Pi 运行于 Herdr 受管 pane 时激活）：按消息列出的 worker 逐个 `herdr agent read <名称>` 查看现场，再决定 prompt 纠偏、`/review`、验收或收尾；处理完不要重复轮询。依赖它前必须知道的运行条件：① 扩展在会话启动时加载，会话早于扩展安装/改动的要先 `/reload` 再指望它唤醒；② 它只监督本 workspace 的 worker（与「worker 开在指挥官自己 workspace」纪律配套），跨 workspace 的事件不投递；③ 命名 worker 连续 working 超阈值（默认 30 分钟）无任何状态转换会收到疑似卡死通知——先 read 现场判断是真卡死（如僵尸 CI watch）还是长任务，再决定打断或继续等；④ 只有命名 worker（`agent start` 起的名）的完成会被推送，用户看没看过其 tab 都推；未命名 pane（用户自己的会话）永不推送——所以 worker 必须用 `agent start` 命名启动；接手手动开的会话用 `herdr agent rename <pane_id> <name>` 命名，即纳入推送与看门狗。
-- worker 选型与 `/review` 发送规则读 `~/.agents/docs/worker-preferences.md`。
-- **`/review` 只能由指挥官注入，worker 自己触发不了**（它是 worker 会话 TUI 的 slash 命令，不是可执行文件）。因此任务书绝不能写「worker 自己走完 /review」——踩过三次：worker 找不到它就自作主张起子 agent（`scheduler-review`/`capfixreview`），甚至与本体同 tab 共用 worktree，清理时 `tab close` 会连带关掉本体（得用 `pane close`）。**正确写法**：「PR 就绪就停下汇报「待审」，我会发 /review」；并写死**禁止 worker 执行任何 herdr 命令、禁止起子 agent**（会干扰其他 pane；共享 worktree 必互踩）。指挥官配额尽时宁可明确改用自审替代（如 flow-optimize CLOSEOUT）并记账补审，也不要把一个 worker 做不到的动作写进它的指令。
-- **一个指挥官一个 workspace**：supervisor 的归属边界是 workspace 而非「谁派的」（`herdr-supervisor.ts` 只比对 `HERDR_WORKSPACE_ID`）。两个指挥官挤同一 workspace 时，**双方会收到对方所有 worker 的完成推送**，导致重复接管与指令打架。另开一轮并行指挥时用 `herdr workspace create` 开新 workspace，不要往别人的 workspace 里塞 tab。
-- 两个及以上 worker 时，一个 worker 一个命名 tab（`herdr tab create --workspace "$HERDR_WORKSPACE_ID"`，tab 名与 agent 名一致），不要把多个 worker 挤进同一 tab 的分屏——手机端 Collie 按 Space→Tab 导航，命名 tab 直接对应推送里的名字。tab/worktree 等创建类命令省略 `--workspace` 会落到 UI 聚焦的 workspace——那可能是用户正在看的别处（踩过：worker tab 开进了用户的 .ssh workspace）。单个临时 helper 仍按上文兄弟 pane 处理；此规则优先于「不要创建 tab」的默认约束。
-- 会改代码的 worker 各自隔离到独立 git worktree，但仍须留在指挥官当前 workspace。不要用 `herdr worktree create --workspace "$HERDR_WORKSPACE_ID"` 达成此目的：当前 CLI 的 `--workspace` 选择来源仓库上下文，该命令仍会新建 workspace，supervisor 因此收不到完成事件。先用 `git worktree add -b <branch> <path> <base>` 在 /tmp 或仓库旁创建 worktree，再用 `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd <path> --label <worker-name> --no-focus` 建命名 tab，从 `.result.root_pane.pane_id` 取 pane 启动 agent。创建后必须确认 `.result.root_pane.workspace_id == HERDR_WORKSPACE_ID`，不一致就停止派活并纠正；多个 worker 禁止共享同一 checkout，否则必然互踩。
-- 释放 worker 前先问「它的改动还会走到哪些异步验证层」，按最远触达层定关闭时机：
-  纯文档/报告（不触异步层）→ PR 合并即关；产品代码 → post-merge（或等效异步层）绿了再关；
-  碰发布链 → 真实发布走通再关。有尾巴任务未完的，要么等完成要么指挥官显式接管并记录。
-  踩过：8021 行删除的 worker 在 post-merge 还在排队时被释放连带 worktree 删除。
-  清理时只关自己创建的 tab/pane；需要留存的调试现场按用户要求保留。
-- 关闭 pane / 删除 worktree **不等于**丢失 worker：pi 会话按目录持久化在
-  `~/.pi/agent/sessions/`（删 worktree 不影响）。恢复一律用派活时记下的会话路径：
-  `pi --session <完整 jsonl 路径>`。完整路径在任意目录都直接原地打开，不提示不复制；只想翻记录
-  不必重建 worktree，要原地继续干活则先重建同路径 worktree；保留原件分叉用 `pi --fork`。
-  `pi -c` 只是兜底：它取当前目录下 mtime 最新的会话，目录里有多个会话或原进程可能还活着时
-  会接错，只在手头没路径且确认目录只有一个已退出会话时用。光有 UUID 而跨目录时 pi 会问
-  要不要 fork 到当前目录，不会原地打开。
-  恢复后第一句必须对齐磁盘状态（告知「你的 PR 已合并/现场是重建的」），否则 agent 按过时
-  记忆行动。早关的真实代价因此是「一次恢复操作 + 状态对齐」，不是上下文永久丢失。
-- worker 叙事与状态冲突时信状态：正文说「已开工/继续做」但 agent_status=idle 就是已停——宣布计划不等于执行，按未完成处理（催动或打回）。踩过：worker 宣布 PR 计划后未执行即停，指挥官把该完成推送误判为质检轮间隙噪音，双向空等死锁。
-- supervisor 静默不等于没事件：工作树有新改动或进程在吃 CPU 但收不到消息时，主动 `herdr agent list` + `agent read` 对账，别猜「worker 在慢慢干」。
-
-### 验收纪律（工具无关，源自 Orca 时期实战）
-
-指挥官不逐行读 diff——那是最弱的验证，也不扩展。按项分工具：
-
-- 机械项一条命令判：commit body 非空、改动清单没夹带、worker 报的验证命令裸退出码。
-- 代码质量派对抗性 review（`/review`，多个不同强模型并行对抗审查，强度远超指挥官自审），指挥官只读结论、裁分歧。触发条件：改动碰门禁/发布/安全/共享契约，或新增了别人会依赖的不变量；**命中即必须派，逐项裁决送审摘要不能替代**——那仍是指挥官自己读 diff，最弱的验证。
-- 行为正确性交给测试与 CI，不在本地复跑一遍；收益类主张必须由实测数字兑现，估计值不许写进永久记录。
-- 只剩三件事必须指挥官自己判：新引入的失败面有没有守门、跨 worker 会不会打架、要不要打回。
-
-### PR 与任务书（工具无关，源自 Orca 时期实战）
-
-- worker「完成」= 本地提交 + 送审（diff 摘要 + commit message 全文 + 验证证据），默认禁止自行 push 或开 PR；审完只有打回或放行两个出口。
-- 打回给判据不给答案，否则 worker 的独立验证价值归零。已推才发现问题：`--amend` + `--force-with-lease`，不关闭重开（会丢评论线程与 CI 历史）。
-- 派活前自问「我会拿哪些判据打回」，凡是会打回的都写进任务书并给范例来源（如「先看 `git log origin/main -5` 的提交信息格式」）。同一缺陷在多个 worker 身上同时出现，是任务书的缺陷不是 worker 的——修模板，别逐个纠正。
 
 ## 安全与协作规则
 

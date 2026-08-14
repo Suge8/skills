@@ -1,63 +1,21 @@
 ---
 name: stop-slop
-description: Remove AI writing patterns from prose. Use when drafting, editing, or reviewing text to eliminate predictable AI tells.
+description: 去除草稿或成稿中的套话、机械结构和可预测 AI 写作痕迹；营销转化文案用 copywriting。
 metadata:
   trigger: Writing prose, editing drafts, reviewing content for AI patterns
 ---
 
 # Stop Slop
 
-Eliminate predictable AI writing patterns from prose.
+在保留原意、事实和语气的前提下，删掉可预测的 AI 写作模式。
 
-## Core Rules
+- 删除铺垫、强调口头禅和没有增加含义的副词；详见 [高频套话](references/phrases.md)。
+- 打破机械二分、否定清单、戏剧化碎句、假设问句和虚假主体；详见 [结构模式](references/structures.md)。
+- 重要行动者被隐藏时改用主动语态；行动者未知或无关时允许被动语态。
+- 用具体事实替代空泛判断、懒惰极值和抽象总结。
+- 节奏随内容变化，不机械三段式，不靠破折号和“金句”制造力度。
+- 信任读者：直接陈述，删除解释自己正在做什么的元话语。
 
-1. **Cut filler phrases.** Remove throat-clearing openers, emphasis crutches, and all adverbs. See [references/phrases.md](references/phrases.md).
+编辑后通读一遍，确认文字仍像原作者、没有改变主张强度，也没有为了“自然”加入新事实。需要转换型标题、CTA 或完整营销页面时使用 `copywriting`，不要把普通润色改成营销稿。
 
-2. **Break formulaic structures.** Avoid binary contrasts, negative listings, dramatic fragmentation, rhetorical setups, false agency. See [references/structures.md](references/structures.md).
-
-3. **Use active voice.** Every sentence needs a human subject doing something. No passive constructions. No inanimate objects performing human actions ("the complaint becomes a fix").
-
-4. **Be specific.** No vague declaratives ("The reasons are structural"). Name the specific thing. No lazy extremes ("every," "always," "never") doing vague work.
-
-5. **Put the reader in the room.** No narrator-from-a-distance voice. "You" beats "People." Specifics beat abstractions.
-
-6. **Vary rhythm.** Mix sentence lengths. Two items beat three. End paragraphs differently. No em dashes.
-
-7. **Trust readers.** State facts directly. Skip softening, justification, hand-holding.
-
-8. **Cut quotables.** If it sounds like a pull-quote, rewrite it.
-
-## Quick Checks
-
-Before delivering prose:
-
-- Any adverbs? Kill them.
-- Any passive voice? Find the actor, make them the subject.
-- Inanimate thing doing a human verb ("the decision emerges")? Name the person.
-- Sentence starts with a Wh- word? Restructure it.
-- Any "here's what/this/that" throat-clearing? Cut to the point.
-- Any "not X, it's Y" contrasts? State Y directly.
-- Three consecutive sentences match length? Break one.
-- Paragraph ends with punchy one-liner? Vary it.
-- Em-dash anywhere? Remove it.
-- Vague declarative ("The implications are significant")? Name the specific implication.
-- Narrator-from-a-distance ("Nobody designed this")? Put the reader in the scene.
-- Meta-joiners ("The rest of this essay...")? Delete. Let the essay move.
-
-## Scoring
-
-Rate 1-10 on each dimension:
-
-| Dimension | Question |
-|-----------|----------|
-| Directness | Statements or announcements? |
-| Rhythm | Varied or metronomic? |
-| Trust | Respects reader intelligence? |
-| Authenticity | Sounds human? |
-| Density | Anything cuttable? |
-
-Below 35/50: revise.
-
-## Examples
-
-See [references/examples.md](references/examples.md) for before/after transformations.
+转换示例见 [示例](references/examples.md)。

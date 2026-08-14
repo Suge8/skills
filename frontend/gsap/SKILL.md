@@ -1,6 +1,6 @@
 ---
 name: gsap
-description: 当用户提到 GSAP、GreenSock、ScrollTrigger、时间线动画、滚动动画、React GSAP 动画，或要用 GSAP 做前端动画时使用。读取匹配的本地参考文档。
+description: GSAP、GreenSock、ScrollTrigger、时间线、滚动或 React GSAP 动画任务；按需读取本地参考。
 ---
 
 # GSAP

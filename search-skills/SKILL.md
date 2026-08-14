@@ -1,22 +1,22 @@
 ---
 name: search-skills
-description: "仅当用户明确要求使用归档 skill 时触发；查看 archived-skills 索引并指向对应 skill。"
+description: 仅当用户明确要求使用归档 Skill 时触发；从冷归档索引定位对应入口。
 ---
 
 # Search archived skills
 
-只在用户明确说要用归档里的 skill 时使用。
+只在用户明确要求归档 Skill 时读取对应 `SKILL.md`：
 
-## 索引
+- `development/htmlplan`：离线单文件 HTML 计划工作台。
+- `development/web-clone`：网站复刻、交互还原与 WebGL/Canvas 效果逆向。
+- `frontend/handdrawn-mascot-landing`：手绘暖色吉祥物落地页。
+- `frontend/shadcn`：shadcn/ui CLI、registry 与组件工作流。
+- `frontend/vercel-react-best-practices`：React/Next.js 性能规则。
+- `office/docx`：Word 文档。
+- `office/pdf`：PDF 读取、创建、编辑与表单。
+- `office/pptx`：PowerPoint 演示文稿。
+- `office/xlsx`：电子表格。
+- `office/obsidian-bases`：Obsidian Bases。
+- `office/obsidian-markdown`：Obsidian Markdown。
 
-- `archived-skills/creative/`：文案、README、图像。
-- `archived-skills/development/`：开发、调试、工程治理、skill 维护。
-- `archived-skills/frontend/`：UI、React、shadcn、Magic UI。
-- `archived-skills/operations/`：SSH、1Panel、服务器运维、Orca 编排（orca-cli/orchestration）。
-- `archived-skills/search/`：浏览器、代码库、文档、网络搜索。
-- `archived-skills/office/`：PDF、Office、Obsidian。
-
-## 规则
-
-- 用户没明确指定归档 skill：不要主动查看归档。
-- 只读对应 `SKILL.md`，按它的边界执行。
+未明确要求时不扫描归档目录。
