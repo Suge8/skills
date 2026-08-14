@@ -10,6 +10,4 @@ disable-model-invocation: true
 
 定期运行类型检查，定期运行单个测试文件，并在最后运行一次完整测试套件。
 
-完成后，使用 /code-review 审查工作。
-
-将工作提交到当前分支。
+完成并验证后，使用 `code-review` skill 发起外部审查，并结束当前回合。
