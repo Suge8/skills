@@ -52,7 +52,7 @@ verify 检查：来源文件存在且哈希一致（不一致时直接打印记�
 3. 体检：读 [HEALTH.md](./HEALTH.md)，跑命令、复核、产出 wiki/health.md 与节点 health 字段。
 4. 复制 [templates/verify.mjs](./templates/verify.mjs) 到 `docs/architecture/verify.mjs`，运行一次直到通过。
 5. 渲染 HTML：读 [RENDER.md](./RENDER.md)，用 templates/architecture.html 模板注入数据 JSON，不手写界面。完成标准：verify 通过（数据侧问题全由 verify 硬检，不需浏览器验证）。
-6. 接入 lint：在仓库现有检查入口（package.json scripts / justfile / Makefile / CI workflow）追加 `node docs/architecture/verify.mjs`，与现有 lint、typecheck 并列一起跑；不塞进 linter 插件内部。仓库完全没有检查入口时，新建最小入口只跑 verify（如 package.json 加 `"lint": "node docs/architecture/verify.mjs"`，或 CI 加一步）；verify 零依赖，只需 node + git。用户顺便想给 JS/TS 仓库补代码 linter 时才推荐 oxlint。
+6. 接入 lint：在仓库现有检查入口（package.json scripts / justfile / Makefile / CI workflow）追加 `node docs/architecture/verify.mjs`，与现有 lint、typecheck 并列一起跑；不塞进 linter 插件内部。仓库 linter 扫全仓时把 `docs/architecture` 加进其忽略清单——派生产物与零依赖脚本不受项目代码风格约束，接入后跑一次完整检查确认不互咬。仓库完全没有检查入口时，新建最小入口只跑 verify（如 package.json 加 `"lint": "node docs/architecture/verify.mjs"`，或 CI 加一步）；verify 零依赖，只需 node + git。用户顺便想给 JS/TS 仓库补代码 linter 时才推荐 oxlint。
 
 ## 同步（代码变更后，或 verify 报错时）
 

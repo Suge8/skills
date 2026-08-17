@@ -239,7 +239,8 @@ const builtinExempt = (f) =>
   BINARY_RE.test(f) || f.startsWith(archPrefix);
 const claims = (p) => f => f === p || f.startsWith(p.endsWith("/") ? p : p + "/");
 {
-  const tracked = execFileSync("git", ["ls-files"], { cwd: repoRoot, encoding: "utf8" }).trim().split("\n").filter(Boolean);
+  // -z: NUL-separated raw paths — non-ASCII filenames would otherwise arrive quoted/escaped.
+  const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: repoRoot, encoding: "utf8" }).split("\0").filter(Boolean);
   const entries = [
     ...pages.flatMap((p) => p.covers.map((c) => ({ owner: p.rel, kind: "covers", match: claims(c), raw: c }))),
     ...(pages.find((p) => p.rel === "index.md")?.exclude ?? []).map((c) => ({ owner: "index.md", kind: "exclude", match: claims(c), raw: c })),
