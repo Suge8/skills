@@ -6,7 +6,7 @@
 
 按 code-map 输出切分模块后，给每个工人一张任务卡，四要素齐全：
 
-- 目标：产出一页完整的 `docs/architecture/wiki/modules/<name>.md`，含 sources frontmatter，直接写入该文件。
+- 目标：产出一页完整的 `docs/architecture/wiki/modules/<name>.md`，含 sources frontmatter 与 SKILL.md 规定的固定四节（职责、对外接口、数据怎么流、改动指南），直接写入该文件。
 - 预置事实：该模块的文件清单及每个文件的 imports/exports/loc 摘要，从 code-map 输出切片粘入任务卡；工人从这里出发读码，不从零探索。
 - 边界：读码限于分配文件及其一跳 import；只写自己那一页，页面文件互不重叠。
 - 输出契约：正文每条论断指回具体文件；点名的每个 symbol 已确认存在于所引文件；每条 sources 行的哈希来自 `git hash-object` 实际运行结果。
