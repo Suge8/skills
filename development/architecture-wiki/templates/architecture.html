@@ -887,8 +887,10 @@ function select(code) {
   if (isNode) hopNode(code);
   render();
 }
-/* 打开 wiki 页时同步地图：模块页→点亮对应楼；场景小节→激活对应路线；跨模块页→不选中 */
+/* 打开 wiki 页时同步地图：模块页→点亮对应楼；场景小节→激活对应路线；跨模块页→不选中。
+   面板收起时先展开——内容不能渲染进看不见的地方 */
 function openWikiPage(target, anchor) {
+  if (document.body.classList.contains("aside-off")) document.getElementById("btnAside").click();
   const ref = target + (anchor ? "#" + anchor : "");
   const fi = FLOWS.findIndex(f => f.page && f.page.split("#")[0] === target &&
     anchor && f.page.split("#")[1] === anchor);
