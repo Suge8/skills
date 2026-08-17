@@ -148,7 +148,7 @@
     display: flex; align-items: center; gap: 7px;
     font-size: 10.5px; letter-spacing: .15em; color: var(--ink-soft);
   }
-  #panel h2 { font: 700 18px/1.4 var(--serif); margin: 6px 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 9px; }
+  #panel h2 { font: 700 18px/1.4 var(--serif); margin: 6px 0 12px; }
   #panel h3 { font-size: 11px; letter-spacing: .13em; color: var(--ink-soft); margin: 18px 0 7px; }
   #panel p { font: 13.5px/1.75 var(--sans); margin-bottom: 11px; }
   #panel mark { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent-deep); padding: 0 4px; border-radius: 4px; font-weight: 700; }
@@ -173,10 +173,7 @@
   #panel .chip.hchip:hover { border-color: var(--warn); }
   #panel .dimtext { color: var(--ink-soft); font-size: 12px; }
   #panel .md-body h1 { font: 700 15px/1.5 var(--serif); margin: 16px 0 8px; }
-  #panel .md-body h2 {
-    font: 700 13.5px/1.5 var(--serif); margin: 16px 0 7px; border: none;
-    padding: 0 0 0 8px; border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  }
+  #panel .md-body h2 { font: 700 13px/1.5 var(--sans); letter-spacing: .01em; margin: 20px 0 8px; }
   #panel .md-body h3, #panel .md-body h4 { font: 700 12px var(--sans); letter-spacing: 0; color: var(--ink); margin: 12px 0 6px; }
   #panel .md-body pre { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; overflow-x: auto; margin: 0 0 11px; }
   #panel .md-body pre code { border: none; background: none; padding: 0; font-size: 11px; line-height: 1.6; display: block; }
@@ -201,7 +198,9 @@
   #panel .gscore span { font-size: 10px; color: var(--ink-soft); margin: 9px 0 0 1px; }
   #panel .vmeta { flex: 1; min-width: 0; }
   #panel .vgrade { font: 700 15px var(--sans); }
-  #panel .vhint { font-size: 10.5px; color: var(--ink-soft); margin: 1px 0 8px; }
+  #panel .vadvice { margin: 2px 0 9px; }
+  #panel .vadvice div { font-size: 11px; line-height: 1.6; color: var(--ink-soft); }
+  #panel .vadvice b { font-weight: 700; }
   #panel .vstats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   #panel .vstat { background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 5px 3px; text-align: center; cursor: pointer; transition: border-color .15s; }
   #panel .vstat:hover { border-color: var(--accent); }
@@ -858,16 +857,25 @@ function pageTitle(pageRef) {
   const m = (WIKI[page] || "").replace(/^---\n[\s\S]*?\n---\n?/, "").match(/^#\s+(.+)$/m);
   return m ? m[1] : page.replace(/\.md$/, "");
 }
-/* 体检评分：公式固化在模板，agent 只提供工具产出的计数（DATA.health） */
+/* 体检评分：公式固化在模板，agent 只提供工具产出的计数（DATA.health）。
+   死文件/死导出按每百源文件密度扣分（大小仓库同尺）；循环与断裂按绝对条数扣（应恒为零）；疑似未确认，低权。 */
 function vitalsCard() {
   const h = DATA.health;
   if (!h) return "";
-  const score = Math.max(0, Math.round(100
-    - Math.min(20, (h.dead ?? 0) * 4) - Math.min(10, (h.deadExports ?? 0) * .1)
-    - Math.min(20, (h.cycles ?? 0) * 5) - Math.min(20, (h.breaks ?? 0) * 5)
-    - Math.min(10, h.suspects ?? 0)));
+  const n = h.files || 100;
+  const cuts = [
+    [Math.min(25, (h.dead ?? 0) / n * 500), `清理 ${h.dead} 个死文件`],
+    [Math.min(15, (h.deadExports ?? 0) / n * 8), `删除 ${h.deadExports} 个未用导出`],
+    [Math.min(25, (h.cycles ?? 0) * 6), `拆开 ${h.cycles} 条循环依赖`],
+    [Math.min(25, (h.breaks ?? 0) * 8), `修复 ${h.breaks} 处断裂引用`],
+    [Math.min(5, (h.suspects ?? 0) * .5), `逐一确认 ${h.suspects} 个疑似死文件`],
+  ];
+  const score = Math.max(0, Math.round(100 - cuts.reduce((s, [c]) => s + c, 0)));
   const [grade, color] = score >= 90 ? ["健康", "var(--accent)"] : score >= 75 ? ["尚可", "#B08F4C"]
     : score >= 60 ? ["亚健康", "#C9704A"] : ["高危", "var(--warn)"];
+  const advice = cuts.filter(([c]) => c >= 1).sort((a, b) => b[0] - a[0]).slice(0, 2)
+    .map(([c, t]) => `<div>${t} <b style="color:${color}">≈ +${Math.round(c)} 分</b></div>`)
+    .join("") || `<div>零死码零断裂，保持住就是满分状态</div>`;
   const C = (2 * Math.PI * 34).toFixed(1);
   const stat = (label, val, sec, extra = "") =>
     `<div class="vstat" data-hsec="${sec}"><div class="vv"${val ? ` style="color:${color}"` : ""}>${val}${extra}</div><div class="vk">${label}</div></div>`;
@@ -877,7 +885,7 @@ function vitalsCard() {
       <circle class="gfg" cx="42" cy="42" r="34" stroke-dasharray="${C}" stroke-dashoffset="${(C * (1 - score / 100)).toFixed(1)}"/></svg>
       <div class="gscore">${score}<span>分</span></div></div>
     <div class="vmeta"><div class="vgrade" style="color:${color}">${grade}</div>
-      <div class="vhint">确定性体检 · 点数字跳对应小节</div>
+      <div class="vadvice">${advice}</div>
       <div class="vstats">${stat("死代码", h.dead ?? 0, "死代码", h.suspects ? `<em> +${h.suspects} 疑似</em>` : "")}${stat("死导出", h.deadExports ?? 0, "死代码")}${stat("循环依赖", h.cycles ?? 0, "循环依赖")}${stat("断点", h.breaks ?? 0, "断点")}</div>
     </div></div>`;
 }

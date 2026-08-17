@@ -25,4 +25,4 @@ frontmatter 写 `generated: <死代码命令原文>` 与 `generated-at: <当前 
 
 ## 节点标记
 
-health.md 条目按文件归属（模块页 covers）映射到 data.json 节点：命中的节点加 `health` 数组，值取 `dead`/`cycles`/`hotspot`/`breaks`（对应上面四节）。同时在 data.json 顶层填 `health` 计数对象（dead/suspects/deadExports/cycles/breaks，全部取自工具输出的条目数），模板据此渲染体检页顶部的评分环——评分公式固化在模板，不手填分数。模板据此渲染楼顶与侧边栏警示标，点击跳体检页对应小节；无 health 字段的节点与仓库不显示任何体检痕迹。改动 health.md 或 health 字段后重渲染 HTML。
+health.md 条目按文件归属（模块页 covers）映射到 data.json 节点：命中的节点加 `health` 数组，值取 `dead`/`cycles`/`hotspot`/`breaks`（对应上面四节）。同时在 data.json 顶层填 `health` 计数对象（files=源文件数，dead/suspects/deadExports/cycles/breaks=工具输出的条目数），模板据此渲染体检页顶部的评分环与优化建议——评分公式（密度化）固化在模板，不手填分数。模板据此渲染楼顶与侧边栏警示标，点击跳体检页对应小节；无 health 字段的节点与仓库不显示任何体检痕迹。改动 health.md 或 health 字段后重渲染 HTML。

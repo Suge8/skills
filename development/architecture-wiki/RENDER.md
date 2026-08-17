@@ -20,7 +20,7 @@
   "wiki": {                                   // 全部 wiki 页原文嵌入（含 frontmatter），键为 wiki/ 相对路径
     "index.md": "…", "system.md": "…", "data-flow.md": "…", "modules/auth.md": "…"
   },
-  "health": { "dead": 2, "suspects": 5, "deadExports": 184, "cycles": 0, "breaks": 0 },  // 可选；体检计数全部取自工具输出（见 HEALTH.md），评分公式固化在模板，不手填分数
+  "health": { "files": 163, "dead": 2, "suspects": 5, "deadExports": 184, "cycles": 0, "breaks": 0 },  // 可选；体检计数全部取自工具输出（见 HEALTH.md），files 为源文件数供密度化评分；公式固化在模板，不手填分数
   "districts": [   // 进程/部署边界；按序自动分配暖调低饱和色，可用 tint 覆盖
     { "id": "go", "label": "GO 控制面", "icon": "grid", "r": [1, 2, 3, 4] }
   ],
