@@ -43,6 +43,15 @@
 - **关闭**：合并时由 GitLab 自动关闭，不手动 `glab issue close`。不产生 MR 的工单（问题型、分流拒绝）由解决方发 note 后直接关闭。
 - **放弃**：未合并就中止时回滚认领（`--unassign`、标签换回 `<ready-for-agent>`），不把工单留在进行中。
 
+## 发布前查重
+
+发布新 spec 或工单前，先用 `glab issue list` 找重叠，按重叠程度选一个动作：
+
+- **完全重复**：不新建，用 `glab issue note` 把新信息补到原票。
+- **属于对方范围**：挂到对方的 epic，或用 `/blocked_by` 写阻塞边。
+- **我们有更好的方案**：用 `glab issue update <n> --description` 改写原票正文，并发 note 说明改动理由，不静默另起一张。
+- **需要对方拍板**：只发 note 提问，不擅自动手。
+
 ## Wayfinding 操作
 
 由 `/wayfinder` 使用。地图是一个带有子 issue 作为 ticket 的单一 issue。

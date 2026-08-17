@@ -42,6 +42,15 @@ GitHub 的 issue 和 PR 共享同一个编号空间，因此单独的 `#42` 可�
 - **关闭**：合并时由 GitHub 自动关闭，不手动 `gh issue close`。不产生 PR 的工单（问题型、分流拒绝）由解决方评论后直接关闭。
 - **放弃**：未合并就中止时回滚认领 `gh issue edit <n> --remove-assignee @me --add-label "<ready-for-agent>" --remove-label "<in-progress>"`，不把工单留在进行中。
 
+## 发布前查重
+
+发布新 spec 或工单前，先用 `gh issue list --state open` 找重叠，按重叠程度选一个动作：
+
+- **完全重复**：不新建，用 `gh issue comment` 把新信息补到原票。
+- **属于对方范围**：挂成对方的子 issue，或写阻塞边。
+- **我们有更好的方案**：用 `gh issue edit <n> --body` 改写原票正文，并评论说明改动理由，不静默另起一张。
+- **需要对方拍板**：只评论提问，不擅自动手。
+
 ## Wayfinding 操作
 
 由 `/wayfinder` 使用。地图是一个带有子 issue 作为 ticket 的单一 issue。
