@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 此命令受项目领域模型启发，并建立在共享设计词汇之上：
 
-- 运行 `/codebase-design` skill 获取架构词汇（**module**、**interface**、**depth**、**seam**、**adapter**、**leverage**、**locality**）及其原则（删除测试、“interface 是测试面”、“一个 adapter = 假设中的 seam，两个 = 真实的 seam”）。每条建议都必须准确使用这些术语——不要偏离为“component”“service”“API”或“boundary”。
+- 使用 `codebase-design` skill 获取架构词汇（**module**、**interface**、**depth**、**seam**、**adapter**、**leverage**、**locality**）及其原则（删除测试、“interface 是测试面”、“一个 adapter = 假设中的 seam，两个 = 真实的 seam”）。每条建议都必须准确使用这些术语——不要偏离为“component”“service”“API”或“boundary”。
 - `CONTEXT.md` 中的领域语言为良好 seam 命名；`docs/adr/` 中的 ADR 记录本命令不应重新争论的决策。
 
 ## 流程
@@ -51,7 +51,7 @@ disable-model-invocation: true
 
 报告末尾以 **Top recommendation** 区块结束：最先处理哪个候选项，以及原因。
 
-**使用 CONTEXT.md 的词汇描述领域，使用 `/codebase-design` 的词汇描述架构。** 如果 `CONTEXT.md` 定义了“Order”，就写“Order intake module”，不要写“FooBarHandler”，也不要写“Order service”。
+**使用 CONTEXT.md 的词汇描述领域，使用 `codebase-design` 的词汇描述架构。** 如果 `CONTEXT.md` 定义了“Order”，就写“Order intake module”，不要写“FooBarHandler”，也不要写“Order service”。
 
 **ADR 冲突：** 如果候选项与现有 ADR 矛盾，只有在摩擦真实到值得重新审视该 ADR 时才展示它。在卡片中明确标记（例如警告提示：_“与 ADR-0007 矛盾——但值得重新开启，因为……”_）。不要列出 ADR 禁止的每个理论性重构。
 
@@ -61,11 +61,11 @@ disable-model-invocation: true
 
 ### 3. 追问循环
 
-用户选择候选项后，运行 `/grilling` skill，与用户一起沿决策树推进——约束、依赖、deepened module 的形态、seam 后方的内容，以及哪些测试保留。
+用户选择候选项后，使用 `grilling` skill，与用户一起沿决策树推进——约束、依赖、deepened module 的形态、seam 后方的内容，以及哪些测试保留。
 
-随着决策逐渐明确，副作用要内联发生——运行 `/domain-modeling` skill，持续更新领域模型：
+随着决策逐渐明确，副作用要内联发生——使用 `domain-modeling` skill，持续更新领域模型：
 
 - **是否用 `CONTEXT.md` 中没有的概念为 deepened module 命名？** 将该术语加入 `CONTEXT.md`。如果文件不存在，按需创建。
 - **是否在对话中明确了某个模糊术语？** 当场更新 `CONTEXT.md`。
 - **用户是否因一个具有决定性作用的理由拒绝候选项？** 提供 ADR，但措辞应为：“要我把它记录为 ADR，避免未来的架构评审再次建议同一方案吗？”只有当该理由确实能帮助未来的探索者避免重复建议时才提供；短暂理由（“现在不值得”）和不言自明的理由则跳过。
-- **是否想探索 deepened module 的替代 interface？** 运行 `/codebase-design` skill，并使用其 design-it-twice 并行子代理模式。
+- **是否想探索 deepened module 的替代 interface？** 使用 `codebase-design` skill，并使用其 design-it-twice 并行子代理模式。

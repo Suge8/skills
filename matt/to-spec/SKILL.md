@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 此 skill 会利用当前对话上下文和对代码库的理解来生成规格说明。不要访谈用户——只需综合你已经知道的信息。
 
-议题跟踪器和分诊标签的词汇应该已经提供给你——如果没有，请运行 `/setup-matt-pocock-skills`。
+议题跟踪器和分诊标签的词汇应该已经提供给你；如果没有，请告知用户运行 `/setup-matt-pocock-skills`。
 
 ## 流程
 

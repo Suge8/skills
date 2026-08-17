@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 将计划、规格说明或对话拆分为一组 **工单**——tracer-bullet 垂直切片，每个工单都声明会 **阻塞** 它的工单。
 
-问题跟踪器和分诊标签词汇应已提供给你；如果没有，请运行 `/setup-matt-pocock-skills`。
+问题跟踪器和分诊标签词汇应已提供给你；如果没有，请告知用户运行 `/setup-matt-pocock-skills`。
 
 ## 流程
 
