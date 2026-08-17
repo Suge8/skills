@@ -54,7 +54,7 @@ disable-model-invocation: true
 
 > 是否保留默认分流标签？（推荐：**是**）
 
-默认值是五个规范角色，每个标签字符串都等于其名称：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。如果回答 **是**，原样写入。只有用户回答否时——通常因为其 tracker 已使用其他名称（例如用 `bug:triage` 表示 `needs-triage`）——才收集覆盖值，让 `triage` 使用现有标签而不是创建重复标签。
+默认值是五个规范角色，每个标签字符串都等于其名称：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。如果回答 **是**，原样写入。只有用户回答否时——通常因为其 tracker 已使用其他名称（例如用 `bug:triage` 表示 `needs-triage`）——才收集覆盖值，让 `triage` 使用现有标签而不是创建重复标签。映射表中另有类型标签节（如 `spec`），同机制随表维护。
 
 **C 部分——领域文档。** 默认使用**单一上下文**——仓库根目录下一个 `CONTEXT.md` 和 `docs/adr/`。这适合几乎所有仓库；直接写入，不询问。
 
