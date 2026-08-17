@@ -7,11 +7,10 @@ description: 仅当用户明确要求使用归档 Skill 时触发；从冷归档
 
 只在用户明确要求归档 Skill 时读取对应 `SKILL.md`：
 
-- `development/htmlplan`：离线单文件 HTML 计划工作台。
-- `development/web-clone`：网站复刻、交互还原与 WebGL/Canvas 效果逆向。
-- `frontend/handdrawn-mascot-landing`：手绘暖色吉祥物落地页。
-- `frontend/shadcn`：shadcn/ui CLI、registry 与组件工作流。
-- `frontend/vercel-react-best-practices`：React/Next.js 性能规则。
+- `web-clone`：网站复刻、交互还原与 WebGL/Canvas 效果逆向。
+- `handdrawn-mascot-landing`：手绘暖色吉祥物落地页。
+- `shadcn`：shadcn/ui CLI、registry 与组件工作流。
+- `vercel-react-best-practices`：React/Next.js 性能规则。
 - `office/docx`：Word 文档。
 - `office/pdf`：PDF 读取、创建、编辑与表单。
 - `office/pptx`：PowerPoint 演示文稿。
