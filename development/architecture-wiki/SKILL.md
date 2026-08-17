@@ -1,5 +1,6 @@
 ---
 name: architecture-wiki
+disable-model-invocation: true
 description: 在目标仓库建立并维护 docs/architecture/：Markdown wiki 事实源 + 自包含 architecture.html 可视化 + verify 过期检查接入 lint/CI。用户要架构图、代码库可视化、architecture wiki，或架构 verify 报错时使用。
 ---
 
@@ -44,7 +45,7 @@ verify 检查：来源文件存在且哈希一致、symbol 仍在、页间相对
 ## 首次建立（仓库无 docs/architecture/ 时）
 
 1. 取事实：JS/TS 仓库运行 `bun scripts/code-map.mjs <repo-root> [限定前缀...]`（路径相对本 skill 目录），得到含 tsconfig paths 解析的真实 import 图（文件级 imports/exports/loc/外部包）；其他语言直接读代码提取模块与调用关系。oxc 依赖装在本 skill 的 scripts/ 目录里，不碰目标仓库，缺失时直接在 scripts/ 下 `bun install`（无 bun 则 `npm install`），不需要征求用户同意。完成标准：接下来 wiki 里每个节点、每条边都能指回具体文件；运行流每一步都找到真实调用点（入口、RPC 定义、队列生产/消费点），找不到调用点的步骤不画。
-2. 写 wiki：按上面布局。模块页按职责聚合成 6–15 个，不按文件铺开；data-flow.md 写清入口 → 处理 → 存储的真实路径和 payload 形态。每页填 sources 哈希，index.md 填 baseline（当前 HEAD）并链接所有页面。
+2. 写 wiki：按上面布局。模块页按职责聚合成 6–15 个，不按文件铺开；data-flow.md 写清入口 → 处理 → 存储的真实路径和 payload 形态。每页填 sources 哈希，index.md 填 baseline（当前 HEAD）并链接所有页面。模块页 ≥3 且 subagents 可用时，读 [FANOUT.md](./FANOUT.md)：模块页并行派工，总览页自己写。
 3. 复制 [templates/verify.mjs](./templates/verify.mjs) 到 `docs/architecture/verify.mjs`，运行一次直到通过。
 4. 渲染 HTML：读 [RENDER.md](./RENDER.md)，用 templates/architecture.html 模板注入数据 JSON，不手写界面。完成标准：RENDER.md 「完成检查」逐项用浏览器截图验过。
 5. 接入 lint：在仓库现有检查入口（package.json scripts / justfile / Makefile / CI workflow）追加 `node docs/architecture/verify.mjs`，与现有 lint、typecheck 并列一起跑；不塞进 linter 插件内部。仓库完全没有检查入口时，新建最小入口只跑 verify（如 package.json 加 `"lint": "node docs/architecture/verify.mjs"`，或 CI 加一步）；verify 零依赖，只需 node + git。用户顺便想给 JS/TS 仓库补代码 linter 时才推荐 oxlint。
