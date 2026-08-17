@@ -51,7 +51,7 @@ verify 检查：来源文件存在且哈希一致（不一致时直接打印记�
 2. 写 wiki：按上面布局。模块页一页一个职责域，按职责聚合不按文件铺开，页数随项目规模自然增长（页多时 index.md 按子系统分组导航）。每个模块页固定四节：**职责**、**对外接口**、**数据怎么流**、**改动指南**。前两人话后两技术：职责与数据怎么流用人话写业务行为，非作者一读就懂，不出现代码标识符；文件名、函数名集中在对外接口与改动指南两节，写「auth 域只暴露 `validateToken`/`refreshToken`（`src/auth/token.ts`）」这种句子，坑也写在改动指南。data-flow.md 按入口铺全：每个真实入口（HTTP API、CLI、队列消费者、定时任务…）至少一条端到端路径，写清入口 → 处理 → 存储与 payload 形态。每页填 sources 哈希，模块页填 covers 认领自己的路径范围，index.md 填 baseline（当前 HEAD）与 exclude 豁免清单并链接所有页面；认领并集 ∪ 豁免必须覆盖全部追踪文件（verify 硬检）。写完抽两页自测：读完能答「这模块负责什么、谁在用它、改它先看哪个文件」，答不上的页重写。模块页 ≥3 且 subagents 可用时，读 [FANOUT.md](./FANOUT.md)：模块页并行派工，总览页自己写。
 3. 体检：读 [HEALTH.md](./HEALTH.md)，跑命令、复核、产出 wiki/health.md 与节点 health 字段。
 4. 复制 [templates/verify.mjs](./templates/verify.mjs) 到 `docs/architecture/verify.mjs`，运行一次直到通过。
-5. 渲染 HTML：读 [RENDER.md](./RENDER.md)，用 templates/architecture.html 模板注入数据 JSON，不手写界面。完成标准：verify 通过（数据侧问题全由 verify 硬检，不需浏览器验证）。
+5. 渲染 HTML：读 [RENDER.md](./RENDER.md)，用 templates/architecture.html 模板注入数据 JSON，不手写界面。完成标准：verify 通过（数据侧问题全由 verify 硬检，不需浏览器验证）。通过后 `open docs/architecture/architecture.html` 把成品打开给用户（仅首建；同步不自动打开）。
 6. 接入 lint：在仓库现有检查入口（package.json scripts / justfile / Makefile / CI workflow）追加 `node docs/architecture/verify.mjs`，与现有 lint、typecheck 并列一起跑；不塞进 linter 插件内部。仓库 linter 扫全仓时把 `docs/architecture` 加进其忽略清单——派生产物与零依赖脚本不受项目代码风格约束，接入后跑一次完整检查确认不互咬。仓库完全没有检查入口时，新建最小入口只跑 verify（如 package.json 加 `"lint": "node docs/architecture/verify.mjs"`，或 CI 加一步）；verify 零依赖，只需 node + git。用户顺便想给 JS/TS 仓库补代码 linter 时才推荐 oxlint。
 
 ## 同步（代码变更后，或 verify 报错时）
