@@ -1,7 +1,9 @@
 #!/usr/bin/env bun
 // Deterministic JS/TS import graph via oxc (parser + resolver, tsconfig-aware).
 // Usage: bun code-map.mjs <repo-root> [path-prefix...]
-// Prints JSON: { root, files: { "src/a.ts": { loc, exports, imports, packages } } }
+// Prints JSON: { root, files: { "src/a.ts": { loc, exports, imports, packages, unresolved? } } }
+// Breakage is first-class data: parse failures become { error }, relative imports
+// that resolve to nothing land in `unresolved` — both feed the health page's 断点 section.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -44,12 +46,15 @@ for (const file of files.sort()) {
   ];
   const imports = new Set();
   const packages = new Set();
+  const unresolved = new Set();
   for (const spec of specifiers) {
     const res = resolver.resolveFileSync(abs, spec);
     if (res.path && res.path.startsWith(root) && !res.path.includes("node_modules")) {
       imports.add(relative(root, res.path));
     } else if (!spec.startsWith(".") && !spec.startsWith("node:")) {
       packages.add(spec.startsWith("@") ? spec.split("/").slice(0, 2).join("/") : spec.split("/")[0]);
+    } else if (spec.startsWith(".")) {
+      unresolved.add(spec);
     }
   }
   const exports = [...new Set(mod.staticExports.flatMap((e) =>
@@ -60,6 +65,7 @@ for (const file of files.sort()) {
     exports,
     imports: [...imports].sort(),
     packages: [...packages].sort(),
+    ...(unresolved.size && { unresolved: [...unresolved].sort() }),
   };
 }
 

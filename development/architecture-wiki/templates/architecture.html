@@ -15,6 +15,9 @@
     --line: rgba(32, 38, 31, .1);
     --accent: #3E7A5E;
     --accent-deep: #2C5E47;
+    --warn: #BE5560;
+    --navw: clamp(195px, 15vw, 235px);
+    --asidew: clamp(295px, 24vw, 355px);
     --paper: var(--card);
     --paper-hi: var(--card);
     --mono: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace;
@@ -54,14 +57,18 @@
   header button.primary { background: var(--accent); color: #FFF; border-color: transparent; }
   header button.primary:hover { background: var(--accent-deep); }
   header button:not(.primary):hover { background: var(--surface); }
+  header button.iconbtn { padding: 7px 9px; }
   main { flex: 1; display: flex; min-height: 0; gap: 10px; padding: 10px 12px 12px; }
   nav, #stage, aside {
     background: var(--card); border: 1px solid var(--line); border-radius: 16px;
   }
   nav {
-    width: clamp(195px, 15vw, 235px);
+    width: var(--navw);
     overflow-y: auto; padding: 8px 8px 20px; flex-shrink: 0;
   }
+  nav, aside { transition: margin .24s cubic-bezier(.2, 0, 0, 1), opacity .18s ease-out; }
+  body.nav-off nav { margin-left: calc(-1 * var(--navw) - 10px); opacity: 0; pointer-events: none; }
+  body.aside-off aside { margin-right: calc(-1 * var(--asidew) - 10px); opacity: 0; pointer-events: none; }
   nav .filter { position: sticky; top: 0; background: var(--card); padding: 2px 2px 8px; z-index: 2; }
   nav .filter input {
     width: 100%; font: 12px var(--sans); padding: 6px 10px; border-radius: 9px;
@@ -91,6 +98,7 @@
   }
   nav .nm { font-size: 12.5px; }
   nav .ct { margin-left: auto; font-size: 11px; color: var(--ink-soft); }
+  nav .hdot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex-shrink: 0; }
   #stage { flex: 1; position: relative; min-width: 0; cursor: grab; overflow: hidden; }
   #stage.panning { cursor: grabbing; }
   #stage svg { width: 100%; height: 100%; display: block; }
@@ -106,7 +114,7 @@
   }
   #flowbar button.on { background: var(--accent); color: #FFF; }
   aside {
-    width: clamp(295px, 24vw, 355px);
+    width: var(--asidew);
     display: flex; flex-direction: column; flex-shrink: 0;
   }
   .tabs { display: flex; gap: 4px; margin: 10px 12px 0; background: var(--surface); border-radius: 11px; padding: 3px; }
@@ -142,6 +150,8 @@
     border-radius: 8px; padding: 3px 9px; cursor: pointer;
   }
   #panel .chip:hover { border-color: var(--accent); color: var(--accent-deep); }
+  #panel .chip.hchip { border-color: color-mix(in srgb, var(--warn) 45%, transparent); color: var(--warn); }
+  #panel .chip.hchip:hover { border-color: var(--warn); }
   #panel .dimtext { color: var(--ink-soft); font-size: 12px; }
   #panel .md-body h1 { font: 700 15px/1.5 var(--serif); margin: 16px 0 8px; }
   #panel .md-body h2 { font: 700 13.5px/1.5 var(--serif); margin: 14px 0 7px; border: none; padding: 0; }
@@ -159,6 +169,9 @@
   #panel .md-body hr { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
   #panel .wl { cursor: pointer; text-decoration: underline dotted; }
   .b, .lk { transition: opacity .18s, transform .2s ease; cursor: pointer; }
+  .hbadge { cursor: pointer; }
+  .hbadge .ring { transition: r .15s ease-out; }
+  .hbadge:hover .ring { r: 8.5; }
   .b.dim, .lk.dim { opacity: .13; }
   #svg g.b:not([data-plate]):hover { transform: translateY(-3px); }
   #svg g.b.hop { animation: hop .5s ease; }
@@ -168,6 +181,7 @@
   @media (prefers-reduced-motion: reduce) {
     #selring, #svg g.b.hop { animation: none; }
     #svg g.b:not([data-plate]):hover { transform: none; }
+    nav, aside { transition: none; }
   }
   @media (max-width: 1080px) { nav { display: none; } }
   @media (max-width: 820px) { aside { display: none; } }
@@ -208,6 +222,8 @@
 <symbol id="ic-theme" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6"/><path d="M6 1.4v9.2A4.6 4.6 0 0 0 6 1.4Z" fill="currentColor" stroke="none"/></symbol>
 <symbol id="ic-reset" viewBox="0 0 12 12"><path d="M2.2 6a3.8 3.8 0 1 1 1.1 2.7"/><path d="M2 5.4v2.8h2.8" fill="none"/></symbol>
 <symbol id="ic-doc" viewBox="0 0 12 12"><path d="M2.6 1.4h6.8v9.2H2.6Z"/><line x1="4.4" y1="4" x2="7.6" y2="4"/><line x1="4.4" y1="6" x2="7.6" y2="6"/><line x1="4.4" y1="8" x2="6.4" y2="8"/></symbol>
+<symbol id="ic-side-l" viewBox="0 0 12 12"><rect x="1.2" y="2" width="9.6" height="8" rx="1.2"/><line x1="4.4" y1="2" x2="4.4" y2="10"/></symbol>
+<symbol id="ic-side-r" viewBox="0 0 12 12"><rect x="1.2" y="2" width="9.6" height="8" rx="1.2"/><line x1="7.6" y1="2" x2="7.6" y2="10"/></symbol>
 </defs>
 </svg>
 <header id="hdr"></header>
@@ -240,6 +256,7 @@ const mix = (c, pct, base) => `color-mix(in srgb, ${c} ${pct}%, ${base})`;
 const STAT_ICONS = [["语言", "globe"], ["模块", "cube"], ["入口", "gateway"], ["场景", "play"], ["外部", "plug"], ["依赖", "plug"], ["页", "book"], ["服务", "server"], ["测试", "shield"]];
 const statIcon = k => (STAT_ICONS.find(([p]) => k.includes(p)) || [0, "sparkle"])[1];
 document.getElementById("hdr").innerHTML =
+  `<button id="btnNav" class="iconbtn" title="收起导航栏" aria-expanded="true">${ic("side-l")}</button>` +
   `<div class="brand">${DATA.meta.logo || ""}<div class="v">${DATA.meta.title}</div></div>` +
   `<div class="statbar">` + DATA.meta.stats.map(([k, v, tip]) =>
     `<div class="stat"${tip ? ` title="${tip}"` : ""}>${ic(statIcon(k), 12)}<span class="k">${k}</span><span class="v">${v}</span></div>`
@@ -247,10 +264,23 @@ document.getElementById("hdr").innerHTML =
   `<div class="spacer"></div>
    <button id="btnPlay" class="primary">${ic("play")}播放场景</button>
    <button id="btnStep">${ic("stepfwd")}单步</button>
-   <button id="btnReset">${ic("reset")}重置</button>`;
+   <button id="btnReset">${ic("reset")}重置</button>
+   <button id="btnAside" class="iconbtn" title="收起面板" aria-expanded="true">${ic("side-r")}</button>`;
+const bindCollapse = (id, cls, name) => {
+  const b = document.getElementById(id);
+  b.onclick = () => {
+    const off = document.body.classList.toggle(cls);
+    b.setAttribute("aria-expanded", String(!off));
+    b.title = (off ? "展开" : "收起") + name;
+  };
+};
+bindCollapse("btnNav", "nav-off", "导航栏");
+bindCollapse("btnAside", "aside-off", "面板");
 
 /* ── 数据索引 ── */
 const N = {}; DATA.nodes.forEach(n => { n.w ??= 1.1; n.d ??= 1.1; N[n.code] = n; });
+const HEALTH_SECTIONS = { dead: "死代码", cycles: "循环依赖", hotspot: "高危热点", breaks: "断点" };
+const healthTip = n => "体检：" + n.health.map(h => HEALTH_SECTIONS[h] || h).join("、");
 const DIST = {}; DATA.districts.forEach(d => DIST[d.id] = d);
 const adj = {};
 const addAdj = (a, b) => { (adj[a] ??= new Set()).add(b); (adj[b] ??= new Set()).add(a); };
@@ -401,6 +431,19 @@ function building(n) {
   else if (n.form === "cylinder") cylinder(g, did, x, y, w, d, h);
   else if (n.form === "external") box(g, did, x, y, w, d, h, 0, true);
   else box(g, did, x, y, w, d, h);
+  if (n.health?.length) {
+    const topZ = n.form === "stack" ? 1.3 : h;
+    const [bx, by] = iso(x + w / 2, y + d / 2, topZ + .5);
+    const bg = el("g", { class: "hbadge" }, g);
+    el("circle", { class: "ring", cx: bx, cy: by, r: 7, fill: "var(--warn)", stroke: "var(--card)", "stroke-width": 1.5 }, bg);
+    el("line", { x1: bx, y1: by - 3.2, x2: bx, y2: by + .6, stroke: "#FFF", "stroke-width": 1.5, "stroke-linecap": "round" }, bg);
+    el("circle", { cx: bx, cy: by + 3, r: .9, fill: "#FFF", stroke: "none" }, bg);
+    el("title", {}, bg).textContent = healthTip(n);
+    bg.addEventListener("click", e => {
+      e.stopPropagation();
+      openWikiPage("health.md", HEALTH_SECTIONS[n.health[0]]);
+    });
+  }
   return g;
 }
 /* 名牌落地：放在建筑前方地面通道，不遮后排 */
@@ -627,7 +670,7 @@ for (const d of DATA.districts) {
      <div class="grpbody" data-d="${d.id}">` +
     items.map(n =>
       `<div class="item" data-code="${n.code}">${ic(n.icon || d.icon, 12)}<span class="code">${n.code}</span>
-       <span class="nm">${n.short || n.name}</span>${n.count ? `<span class="ct" title="群组节点：汇聚 ${n.count} 个同类模块">${n.count} 模块</span>` : ""}</div>`).join("") +
+       <span class="nm">${n.short || n.name}</span>${n.health?.length ? `<span class="hdot" title="${healthTip(n)}"></span>` : ""}${n.count ? `<span class="ct" title="群组节点：汇聚 ${n.count} 个同类模块">${n.count} 模块</span>` : ""}</div>`).join("") +
     `</div>`);
 }
 nav.addEventListener("click", e => {
@@ -706,6 +749,8 @@ function systemPanel() {
 function nodePanel(code) {
   const n = N[code], d = DIST[n.district];
   const head = kicker(n.icon || d.icon, d.label, mix(tintOf[d.id], 55, "var(--ink)")) + `<h2>${n.name}</h2>` +
+    (n.health?.length ? `<div class="chips">${n.health.map(h =>
+      `<span class="chip hchip" data-hsec="${HEALTH_SECTIONS[h]}">${ic("shield", 11)}${HEALTH_SECTIONS[h]}</span>`).join("")}</div>` : "") +
     (n.count ? `<p class="dimtext">群组节点 · 汇聚 ${n.count} 个同类模块为一栋</p>` : "");
   if (tab === "page") {
     const body = pageBody(n.page);
@@ -786,6 +831,8 @@ function render() {
     ch.addEventListener("click", () => select(ch.dataset.code)));
   panel.querySelectorAll(".chip[data-flow]").forEach(ch =>
     ch.addEventListener("click", () => showScenarioStep(+ch.dataset.flow, +ch.dataset.step)));
+  panel.querySelectorAll(".chip[data-hsec]").forEach(ch =>
+    ch.addEventListener("click", () => openWikiPage("health.md", ch.dataset.hsec)));
   panel.querySelectorAll("a.wl").forEach(a =>
     a.addEventListener("click", () => {
       const cur = (sel && typeof sel === "object" && (sel.page || FLOWS[sel.flow]?.page)) ||

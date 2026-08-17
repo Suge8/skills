@@ -6,9 +6,15 @@
 //   ---
 //   sources:
 //     - src/auth.ts 8f3a21bc4d2e validateToken
+//   covers:
+//     - src/auth/
 //   ---
-// Each entry: <repo-relative-path> <git blob hash prefix (>=8)> [symbol...]
-// index.md additionally: baseline: <commit sha>
+// sources entry: <repo-relative-path> <git blob hash prefix (>=8)> [symbol...]
+// covers entry: path prefix this page claims for the coverage ledger.
+// index.md additionally: baseline: <commit sha>, plus optional exclude: list
+// (ledger exemptions, same prefix syntax). Regenerated pages (health.md) carry
+// generated: <command> and generated-at: <commit>; their sources are skipped —
+// freshness is "re-run the command", signalled by a lag notice, not hash drift.
 //
 // Usage: node verify.mjs            # verify; stale sources print a unified diff, exit 0/1
 //        node verify.mjs --digest   # print current wiki digest and exit
@@ -49,22 +55,33 @@ function walk(dir) {
 function parsePage(path) {
   const text = readFileSync(path, "utf8");
   const rel = relative(wikiDir, path);
-  const page = { path, rel, sources: [], baseline: null, body: text };
+  const page = { path, rel, sources: [], covers: [], exclude: [], baseline: null, generated: null, generatedAt: null, body: text };
   if (!text.startsWith("---")) return page;
   const end = text.indexOf("\n---", 3);
   if (end === -1) return page;
   page.body = text.slice(end + 4);
-  let inSources = false;
+  let list = null;
   for (const line of text.slice(3, end).split("\n")) {
-    if (/^sources:\s*$/.test(line)) { inSources = true; continue; }
-    const item = inSources && line.match(/^\s+-\s+(\S+)\s+(\S+)\s*(.*)$/);
+    const key = line.match(/^(sources|covers|exclude):\s*$/);
+    if (key) { list = key[1]; continue; }
+    const item = list && line.match(/^\s+-\s+(.+?)\s*$/);
     if (item) {
-      page.sources.push({ file: item[1], hash: item[2], symbols: item[3].split(/\s+/).filter(Boolean) });
+      if (list === "sources") {
+        const s = item[1].match(/^(\S+)\s+(\S+)\s*(.*)$/);
+        if (s) page.sources.push({ file: s[1], hash: s[2], symbols: s[3].split(/\s+/).filter(Boolean) });
+        else errors.push(`${rel}: malformed sources entry: ${item[1]}`);
+      } else {
+        page[list].push(item[1]);
+      }
       continue;
     }
-    const kv = line.match(/^baseline:\s*(\S+)/);
-    if (kv) page.baseline = kv[1];
-    if (/^\S/.test(line)) inSources = false;
+    const kv = line.match(/^(baseline|generated|generated-at):\s*(.+?)\s*$/);
+    if (kv) {
+      if (kv[1] === "baseline") page.baseline = kv[2];
+      else if (kv[1] === "generated") page.generated = kv[2];
+      else page.generatedAt = kv[2];
+    }
+    if (/^\S/.test(line)) list = null;
   }
   return page;
 }
@@ -161,8 +178,21 @@ if (process.argv.includes("--digest")) {
   process.exit(0);
 }
 
+const notices = [];
+
 // 1. Sources: file exists, hash matches, symbols still present.
+// Regenerated pages are exempt — their freshness check is the lag notice below.
 for (const page of pages) {
+  if (page.generated) {
+    if (!page.generatedAt) { errors.push(`${page.rel}: generated page missing generated-at: <commit>`); continue; }
+    try {
+      const lag = git("rev-list", "--count", `${page.generatedAt}..HEAD`).trim();
+      if (+lag > 0) notices.push(`${page.rel}: 体检报告落后 ${lag} 个提交，同步时重跑：${page.generated}`);
+    } catch {
+      errors.push(`${page.rel}: generated-at commit not found: ${page.generatedAt}`);
+    }
+    continue;
+  }
   for (const src of page.sources) {
     const abs = join(repoRoot, src.file);
     if (existsSync(abs) && statSync(abs).isDirectory()) {
@@ -171,10 +201,11 @@ for (const page of pages) {
     }
   }
 }
-const sourceFiles = [...new Set(pages.flatMap((p) => p.sources.filter((s) => !s.skip).map((s) => s.file)))];
+const sourceFiles = [...new Set(pages.filter((p) => !p.generated).flatMap((p) => p.sources.filter((s) => !s.skip).map((s) => s.file)))];
 const existing = sourceFiles.filter((f) => existsSync(join(repoRoot, f)));
 const hashes = blobHashes(existing);
 for (const page of pages) {
+  if (page.generated) continue;
   for (const src of page.sources) {
     if (src.skip) continue;
     if (!hashes.has(src.file)) {
@@ -192,7 +223,41 @@ for (const page of pages) {
   }
 }
 
-// 2. Relative links resolve; every page except index.md has an inbound link.
+// 2. Coverage ledger: every tracked file is claimed by a page's covers or excluded.
+// Built-in exemptions cover what never needs a claim; everything else is explicit,
+// so a module growing without documentation fails here instead of going unnoticed.
+const LOCKFILES = new Set(["package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lock", "bun.lockb", "Cargo.lock", "go.sum", "composer.lock", "Gemfile.lock", "poetry.lock", "uv.lock"]);
+const BINARY_RE = /\.(png|jpe?g|gif|webp|avif|ico|svg|woff2?|ttf|otf|eot|pdf|mp4|mov|webm|mp3|wav|zip|gz|jar|wasm|node|bin)$/i;
+const archPrefix = relative(repoRoot, here).replaceAll("\\", "/") + "/";
+const builtinExempt = (f) =>
+  f.split("/").some((seg) => seg.startsWith(".")) ||
+  LOCKFILES.has(f.slice(f.lastIndexOf("/") + 1)) ||
+  BINARY_RE.test(f) || f.startsWith(archPrefix);
+const claims = (p) => f => f === p || f.startsWith(p.endsWith("/") ? p : p + "/");
+{
+  const tracked = execFileSync("git", ["ls-files"], { cwd: repoRoot, encoding: "utf8" }).trim().split("\n").filter(Boolean);
+  const entries = [
+    ...pages.flatMap((p) => p.covers.map((c) => ({ owner: p.rel, kind: "covers", match: claims(c), raw: c }))),
+    ...(pages.find((p) => p.rel === "index.md")?.exclude ?? []).map((c) => ({ owner: "index.md", kind: "exclude", match: claims(c), raw: c })),
+  ];
+  const hit = new Set();
+  const unclaimed = [];
+  for (const f of tracked) {
+    if (builtinExempt(f)) continue;
+    let claimed = false;
+    for (const e of entries) if (e.match(f)) { claimed = true; hit.add(e); }
+    if (!claimed) unclaimed.push(f);
+  }
+  if (unclaimed.length) {
+    const shown = unclaimed.slice(0, 30);
+    errors.push(`coverage: ${unclaimed.length} file(s) unclaimed — add to a page's covers or index.md exclude:\n${shown.map((f) => `    ${f}`).join("\n")}${unclaimed.length > 30 ? `\n    … and ${unclaimed.length - 30} more` : ""}`);
+  }
+  for (const e of entries) {
+    if (!hit.has(e)) errors.push(`${e.owner}: stale ${e.kind} entry matches no tracked file: ${e.raw}`);
+  }
+}
+
+// 3. Relative links resolve; every page except index.md has an inbound link.
 const inbound = new Set();
 for (const page of pages) {
   for (const m of page.body.matchAll(/\]\(([^)#\s]+)(?:#[^)\s]*)?\)/g)) {
@@ -212,7 +277,7 @@ for (const page of pages) {
   }
 }
 
-// 3. index.md baseline is a valid commit.
+// 4. index.md baseline is a valid commit.
 const index = pages.find((p) => p.rel === "index.md");
 if (!index) {
   errors.push("wiki/index.md missing");
@@ -226,7 +291,7 @@ if (!index) {
   }
 }
 
-// 4. architecture.html exists and was rendered from the current wiki.
+// 5. architecture.html exists and was rendered from the current wiki.
 if (!existsSync(htmlPath)) {
   errors.push("architecture.html missing (run render)");
 } else {
@@ -235,7 +300,8 @@ if (!existsSync(htmlPath)) {
   else if (m[1] !== digest) errors.push(`architecture.html: stale (digest ${m[1]} != wiki ${digest}), re-render`);
 }
 
-// 5. data.json (when present): graph completeness + geometry red lines.
+// 6. data.json (when present): graph completeness + geometry red lines.
+const HEALTH_KEYS = new Set(["dead", "cycles", "hotspot", "breaks"]);
 const dataPath = join(here, "data.json");
 if (existsSync(dataPath)) {
   let d = null;
@@ -269,12 +335,19 @@ function checkData(d) {
       errors.push(`data.json: orphan node ${n.code} (no link or flow touches it)`);
     if (n.page && !existsSync(join(wikiDir, n.page.split("#")[0])))
       errors.push(`data.json: node ${n.code} page not found: ${n.page.split("#")[0]}`);
+    if (n.health) {
+      if (!Array.isArray(n.health) || n.health.some((h) => !HEALTH_KEYS.has(h)))
+        errors.push(`data.json: node ${n.code} invalid health (allowed: ${[...HEALTH_KEYS].join("/")})`);
+      else if (!existsSync(join(wikiDir, "health.md")))
+        errors.push(`data.json: node ${n.code} has health but wiki/health.md is missing`);
+    }
     const dd = districts.find((x) => x.id === n.district);
     if (!dd) { errors.push(`data.json: node ${n.code} unknown district ${n.district}`); continue; }
     const [x, y, w, h] = dd.r, nw = n.w ?? 1.1, nd = n.d ?? 1.1;
     if (n.x < x || n.y < y || n.x + nw > x + w || n.y + nd > y + h)
       errors.push(`data.json: node ${n.code} outside district ${dd.id}`);
   }
+  checkCrossings(d, nodes);
   // Geometry red lines (slightly looser than RENDER.md recommendations).
   for (let i = 0; i < nodes.length; i++)
     for (let j = i + 1; j < nodes.length; j++) {
@@ -294,9 +367,50 @@ function checkData(d) {
     }
 }
 
-if (errors.length) {
-  console.error(`Architecture wiki verify failed (${errors.length}):`);
-  for (const e of errors) console.error(`  ${e}`);
+// Edge-through-building red line. Deliberately loose (footprints shrunk) so the
+// template's edge bowing never triggers false alarms — misses beat false positives.
+function segHitsRect(ax, ay, bx, by, x0, y0, x1, y1) {
+  const inside = (px, py) => px > x0 && px < x1 && py > y0 && py < y1;
+  if (inside(ax, ay) || inside(bx, by)) return true;
+  const cross = (ox, oy, px, py, qx, qy) => (px - ox) * (qy - oy) - (py - oy) * (qx - ox);
+  const segsIntersect = (p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y) => {
+    const d1 = cross(p3x, p3y, p4x, p4y, p1x, p1y), d2 = cross(p3x, p3y, p4x, p4y, p2x, p2y);
+    const d3 = cross(p1x, p1y, p2x, p2y, p3x, p3y), d4 = cross(p1x, p1y, p2x, p2y, p4x, p4y);
+    return d1 * d2 < 0 && d3 * d4 < 0;
+  };
+  const sides = [[x0, y0, x1, y0], [x1, y0, x1, y1], [x1, y1, x0, y1], [x0, y1, x0, y0]];
+  return sides.some(([sx, sy, ex, ey]) => segsIntersect(ax, ay, bx, by, sx, sy, ex, ey));
+}
+function checkCrossings(d, nodes) {
+  const NM = {}; nodes.forEach((n) => NM[n.code] = n);
+  const M = 0.18;
+  const center = (n) => [n.x + (n.w ?? 1.1) / 2, n.y + (n.d ?? 1.1) / 2];
+  const edges = [
+    ...(d.links || []).map((l) => ({ ...l, tag: `link ${l.from}→${l.to}` })),
+    ...(d.flows || []).flatMap((f) => (f.steps || []).map((s) => ({ ...s, tag: `flow "${f.title}" step "${s.title}"` }))),
+  ];
+  for (const e of edges) {
+    const a = NM[e.from], b = NM[e.to];
+    if (!a || !b) continue;
+    const pts = [center(a), ...(e.via || []), center(b)];
+    for (const n of nodes) {
+      if (n.code === e.from || n.code === e.to) continue;
+      const x0 = n.x + M, y0 = n.y + M, x1 = n.x + (n.w ?? 1.1) - M, y1 = n.y + (n.d ?? 1.1) - M;
+      for (let i = 0; i < pts.length - 1; i++) {
+        if (segHitsRect(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], x0, y0, x1, y1)) {
+          errors.push(`data.json: ${e.tag} crosses node ${n.code} footprint (route via waypoints)`);
+          break;
+        }
+      }
+    }
+  }
+}
+
+for (const n of notices) console.log(`notice: ${n}`);
+const uniq = [...new Set(errors)];
+if (uniq.length) {
+  console.error(`Architecture wiki verify failed (${uniq.length}):`);
+  for (const e of uniq) console.error(`  ${e}`);
   process.exit(1);
 }
 console.log(`Architecture wiki OK: ${pages.length} pages, digest ${digest}`);

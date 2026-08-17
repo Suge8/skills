@@ -1,6 +1,6 @@
 # Architecture HTML 渲染规范
 
-渲染是模板驱动的，保证任何仓库、任何 agent 产出几乎一致的界面：复制 [templates/architecture.html](./templates/architecture.html)，把 `__ARCH_DATA__` 替换为数据 JSON、`__TITLE__` 替换为标题、`__WIKI_DIGEST__` 替换为 `node docs/architecture/verify.mjs --digest` 的输出，写入 `docs/architecture/architecture.html`；数据 JSON 同时存为 `docs/architecture/data.json`（派生产物，随渲染更新，供增量微调与 diff）。视觉语言全部固化在模板里：森纸单主题（暖纸底 + 墨绿主色，分区鼠尾草绿/陶土/雾蓝）、等距城市、总览/多场景切换与白色流光、节点聚焦显示其跨场景数据流、侧边栏分组折叠与过滤、平移缩放。要改视觉改模板，不逐仓库定制。
+渲染是模板驱动的，保证任何仓库、任何 agent 产出几乎一致的界面：复制 [templates/architecture.html](./templates/architecture.html)，把 `__ARCH_DATA__` 替换为数据 JSON、`__TITLE__` 替换为标题、`__WIKI_DIGEST__` 替换为 `node docs/architecture/verify.mjs --digest` 的输出，写入 `docs/architecture/architecture.html`；数据 JSON 同时存为 `docs/architecture/data.json`（派生产物，随渲染更新，供增量微调与 diff）。视觉语言全部固化在模板里：森纸单主题（暖纸底 + 墨绿主色，分区鼠尾草绿/陶土/雾蓝）、等距城市、总览/多场景切换与白色流光、节点聚焦显示其跨场景数据流、侧边栏分组折叠与过滤、左右两栏整体可收起、平移缩放；体检命中的节点带警示标（楼顶与侧边栏），点击跳体检页对应小节。要改视觉改模板，不逐仓库定制。
 
 **零手写论断**：HTML 中关于代码库的每一句话，要么是嵌入的 wiki 页原文直接渲染，要么由图数据确定性派生（上下游、参与场景）。数据 JSON 里不出现独立撰写的功能/原理文字；`meta.reading` 只描述怎么读这张图，不描述代码库。内容不够好去改 wiki 页，不在 JSON 里补写。
 
@@ -28,7 +28,8 @@
       "icon": "lock", "form": "box", "x": 6.4, "y": 7.4, "h": 0.8,       // w/d 默认 1.1
       "count": 12,                                                        // 仅群组节点（slabs）标数量
       "page": "modules/auth.md",                                          // 面板「介绍」tab 渲染此页；可带 #小节标题 锚点；多节点可指同一页不同锚点
-      "sources": ["src/auth/token.ts"] }
+      "sources": ["src/auth/token.ts"],
+      "health": ["hotspot"] }                                             // 可选；体检命中类别 dead/cycles/hotspot/breaks，按 HEALTH.md 从 health.md 条目映射，未命中不写
   ],
   "links": [   // 静态结构关系：覆盖 code-map 聚合后的全部模块级依赖，多条文件级 import 合并为一条；细虚线，hover 显示 label
     { "from": "A", "to": "B", "label": "说明", "what": "可选详情", "via": [[1, 2]] }
@@ -59,4 +60,8 @@
 
 ## 完成检查
 
-先跑 `node docs/architecture/verify.mjs`（含 data.json 图完整性与几何红线）。再用浏览器截图验证：初始取景铺满画布、名牌与分区标签无遮挡、流程线不穿楼、每条场景切换后播放追踪走完全部步骤、点节点「介绍」tab 渲染出对应 wiki 页并跳到锚点、「关系」tab 上下游与参与场景可点跳转、侧边栏折叠与过滤正常、点空白能取消选中。
+`node docs/architecture/verify.mjs` 通过即完成——数据侧问题（图完整性、几何红线、穿楼、认领对账、健康字段合法性）全部由 verify 硬检，逐仓库产出不需要浏览器验证。
+
+## 模板维护（仅改 templates/architecture.html 时）
+
+界面行为是模板不变量，改模板后用浏览器过一遍：场景播放与单步、节点聚焦与面板锚点跳转、左右栏收起展开、分组折叠与过滤、警示标点击跳转、平移缩放与 reduced-motion。
