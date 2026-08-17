@@ -224,7 +224,7 @@
 </main>
 <script>
 const DATA = __ARCH_DATA__;
-const FLOWS = DATA.flows || (DATA.flow ? [{ title: "主流程", steps: DATA.flow }] : []);  // 兼容旧版单 flow 字段的 data.json
+const FLOWS = DATA.flows || [];
 const WIKI = DATA.wiki || {};
 let activeFlow = -1;   // -1 = 总览：只画结构边，不画场景箭头
 

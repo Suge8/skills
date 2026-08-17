@@ -245,7 +245,7 @@ if (existsSync(dataPath)) {
 }
 function checkData(d) {
   const nodes = d.nodes || [], districts = d.districts || [];
-  const flows = d.flows || (d.flow ? [{ title: "主流程", steps: d.flow }] : []);
+  const flows = d.flows || [];
   const codes = new Set(nodes.map((n) => n.code));
   const touched = new Set();
   for (const l of d.links || []) {
