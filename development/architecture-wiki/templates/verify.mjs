@@ -318,6 +318,9 @@ if (existsSync(dataPath)) {
   if (d) checkData(d);
 }
 function checkData(d) {
+  if (d.health)
+    for (const [k, v] of Object.entries(d.health))
+      if (typeof v !== "number" || v < 0) errors.push(`data.json: health.${k} must be a non-negative number`);
   const nodes = d.nodes || [], districts = d.districts || [];
   const flows = d.flows || [];
   const codes = new Set(nodes.map((n) => n.code));

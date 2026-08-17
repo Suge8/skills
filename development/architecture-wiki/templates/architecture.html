@@ -173,7 +173,10 @@
   #panel .chip.hchip:hover { border-color: var(--warn); }
   #panel .dimtext { color: var(--ink-soft); font-size: 12px; }
   #panel .md-body h1 { font: 700 15px/1.5 var(--serif); margin: 16px 0 8px; }
-  #panel .md-body h2 { font: 700 13.5px/1.5 var(--serif); margin: 14px 0 7px; border: none; padding: 0; }
+  #panel .md-body h2 {
+    font: 700 13.5px/1.5 var(--serif); margin: 16px 0 7px; border: none;
+    padding: 0 0 0 8px; border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  }
   #panel .md-body h3, #panel .md-body h4 { font: 700 12px var(--sans); letter-spacing: 0; color: var(--ink); margin: 12px 0 6px; }
   #panel .md-body pre { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; overflow-x: auto; margin: 0 0 11px; }
   #panel .md-body pre code { border: none; background: none; padding: 0; font-size: 11px; line-height: 1.6; display: block; }
@@ -182,7 +185,30 @@
   #panel .md-body li { font: 12.5px/1.7 var(--sans); margin: 3px 0; }
   #panel .md-body table { border-collapse: collapse; margin: 0 0 12px; width: 100%; }
   #panel .md-body th, #panel .md-body td { border: 1px solid var(--line); padding: 4px 8px; font-size: 11.5px; text-align: left; }
-  #panel .md-body th { background: var(--surface); }
+  #panel .md-body th { background: var(--surface); font-size: 10.5px; letter-spacing: .05em; color: var(--ink-soft); }
+  #panel .md-body tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface) 55%, transparent); }
+  #panel .md-body li::marker { color: var(--accent); }
+  #panel .vitals {
+    display: flex; gap: 14px; align-items: center; margin: 2px 0 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+  }
+  #panel .gauge { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+  #panel .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  #panel .gauge circle { fill: none; stroke-width: 8; }
+  #panel .gauge .gbg { stroke: color-mix(in srgb, currentColor 16%, transparent); }
+  #panel .gauge .gfg { stroke: currentColor; stroke-linecap: round; transition: stroke-dashoffset .7s cubic-bezier(.16, 1, .3, 1); }
+  #panel .gscore { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 22px var(--mono); color: var(--ink); }
+  #panel .gscore span { font-size: 10px; color: var(--ink-soft); margin: 9px 0 0 1px; }
+  #panel .vmeta { flex: 1; min-width: 0; }
+  #panel .vgrade { font: 700 15px var(--sans); }
+  #panel .vhint { font-size: 10.5px; color: var(--ink-soft); margin: 1px 0 8px; }
+  #panel .vstats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  #panel .vstat { background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 5px 3px; text-align: center; cursor: pointer; transition: border-color .15s; }
+  #panel .vstat:hover { border-color: var(--accent); }
+  #panel .vstat .vv { font: 700 14px var(--mono); color: var(--ink-soft); }
+  #panel .vstat .vv em { font: 600 9.5px var(--sans); font-style: normal; opacity: .85; }
+  #panel .vstat .vk { font-size: 10px; color: var(--ink-soft); margin-top: 1px; }
+  @media (prefers-reduced-motion: reduce) { #panel .gauge .gfg { transition: none; } }
   #panel .md-body blockquote { border-left: 3px solid var(--accent); padding: 2px 10px; color: var(--ink-soft); margin: 0 0 11px; }
   #panel .md-body a { color: var(--accent-deep); }
   #panel .md-body hr { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
@@ -350,7 +376,7 @@ function inline(s) {
 function mdRender(text) {
   const body = text.replace(/^---\n[\s\S]*?\n---\n?/, "");
   const lines = body.split("\n"), out = [];
-  let i = 0, para = [];
+  let i = 0, para = [], h1seen = false;
   const flush = () => { if (para.length) { out.push(`<p>${inline(para.join(" "))}</p>`); para = []; } };
   while (i < lines.length) {
     const L = lines[i];
@@ -360,7 +386,11 @@ function mdRender(text) {
       i++; out.push(`<pre><code>${esc(buf.join("\n"))}</code></pre>`); continue;
     }
     const h = L.match(/^(#{1,4})\s+(.*)/);
-    if (h) { flush(); out.push(`<h${h[1].length} data-h="${esc(h[2].trim())}">${inline(h[2])}</h${h[1].length}>`); i++; continue; }
+    if (h) {
+      flush();
+      if (h[1].length === 1 && !h1seen) { h1seen = true; i++; continue; }  // 首个 H1 与面板页题重复，不重渲染
+      out.push(`<h${h[1].length} data-h="${esc(h[2].trim())}">${inline(h[2])}</h${h[1].length}>`); i++; continue;
+    }
     if (/^\s*[-*]\s+/.test(L)) {
       flush(); const items = [];
       while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*[-*]\s+/, ""));
@@ -828,8 +858,33 @@ function pageTitle(pageRef) {
   const m = (WIKI[page] || "").replace(/^---\n[\s\S]*?\n---\n?/, "").match(/^#\s+(.+)$/m);
   return m ? m[1] : page.replace(/\.md$/, "");
 }
+/* 体检评分：公式固化在模板，agent 只提供工具产出的计数（DATA.health） */
+function vitalsCard() {
+  const h = DATA.health;
+  if (!h) return "";
+  const score = Math.max(0, Math.round(100
+    - Math.min(20, (h.dead ?? 0) * 4) - Math.min(10, (h.deadExports ?? 0) * .1)
+    - Math.min(20, (h.cycles ?? 0) * 5) - Math.min(20, (h.breaks ?? 0) * 5)
+    - Math.min(10, h.suspects ?? 0)));
+  const [grade, color] = score >= 90 ? ["健康", "var(--accent)"] : score >= 75 ? ["尚可", "#B08F4C"]
+    : score >= 60 ? ["亚健康", "#C9704A"] : ["高危", "var(--warn)"];
+  const C = (2 * Math.PI * 34).toFixed(1);
+  const stat = (label, val, sec, extra = "") =>
+    `<div class="vstat" data-hsec="${sec}"><div class="vv"${val ? ` style="color:${color}"` : ""}>${val}${extra}</div><div class="vk">${label}</div></div>`;
+  return `<div class="vitals">
+    <div class="gauge" style="color:${color}"><svg viewBox="0 0 84 84">
+      <circle class="gbg" cx="42" cy="42" r="34"/>
+      <circle class="gfg" cx="42" cy="42" r="34" stroke-dasharray="${C}" stroke-dashoffset="${(C * (1 - score / 100)).toFixed(1)}"/></svg>
+      <div class="gscore">${score}<span>分</span></div></div>
+    <div class="vmeta"><div class="vgrade" style="color:${color}">${grade}</div>
+      <div class="vhint">确定性体检 · 点数字跳对应小节</div>
+      <div class="vstats">${stat("死代码", h.dead ?? 0, "死代码", h.suspects ? `<em> +${h.suspects} 疑似</em>` : "")}${stat("死导出", h.deadExports ?? 0, "死代码")}${stat("循环依赖", h.cycles ?? 0, "循环依赖")}${stat("断点", h.breaks ?? 0, "断点")}</div>
+    </div></div>`;
+}
 function wikiPanel() {
-  return kicker("book", "WIKI") + `<h2>${pageTitle(sel.page)}</h2>` +
+  const isHealth = sel.page.split("#")[0] === "health.md";
+  const head = isHealth ? kicker("shield", "体检", "var(--warn)") : kicker("book", "WIKI");
+  return head + `<h2>${pageTitle(sel.page)}</h2>` + (isHealth ? vitalsCard() : "") +
     (pageBody(sel.page) || `<p class="dimtext">页面不存在：${esc(sel.page)}</p>`);
 }
 function scenarioPanel(fi) {
@@ -890,8 +945,14 @@ function render() {
     ch.addEventListener("click", () => select(ch.dataset.code)));
   panel.querySelectorAll(".chip[data-flow]").forEach(ch =>
     ch.addEventListener("click", () => showScenarioStep(+ch.dataset.flow, +ch.dataset.step)));
-  panel.querySelectorAll(".chip[data-hsec]").forEach(ch =>
+  panel.querySelectorAll("[data-hsec]").forEach(ch =>
     ch.addEventListener("click", () => openWikiPage("health.md", ch.dataset.hsec)));
+  const gfg = panel.querySelector(".gauge .gfg");
+  if (gfg && motionOK) {   // 入场：从 0 长到得分，reduced-motion 直接终态
+    const off = gfg.getAttribute("stroke-dashoffset");
+    gfg.setAttribute("stroke-dashoffset", gfg.getAttribute("stroke-dasharray"));
+    requestAnimationFrame(() => requestAnimationFrame(() => gfg.setAttribute("stroke-dashoffset", off)));
+  }
   panel.querySelectorAll("a.wl").forEach(a =>
     a.addEventListener("click", () => {
       const cur = (sel && typeof sel === "object" && (sel.page || FLOWS[sel.flow]?.page)) ||
