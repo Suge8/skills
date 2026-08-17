@@ -115,6 +115,9 @@
   nav .nm { font-size: 12.5px; }
   nav .ct { margin-left: auto; font-size: 11px; color: var(--ink-soft); }
   nav .hdot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex-shrink: 0; }
+  nav .item.vitals { margin: 6px 0 2px; border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); color: var(--warn); }
+  nav .item.vitals:hover { background: color-mix(in srgb, var(--warn) 9%, transparent); }
+  nav .item.vitals .hdot { margin-left: auto; }
   #stage { flex: 1; position: relative; min-width: 0; cursor: grab; overflow: hidden; touch-action: none; }
   #stage.panning { cursor: grabbing; }
   #stage svg { width: 100%; height: 100%; display: block; }
@@ -706,6 +709,13 @@ function showScenarioStep(fi, si) {
 /* ── 左侧索引：分区折叠 + 过滤 ── */
 const nav = document.getElementById("nav");
 nav.insertAdjacentHTML("beforeend", `<div class="filter"><input id="navq" placeholder="过滤模块…"></div>`);
+if (WIKI["health.md"]) nav.insertAdjacentHTML("beforeend",
+  `<div class="item vitals" data-page="health.md">${ic("shield", 12)}<span class="nm">体检报告</span><span class="hdot"></span></div>`);
+/* 窄屏抽屉：点导航项后自动收起，让位给地图或面板 */
+const autoCloseNav = () => {
+  if (matchMedia("(max-width: 1080px)").matches && !document.body.classList.contains("nav-off"))
+    document.getElementById("handleNav").click();
+};
 for (const d of DATA.districts) {
   const items = DATA.nodes.filter(n => n.district === d.id);
   nav.insertAdjacentHTML("beforeend",
@@ -725,7 +735,11 @@ nav.addEventListener("click", e => {
     nav.querySelector(`.grpbody[data-d="${grp.dataset.d}"]`).classList.toggle("closed");
     return;
   }
-  const it = e.target.closest(".item"); if (it) select(it.dataset.code);
+  const it = e.target.closest(".item");
+  if (!it) return;
+  if (it.dataset.page) openWikiPage(it.dataset.page);
+  else select(it.dataset.code);
+  autoCloseNav();
 });
 document.getElementById("navq").addEventListener("input", e => {
   const q = e.target.value.trim().toLowerCase();
