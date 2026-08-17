@@ -6,15 +6,15 @@ compatibility: 需要 Node.js 18+；按后端配置 BRAVE_SEARCH_API_KEY、EXA_A
 
 # Search
 
-按问题选择一个最窄后端，不为同一查询并行调用多个搜索源。
+按问题选择一个最窄后端，不为同一查询并行调用多个搜索源。命令中的脚本路径相对本 skill 目录，执行时解析为绝对路径。
 
 ## Brave：精确网页搜索
 
 用于精确关键词、最新发布或新闻、准确 URL、官方网站和完整报错原文。
 
 ```bash
-node /Users/sugeh/.agents/skills/search/search/brave-search.mjs "query"
-node /Users/sugeh/.agents/skills/search/search/brave-search.mjs "query" --freshness pw
+node brave-search.mjs "query"
+node brave-search.mjs "query" --freshness pw
 ```
 
 参数：`-n 1-20`、`--freshness pd|pw|pm|py|日期范围`、`--country CODE`、`--offset 0-9`、`--json`。
@@ -26,8 +26,8 @@ node /Users/sugeh/.agents/skills/search/search/brave-search.mjs "query" --freshn
 用于技术文章、相似实现、代码示例、配置、调试片段和语义相关内容。
 
 ```bash
-node /Users/sugeh/.agents/skills/search/search/exa-search.mjs "query"
-node /Users/sugeh/.agents/skills/search/search/exa-search.mjs "query" --code
+node exa-search.mjs "query"
+node exa-search.mjs "query" --code
 ```
 
 常用参数：`-n N`、`--type fast|instant|deep`、`--tokens N|dynamic`、`--docs DOMAIN`、`--fresh`、`--text N`、`--include-domain DOMAIN`、`--after DATE`、`--subpages N`、`--json`。`--tokens` 只用于 `--code`。
@@ -37,9 +37,9 @@ node /Users/sugeh/.agents/skills/search/search/exa-search.mjs "query" --code
 用于根据项目锁定版本核对框架或 SDK 的官方 API。一次只问一个明确问题。
 
 ```bash
-python3 /Users/sugeh/.agents/skills/search/search/scripts/context7_cli.py query \
+python3 scripts/context7_cli.py query \
   --library react --question "useEffect cleanup examples"
-python3 /Users/sugeh/.agents/skills/search/search/scripts/context7_cli.py docs \
+python3 scripts/context7_cli.py docs \
   --library-id /facebook/react --question "Suspense examples"
 ```
 

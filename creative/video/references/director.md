@@ -97,7 +97,7 @@
 带旁白的成片用 Fish Audio TTS（中文自然度第一梯队），禁止用 macOS `say` 出成片（仅限测时间线占位）：
 
 ```bash
-python3 /Users/sugeh/.agents/skills/creative/video/scripts/fish_tts.py \
+python3 ../scripts/fish_tts.py \
   "旁白文本" --out /absolute/path/line-01.mp3 [--voice <reference_id>]
 ```
 
@@ -115,7 +115,7 @@ python3 /Users/sugeh/.agents/skills/creative/video/scripts/fish_tts.py \
 | **B · 编辑拼贴** | 人物、历史、文化、情绪、品牌叙事 | gpt-image 造素材 → Remotion 驱动，读 `references/director/editorial-collage.md` |
 | **C · 模型直出** | 用户点名要实拍质感短片 | `references/model-generation.md`（Grok/Seedance） |
 
-A、B 共享同一引擎：源项目 `/Users/sugeh/content-create`，编辑感组件集在
+A、B 共享同一引擎：源项目 `~/content-create`，编辑感组件集在
 `src/editorial/`（PaperField / PhotoCutout / TornReveal / MarkerStroke / TapeLabel /
 EditorialChart / EvidenceFrame / CameraStage + `useStepped` 步进运动）。
 写 composition 前加载并遵循 `references/remotion.md`。路线 B 中个别镜头需要有机微动
@@ -123,7 +123,7 @@ EditorialChart / EvidenceFrame / CameraStage + `useStepped` 步进运动）。
 
 如果用户要求完整制作，继续进入制作，而不是停在方案：
 
-- 在 `/Users/sugeh/content-create` 实现（已有项目则直接改，勿重复脚手架）
+- 在 `~/content-create` 实现（已有项目则直接改，勿重复脚手架）
 - 渲染：`npx remotion render <CompositionId> out/<name>.mp4`
 - contact sheet / 静帧：`npx remotion still ...` 或抽帧，产物放同项目 `out/` 与可选 `质检/`
 

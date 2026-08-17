@@ -8,7 +8,7 @@ description: 通过本地 Codex 订阅生成 PNG 图片、海报、插图或 Log
 生成普通图片时使用 bundled script。用户要设计 Logo 或系列 Logo 提案板时，先读取 [Logo 指南](reference/logo.md)。不要读取或打印 tokens。
 
 ```bash
-python3 /Users/sugeh/.agents/skills/creative/gpt-image/scripts/gpt_image.py \
+python3 scripts/gpt_image.py \
   "IMAGE_PROMPT" \
   --out "/absolute/path/output.png"
 ```
@@ -28,5 +28,5 @@ python3 /Users/sugeh/.agents/skills/creative/gpt-image/scripts/gpt_image.py \
 如果 prompt 很长，pipe stdin：
 
 ```bash
-printf '%s' "$PROMPT" | python3 /Users/sugeh/.agents/skills/creative/gpt-image/scripts/gpt_image.py --out "/absolute/path/output.png"
+printf '%s' "$PROMPT" | python3 scripts/gpt_image.py --out "/absolute/path/output.png"
 ```

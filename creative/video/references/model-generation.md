@@ -7,7 +7,7 @@
 需要本机 `grok` CLI 已登录。参数全部用自然语言写进 prompt：比例（`9:16 竖版`）、时长（`6秒`）、音频（`带环境音`）、风格。
 
 ```bash
-python3 /Users/sugeh/.agents/skills/creative/video/scripts/grok_video.py \
+python3 ../scripts/grok_video.py \
   "VIDEO_PROMPT" --out "/absolute/path/output.mp4"
 ```
 
@@ -18,7 +18,7 @@ python3 /Users/sugeh/.agents/skills/creative/video/scripts/grok_video.py \
 需要 `~/.config/video-gen/seedance.json`（`{"url":...,"key":...}`）。参数用 flag 传：
 
 ```bash
-python3 /Users/sugeh/.agents/skills/creative/video/scripts/seedance_video.py \
+python3 ../scripts/seedance_video.py \
   "VIDEO_PROMPT" --out "/absolute/path/output.mp4" \
   --duration 5 --resolution 480p --ratio 9:16
 ```

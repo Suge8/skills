@@ -20,8 +20,8 @@ allowed-tools: Bash(./bin/flow-browser:*), Bash(./bin/flow-browser-start:*), Bas
 ## 入口
 
 ```bash
-/Users/sugeh/.agents/skills/operations/flow-browser-use/bin/flow-browser-start   # 确保 CDP 可用
-/Users/sugeh/.agents/skills/operations/flow-browser-use/bin/flow-browser <cmd>   # wrapper，默认连 9333
+bin/flow-browser-start   # 确保 CDP 可用；路径相对本 skill 目录
+bin/flow-browser <cmd>   # wrapper，默认连 9333
 ```
 
 - 有头需求按「选择浏览器」表路由；`FLOW_BROWSER_HEADED=1 … flow-browser-start` 的模式启动时定死，已有 9333 实例不切换；切模式先 `./bin/flow-browser stop` 再启动。
