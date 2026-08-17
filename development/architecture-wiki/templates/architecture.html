@@ -323,7 +323,7 @@ DATA.districts.forEach((d, i) => tintOf[d.id] = d.tint || TINTS[i % TINTS.length
 const mix = (c, pct, base) => `color-mix(in srgb, ${c} ${pct}%, ${base})`;
 
 /* ── header ── */
-const STAT_ICONS = [["语言", "globe"], ["模块", "cube"], ["入口", "gateway"], ["场景", "play"], ["外部", "plug"], ["依赖", "plug"], ["页", "book"], ["服务", "server"], ["测试", "shield"]];
+const STAT_ICONS = [["语言", "globe"], ["行数", "file"], ["文件", "folder"], ["模块", "cube"], ["入口", "gateway"], ["场景", "play"], ["外部", "plug"], ["依赖", "plug"], ["页", "book"], ["服务", "server"], ["测试", "shield"]];
 const statIcon = k => (STAT_ICONS.find(([p]) => k.includes(p)) || [0, "sparkle"])[1];
 document.getElementById("hdr").innerHTML =
   `<div class="brand">${DATA.meta.logo || ""}<div class="v">${DATA.meta.title}</div></div>` +

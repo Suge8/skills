@@ -13,7 +13,7 @@
     "headline": "面板首屏标题",
     "logo": "<svg class=\"logo\" style=\"fill:currentColor\" ...>",  // 可选；仓库有 logo/favicon 就内联（去 style、改 currentColor）
     "repoUrl": "https://github.com/x/y/blob/main",                  // 可选；有则出处变跳转链接，无则点击复制路径
-    "stats": [["语言", "Go · TS"], ["入口", "4", "外部触发系统的门：HTTP、CLI、定时…"]],  // 全部真实数字；只写读者能懂的架构维度，第三元素可选，hover 提示一句人话解释
+    "stats": [["语言", "Go · TS"], ["行数", "4.6 万", "源码总行数（code-map 实测）"], ["入口", "4", "外部触发系统的门：HTTP、CLI、定时…"]],  // 全部真实数字；行数/源文件等规模信号优先，第三元素可选，hover 提示一句人话解释
     "reading": "<p>怎么读这张图（描述可视化本身，不描述代码库）</p>",
     "sources": ["docs/architecture/wiki/system.md"]
   },
