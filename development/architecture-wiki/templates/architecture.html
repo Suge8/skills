@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wiki-digest" content="__WIKI_DIGEST__">
+<title>__TITLE__</title>
+<style>
+  :root {
+    --bg: #F0EEE6;
+    --surface: #EAE7DC;
+    --card: #FAF9F5;
+    --ink: #141413;
+    --ink-soft: #6F6D66;
+    --line: rgba(20, 20, 19, .09);
+    --accent: #CC785C;
+    --accent-deep: #A85B41;
+    --paper: var(--card);
+    --paper-hi: var(--card);
+    --mono: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace;
+    --sans: -apple-system, "PingFang SC", "Segoe UI", sans-serif;
+    --serif: "Georgia", "Songti SC", serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 12.5px/1.65 var(--sans);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .ic { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.1;
+        stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; vertical-align: -2px; }
+  header { display: flex; align-items: center; gap: 10px; padding: 12px 16px 4px; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: 6px; }
+  .brand img, .brand svg.logo { width: 28px; height: 28px; }
+  .brand .k { display: none; }
+  .brand .v { font: 700 15px var(--serif); white-space: nowrap; }
+  .hcell { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 5px 12px; }
+  .hcell .k { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-soft); }
+  .hcell .v { font: 700 12.5px var(--mono); white-space: nowrap; }
+  header .spacer { flex: 1; }
+  header button {
+    display: flex; align-items: center; gap: 6px;
+    font: 600 12px var(--sans); cursor: pointer; border-radius: 10px;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line); padding: 7px 14px;
+    transition: background .15s, color .15s;
+  }
+  header button.primary { background: var(--accent); color: #FFF; border-color: transparent; }
+  header button.primary:hover { background: var(--accent-deep); }
+  header button:not(.primary):hover { background: var(--surface); }
+  main { flex: 1; display: flex; min-height: 0; gap: 10px; padding: 10px 12px 12px; }
+  nav, #stage, aside {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  }
+  nav {
+    width: clamp(195px, 15vw, 235px);
+    overflow-y: auto; padding: 8px 8px 20px; flex-shrink: 0;
+  }
+  nav .grp {
+    display: flex; align-items: center; gap: 7px;
+    font: 700 10.5px var(--mono); letter-spacing: .1em;
+    margin: 16px 4px 6px; padding: 6px 10px; border-radius: 8px;
+  }
+  nav .item {
+    display: flex; gap: 8px; align-items: center; padding: 5.5px 9px; margin: 2px 0;
+    cursor: pointer; border-radius: 8px; line-height: 1.4;
+  }
+  nav .item:hover { background: var(--surface); }
+  nav .item.sel { background: color-mix(in srgb, var(--accent) 13%, transparent); color: var(--accent-deep); }
+  nav .code {
+    font: 700 10.5px var(--mono); border: 1px solid var(--line); border-radius: 5px;
+    padding: 0 4px; min-width: 26px; text-align: center; background: var(--bg); flex-shrink: 0;
+  }
+  nav .nm { font-size: 12.5px; }
+  nav .ct { margin-left: auto; font-size: 11px; color: var(--ink-soft); }
+  #stage { flex: 1; position: relative; min-width: 0; cursor: grab; overflow: hidden; }
+  #stage.panning { cursor: grabbing; }
+  #stage svg { width: 100%; height: 100%; display: block; }
+  aside {
+    width: clamp(295px, 24vw, 355px);
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .tabs { display: flex; gap: 4px; margin: 10px 12px 0; background: var(--surface); border-radius: 11px; padding: 3px; }
+  .tabs button {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    font: 600 12.5px var(--sans); padding: 7px 0; border-radius: 8px;
+    background: none; color: var(--ink-soft); border: none; cursor: pointer;
+  }
+  .tabs button.on { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .tabs button { border: 1px solid transparent; }
+  #panel { flex: 1; overflow-y: auto; padding: 16px 20px 30px; }
+  #panel .kicker {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 10.5px; letter-spacing: .15em; color: var(--ink-soft);
+  }
+  #panel h2 { font: 700 18px/1.4 var(--serif); margin: 6px 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 9px; }
+  #panel h3 { font-size: 11px; letter-spacing: .13em; color: var(--ink-soft); margin: 18px 0 7px; }
+  #panel p { font: 13.5px/1.75 var(--sans); margin-bottom: 11px; }
+  #panel mark { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent-deep); padding: 0 4px; border-radius: 4px; font-weight: 700; }
+  #panel ul { list-style: none; }
+  #panel li { font-size: 12px; margin: 4px 0; }
+  #panel code { font: 11.5px var(--mono); background: var(--surface); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+  #panel .src { cursor: pointer; }
+  #panel .src:hover code { border-color: var(--accent); color: var(--accent-deep); }
+  #panel .steps li { cursor: pointer; padding: 3px 0; font-size: 12.5px; }
+  #panel .steps li:hover { color: var(--accent-deep); }
+  #panel .steps li.done { color: var(--ink-soft); }
+  #panel .steps li.now { color: var(--accent-deep); font-weight: 700; }
+  .b, .lk { transition: opacity .18s; cursor: pointer; }
+  .b.dim, .lk.dim { opacity: .13; }
+  #selring { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  @media (prefers-reduced-motion: reduce) { #selring { animation: none; } }
+  @media (max-width: 1080px) { nav { display: none; } }
+  @media (max-width: 820px) { aside { display: none; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+<defs id="icondefs">
+<symbol id="ic-globe" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6"/><ellipse cx="6" cy="6" rx="2" ry="4.6"/><line x1="1.4" y1="6" x2="10.6" y2="6"/></symbol>
+<symbol id="ic-sliders" viewBox="0 0 12 12"><line x1="1.5" y1="3.2" x2="10.5" y2="3.2"/><line x1="1.5" y1="8.8" x2="10.5" y2="8.8"/><circle cx="4.2" cy="3.2" r="1.3" fill="var(--paper-hi)"/><circle cx="7.8" cy="8.8" r="1.3" fill="var(--paper-hi)"/></symbol>
+<symbol id="ic-gateway" viewBox="0 0 12 12"><path d="M1.5 4.2h6.6m0 0L6 2.1m2.1 2.1L6 6.3"/><path d="M10.5 7.8H3.9m0 0L6 5.7M3.9 7.8 6 9.9"/></symbol>
+<symbol id="ic-lock" viewBox="0 0 12 12"><rect x="2.5" y="5.2" width="7" height="5.2" rx="1"/><path d="M4 5.2V3.8a2 2 0 0 1 4 0v1.4"/></symbol>
+<symbol id="ic-user" viewBox="0 0 12 12"><circle cx="6" cy="3.8" r="2.1"/><path d="M1.8 10.6a4.3 4.3 0 0 1 8.4 0"/></symbol>
+<symbol id="ic-card" viewBox="0 0 12 12"><rect x="1.2" y="2.8" width="9.6" height="6.4" rx="1"/><line x1="1.2" y1="5.2" x2="10.8" y2="5.2"/></symbol>
+<symbol id="ic-calendar" viewBox="0 0 12 12"><rect x="1.6" y="2.4" width="8.8" height="7.8" rx="1"/><line x1="1.6" y1="5" x2="10.4" y2="5"/><line x1="4" y1="1.2" x2="4" y2="3.2"/><line x1="8" y1="1.2" x2="8" y2="3.2"/></symbol>
+<symbol id="ic-target" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.4"/><circle cx="6" cy="6" r="1.6"/><circle cx="6" cy="6" r=".4" fill="currentColor"/></symbol>
+<symbol id="ic-shield" viewBox="0 0 12 12"><path d="M6 1.4 10 3v3.2c0 2.6-1.8 4.2-4 5-2.2-.8-4-2.4-4-5V3Z"/></symbol>
+<symbol id="ic-cube" viewBox="0 0 12 12"><path d="M6 1.4 10.4 3.9v4.2L6 10.6 1.6 8.1V3.9Z"/><path d="M1.6 3.9 6 6.4l4.4-2.5M6 6.4v4.2"/></symbol>
+<symbol id="ic-coin" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6"/><path d="M4.2 4.4h3.6M4.2 6.4h3.6M6 4.4V9"/></symbol>
+<symbol id="ic-book" viewBox="0 0 12 12"><path d="M6 2.6C5 1.9 3.3 1.7 1.4 2v7.6c1.9-.3 3.6-.1 4.6.6 1-.7 2.7-.9 4.6-.6V2c-1.9-.3-3.6-.1-4.6.6Z"/><line x1="6" y1="2.6" x2="6" y2="10.2"/></symbol>
+<symbol id="ic-bridge" viewBox="0 0 12 12"><path d="M1 8.6c1.6-3.4 8.4-3.4 10 0"/><line x1="1" y1="5.4" x2="11" y2="5.4"/><line x1="3.2" y1="5.4" x2="3.2" y2="7.3"/><line x1="8.8" y1="5.4" x2="8.8" y2="7.3"/></symbol>
+<symbol id="ic-grid" viewBox="0 0 12 12"><rect x="1.4" y="1.4" width="3.8" height="3.8"/><rect x="6.8" y="1.4" width="3.8" height="3.8"/><rect x="1.4" y="6.8" width="3.8" height="3.8"/><rect x="6.8" y="6.8" width="3.8" height="3.8"/></symbol>
+<symbol id="ic-users" viewBox="0 0 12 12"><circle cx="4.2" cy="4" r="1.8"/><path d="M1 10.2a3.4 3.4 0 0 1 6.4 0"/><circle cx="8.8" cy="4.4" r="1.4"/><path d="M8.6 7.4c1.4.1 2.5 1 2.9 2.4"/></symbol>
+<symbol id="ic-chat" viewBox="0 0 12 12"><path d="M1.6 2.6h8.8v5.6H5.4L3 10.4V8.2H1.6Z"/></symbol>
+<symbol id="ic-layers" viewBox="0 0 12 12"><path d="M6 1.5 11 4 6 6.5 1 4Z"/><path d="M1 6.5 6 9l5-2.5"/><path d="M1 8.8 6 11.3l5-2.5"/></symbol>
+<symbol id="ic-file" viewBox="0 0 12 12"><path d="M2.6 1.4h4.6L9.4 3.6v7H2.6Z"/><path d="M7.2 1.4v2.2h2.2"/></symbol>
+<symbol id="ic-cpu" viewBox="0 0 12 12"><rect x="2.8" y="2.8" width="6.4" height="6.4" rx="1"/><rect x="5" y="5" width="2" height="2" fill="currentColor" stroke="none"/><path d="M6 .8v2M6 9.2v2M.8 6h2M9.2 6h2"/></symbol>
+<symbol id="ic-server" viewBox="0 0 12 12"><rect x="1.6" y="2" width="8.8" height="3.4" rx=".8"/><rect x="1.6" y="6.6" width="8.8" height="3.4" rx=".8"/><circle cx="3.6" cy="3.7" r=".5" fill="currentColor"/><circle cx="3.6" cy="8.3" r=".5" fill="currentColor"/></symbol>
+<symbol id="ic-wrench" viewBox="0 0 12 12"><path d="M7.6 4.4a2.4 2.4 0 0 0 3-3L8.9 3.1 7.4 1.6 9.1.1a2.4 2.4 0 0 0-3 3L1.6 7.6a1.3 1.3 0 1 0 1.8 1.8Z" transform="translate(.6 1.2)"/></symbol>
+<symbol id="ic-plug" viewBox="0 0 12 12"><path d="M4 1.4v2.4M8 1.4v2.4M3 3.8h6v2a3 3 0 0 1-6 0Z"/><line x1="6" y1="8.8" x2="6" y2="10.8"/></symbol>
+<symbol id="ic-db" viewBox="0 0 12 12"><ellipse cx="6" cy="2.8" rx="4.4" ry="1.7"/><path d="M1.6 2.8v6.4c0 .9 2 1.7 4.4 1.7s4.4-.8 4.4-1.7V2.8"/><path d="M1.6 6c0 .9 2 1.7 4.4 1.7S10.4 6.9 10.4 6"/></symbol>
+<symbol id="ic-bolt" viewBox="0 0 12 12"><path d="M6.6 1 2.8 6.8h2.6L5.4 11l3.8-5.8H6.6Z"/></symbol>
+<symbol id="ic-folder" viewBox="0 0 12 12"><path d="M1.4 2.6h3.4l1.2 1.6h4.6v5.8H1.4Z"/></symbol>
+<symbol id="ic-sparkle" viewBox="0 0 12 12"><path d="M6 1.2 7.1 4.9 10.8 6 7.1 7.1 6 10.8 4.9 7.1 1.2 6 4.9 4.9Z"/></symbol>
+<symbol id="ic-bell" viewBox="0 0 12 12"><path d="M6 1.6a3.4 3.4 0 0 1 3.4 3.4c0 2.5.8 3.2 1.2 3.6H1.4c.4-.4 1.2-1.1 1.2-3.6A3.4 3.4 0 0 1 6 1.6Z"/><path d="M4.8 10.4a1.3 1.3 0 0 0 2.4 0"/></symbol>
+<symbol id="ic-play" viewBox="0 0 12 12"><path d="M3 1.8 10 6 3 10.2Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-stepfwd" viewBox="0 0 12 12"><path d="M2 2.2 7.6 6 2 9.8Z" fill="currentColor" stroke="none"/><line x1="9.6" y1="2.2" x2="9.6" y2="9.8" stroke-width="1.6"/></symbol>
+<symbol id="ic-theme" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6"/><path d="M6 1.4v9.2A4.6 4.6 0 0 0 6 1.4Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-reset" viewBox="0 0 12 12"><path d="M2.2 6a3.8 3.8 0 1 1 1.1 2.7"/><path d="M2 5.4v2.8h2.8" fill="none"/></symbol>
+<symbol id="ic-doc" viewBox="0 0 12 12"><path d="M2.6 1.4h6.8v9.2H2.6Z"/><line x1="4.4" y1="4" x2="7.6" y2="4"/><line x1="4.4" y1="6" x2="7.6" y2="6"/><line x1="4.4" y1="8" x2="6.4" y2="8"/></symbol>
+</defs>
+</svg>
+<header id="hdr"></header>
+<main>
+  <nav id="nav"></nav>
+  <div id="stage"><svg id="svg" aria-label="等距系统地图"></svg></div>
+  <aside>
+    <div class="tabs">
+      <button id="tabWhat" class="on"><svg class="ic"><use href="#ic-sparkle"/></svg>功能</button>
+      <button id="tabHow"><svg class="ic"><use href="#ic-doc"/></svg>原理</button>
+    </div>
+    <div id="panel"></div>
+  </aside>
+</main>
+<script>
+const DATA = __ARCH_DATA__;
+
+const ic = (name, s = 13) => `<svg class="ic" style="width:${s}px;height:${s}px"><use href="#ic-${name}"/></svg>`;
+
+/* ── 分区色（Anthropic 风暖调低饱和）── */
+const TINTS = ["#CC785C", "#8E9A6D", "#8B9BAA", "#A08BA6", "#A79E8B", "#D4A27F"];
+const tintOf = {};
+DATA.districts.forEach((d, i) => tintOf[d.id] = d.tint || TINTS[i % TINTS.length]);
+const mix = (c, pct, base) => `color-mix(in srgb, ${c} ${pct}%, ${base})`;
+
+/* ── header ── */
+document.getElementById("hdr").innerHTML =
+  `<div class="brand">${DATA.meta.logo || ""}<div class="v">${DATA.meta.title}</div></div>` +
+  DATA.meta.stats.map(([k, v]) => `<div class="hcell"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("") +
+  `<div class="spacer"></div>
+   <button id="btnPlay" class="primary">${ic("play")}播放一次运行</button>
+   <button id="btnStep">${ic("stepfwd")}单步</button>
+   <button id="btnReset">${ic("reset")}重置</button>`;
+
+/* ── 数据索引 ── */
+const N = {}; DATA.nodes.forEach(n => { n.w ??= 1.1; n.d ??= 1.1; N[n.code] = n; });
+const DIST = {}; DATA.districts.forEach(d => DIST[d.id] = d);
+const adj = {};
+const addAdj = (a, b) => { (adj[a] ??= new Set()).add(b); (adj[b] ??= new Set()).add(a); };
+DATA.links.forEach(l => addAdj(l.from, l.to));
+DATA.flow.forEach(f => addAdj(f.from, f.to));
+
+/* ── 等距投影 ── */
+const S = 38, ORX = 500, ORY = 56;
+const iso = (x, y, z = 0) => [ORX + (x - y) * S * .866, ORY + (x + y) * S * .5 - z * S];
+const P = a => a.map(p => p.map(v => +v.toFixed(1)).join(",")).join(" ");
+const svg = document.getElementById("svg");
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, parent) => { const e = document.createElementNS(NS, t);
+  for (const k in a) e.setAttribute(k, a[k]); (parent || svg).appendChild(e); return e; };
+
+const defs = el("defs", {});
+defs.innerHTML = `
+  <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="5" stroke="var(--ink)" stroke-width=".7"/></pattern>
+  <marker id="arr" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="var(--ink)"/></marker>
+  <marker id="arrA" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="7.5" markerHeight="7.5" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="var(--accent)"/></marker>`;
+
+const world = el("g", { id: "world" });
+const gGrid = el("g", {}, world), gDist = el("g", {}, world), gSel = el("g", {}, world),
+      gLink = el("g", {}, world), gFlow = el("g", {}, world), gDot = el("g", {}, world),
+      gNode = el("g", {}, world), gPlate = el("g", {}, world), gTag = el("g", {}, world);
+
+const GX = Math.ceil(Math.max(...DATA.districts.map(d => d.r[0] + d.r[2]))) + 2;
+const GY = Math.ceil(Math.max(...DATA.districts.map(d => d.r[1] + d.r[3]))) + 2;
+for (let i = -1; i <= GX; i++)
+  el("polyline", { points: P([iso(i, -1), iso(i, GY)]), stroke: "var(--ink)", "stroke-width": .25, opacity: .1, fill: "none" }, gGrid);
+for (let i = -1; i <= GY; i++)
+  el("polyline", { points: P([iso(-1, i), iso(GX, i)]), stroke: "var(--ink)", "stroke-width": .25, opacity: .1, fill: "none" }, gGrid);
+for (const d of DATA.districts) {
+  const [x, y, w, dd] = d.r;
+  el("polygon", { points: P([iso(x,y),iso(x+w,y),iso(x+w,y+dd),iso(x,y+dd)]),
+    fill: mix(tintOf[d.id], 6, "transparent"),
+    stroke: mix(tintOf[d.id], 60, "var(--ink-soft)"), "stroke-width": 1.8,
+    "stroke-dasharray": "0.5 7", "stroke-linecap": "round" }, gDist);
+}
+
+/* ── 建筑绘制 ── */
+function face(g, pts, fill, extra = {}) {
+  return el("polygon", { points: P(pts), fill, stroke: "var(--ink)", "stroke-width": 1,
+    "stroke-linejoin": "round", ...extra }, g);
+}
+function box(g, x, y, w, d, h, tint, z0 = 0, dashed = false) {
+  const ex = dashed ? { "stroke-dasharray": "3 2.4" } : {};
+  face(g, [iso(x,y+d,z0+h),iso(x+w,y+d,z0+h),iso(x+w,y+d,z0),iso(x,y+d,z0)], mix(tint, 40, "var(--paper)"), ex);
+  el("polygon", { points: P([iso(x,y+d,z0+h),iso(x+w,y+d,z0+h),iso(x+w,y+d,z0),iso(x,y+d,z0)]),
+    fill: "url(#hatch)", opacity: .16, stroke: "none" }, g);
+  face(g, [iso(x+w,y,z0+h),iso(x+w,y+d,z0+h),iso(x+w,y+d,z0),iso(x+w,y,z0)], mix(tint, 22, "var(--paper)"), ex);
+  face(g, [iso(x,y,z0+h),iso(x+w,y,z0+h),iso(x+w,y+d,z0+h),iso(x,y+d,z0+h)], mix(tint, 10, "var(--paper-hi)"), ex);
+}
+function cylinder(g, x, y, w, d, h, tint) {
+  const cx = x + w / 2, cy = y + d / 2, r = Math.min(w, d) / 2;
+  const [tx, ty] = iso(cx, cy, h), [bx, by] = iso(cx, cy, 0);
+  const rx = r * S * 1.22, ry = r * S * .71;
+  el("path", { d: `M${(tx-rx).toFixed(1)} ${ty.toFixed(1)} A${rx} ${ry} 0 0 0 ${(tx+rx).toFixed(1)} ${ty.toFixed(1)} L${(bx+rx).toFixed(1)} ${by.toFixed(1)} A${rx} ${ry} 0 0 1 ${(bx-rx).toFixed(1)} ${by.toFixed(1)} Z`,
+    fill: mix(tint, 30, "var(--paper)"), stroke: "var(--ink)", "stroke-width": 1 }, g);
+  el("ellipse", { cx: tx, cy: ty, rx, ry, fill: mix(tint, 10, "var(--paper-hi)"),
+    stroke: "var(--ink)", "stroke-width": 1 }, g);
+}
+function building(n) {
+  const g = el("g", { class: "b", "data-code": n.code }, gNode);
+  const tint = tintOf[n.district], { x, y, w, d, h } = n;
+  if (n.form === "stack") for (let i = 0; i < 4; i++) box(g, x, y, w, d, .16, tint, i * .28);
+  else if (n.form === "slabs") {
+    const k = 4, gap = w / k;
+    for (let i = 0; i < k; i++) box(g, x + i * gap, y, gap * .5, d, h, tint);
+  }
+  else if (n.form === "cylinder") cylinder(g, x, y, w, d, h, tint);
+  else if (n.form === "external") box(g, x, y, w, d, h, tint, 0, true);
+  else box(g, x, y, w, d, h, tint);
+  return g;
+}
+/* 名牌落地：放在建筑前方地面通道，不遮后排 */
+function plate(n) {
+  const g = el("g", { class: "b", "data-code": n.code, "data-plate": 1 }, gPlate);
+  const [cx, cy] = iso(n.x + n.w / 2, n.y + n.d, 0);
+  const label = `${n.code} ${n.short || n.name}`;
+  const t = el("text", { x: 0, y: 0, "font-size": 9.5, "font-weight": 700, fill: "var(--ink)" }, g);
+  t.textContent = label;
+  const tw = t.getComputedTextLength() + (n.icon ? 26 : 12);
+  const px = cx - tw / 2, py = cy + 4;
+  el("rect", { x: px, y: py, width: tw, height: 15, rx: 5, fill: "var(--card)",
+    stroke: "var(--line)", "stroke-width": 1 }, g);
+  g.insertBefore(g.firstChild, null); // keep text last
+  t.setAttribute("x", px + (n.icon ? 20 : 6)); t.setAttribute("y", py + 11);
+  if (n.icon) {
+    const u = el("use", { href: `#ic-${n.icon}`, x: px + 5, y: py + 2.5, width: 10, height: 10 }, g);
+    u.setAttribute("style", `stroke:${tintOf[n.district]};fill:none;stroke-width:1.2`);
+  }
+  g.appendChild(t);
+  n._plate = g;
+  return g;
+}
+
+/* ── 连线：世界坐标裁到扩展 footprint 边缘，箭头绝不进盒 ── */
+function clipToRect(pOut, pIn, n, m = .45) {
+  const x0 = n.x - m, y0 = n.y - m, x1 = n.x + n.w + m, y1 = n.y + n.d + m;
+  const [ax, ay] = pOut, [bx, by] = pIn;
+  let t = 1;
+  const cand = [];
+  if (bx !== ax) { cand.push((x0 - ax) / (bx - ax), (x1 - ax) / (bx - ax)); }
+  if (by !== ay) { cand.push((y0 - ay) / (by - ay), (y1 - ay) / (by - ay)); }
+  for (const k of cand) {
+    if (k <= 0 || k > 1) continue;
+    const px = ax + (bx - ax) * k, py = ay + (by - ay) * k;
+    if (px >= x0 - 1e-6 && px <= x1 + 1e-6 && py >= y0 - 1e-6 && py <= y1 + 1e-6) t = Math.min(t, k);
+  }
+  return [ax + (bx - ax) * t, ay + (by - ay) * t];
+}
+const center = n => [n.x + n.w / 2, n.y + n.d / 2];
+function edgePath(a, b, via) {
+  const pts = [center(N[a]), ...(via || []), center(N[b])];
+  pts[pts.length - 1] = clipToRect(pts[pts.length - 2], pts[pts.length - 1], N[b]);
+  pts[0] = clipToRect(pts[1], pts[0], N[a], .25);
+  return "M" + pts.map(p => iso(p[0], p[1], .04).map(v => +v.toFixed(1)).join(" ")).join(" L");
+}
+const linkEls = DATA.links.map((l, i) => {
+  const g = el("g", { class: "lk", "data-n": l.from + " " + l.to }, gLink);
+  const p = el("path", { d: edgePath(l.from, l.to, l.via), stroke: "var(--ink-soft)", "stroke-width": 1,
+    "stroke-dasharray": "2.5 3.5", fill: "none", opacity: .65 }, g);
+  el("path", { d: p.getAttribute("d"), stroke: "transparent", "stroke-width": 12, fill: "none" }, g);
+  return { g, p, l };
+});
+const flowEls = DATA.flow.map((f, i) => {
+  const g = el("g", { class: "lk", "data-n": f.from + " " + f.to }, gFlow);
+  const glow = el("path", { d: edgePath(f.from, f.to, f.via), stroke: "var(--accent)", "stroke-width": 6,
+    fill: "none", opacity: 0, "stroke-linecap": "round" }, g);
+  const p = el("path", { d: glow.getAttribute("d"), stroke: "var(--ink)", "stroke-width": 1.6,
+    fill: "none", "marker-end": "url(#arr)" }, g);
+  el("path", { d: glow.getAttribute("d"), stroke: "transparent", "stroke-width": 12, fill: "none" }, g);
+  return { g, p, glow, f };
+});
+const order = [...DATA.nodes].sort((a, b) => (a.x + a.y) - (b.x + b.y));
+const nodeEls = {};
+for (const n of order) nodeEls[n.code] = building(n);
+for (const n of order) plate(n);
+{
+  const depths = DATA.districts.map(d => d.r[0] + d.r[2] / 2 + d.r[1] + d.r[3] / 2);
+  const mid = depths.reduce((a, b) => a + b, 0) / depths.length;
+  DATA.districts.forEach((d, i) => {
+    const [x, y, w, dd] = d.r;
+    const top = depths[i] <= mid;
+    const [lx, ly] = top ? iso(x, y) : iso(x + w, y + dd);
+    const cy = top ? ly - 26 : ly + 10;
+    const g = el("g", {}, gTag);
+    const t = el("text", { "font-size": 11.5, "letter-spacing": ".1em", "font-weight": 700,
+      fill: mix(tintOf[d.id], 78, "var(--ink)") }, g);
+    t.textContent = d.label;
+    const tw = t.getComputedTextLength() + 40;
+    el("rect", { x: lx - tw / 2, y: cy, width: tw, height: 24, rx: 12,
+      fill: mix(tintOf[d.id], 16, "var(--card)"),
+      stroke: mix(tintOf[d.id], 45, "var(--card)"), "stroke-width": 1.2 }, g);
+    const u = el("use", { href: `#ic-${d.icon}`, x: lx - tw / 2 + 10, y: cy + 6, width: 12, height: 12 }, g);
+    u.setAttribute("style", `stroke:${mix(tintOf[d.id], 78, "var(--ink)")};fill:none;stroke-width:1.2`);
+    t.setAttribute("x", lx - tw / 2 + 27); t.setAttribute("y", cy + 16.5);
+    g.appendChild(t);
+  });
+}
+/* 连线说明浮牌 */
+const edgeTag = el("g", { style: "display:none;pointer-events:none" }, gTag);
+const etRect = el("rect", { fill: "var(--ink)", height: 16, rx: 6 }, edgeTag);
+const etText = el("text", { "font-size": 10, "font-weight": 700, fill: "var(--paper)" }, edgeTag);
+function showEdgeTag(pathEl, label) {
+  etText.textContent = label;
+  edgeTag.style.display = "";
+  const mid = pathEl.getPointAtLength(pathEl.getTotalLength() / 2);
+  const w = etText.getComputedTextLength() + 12;
+  etRect.setAttribute("x", mid.x - w / 2); etRect.setAttribute("y", mid.y - 22); etRect.setAttribute("width", w);
+  etText.setAttribute("x", mid.x - w / 2 + 6); etText.setAttribute("y", mid.y - 10);
+}
+
+/* ── 常驻数据流 ── */
+const motionOK = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+const ambient = [];
+function makeDot(parent, r = 3.2) {
+  const g = el("g", {}, parent);
+  el("circle", { r: r * 2.1, fill: "var(--accent)", opacity: .16 }, g);
+  el("circle", { r, fill: "var(--accent)", stroke: "var(--card)", "stroke-width": 1 }, g);
+  return g;
+}
+if (motionOK) flowEls.forEach(({ p }) => {
+  const len = p.getTotalLength();
+  ambient.push({ c: makeDot(gDot, 3), p, len, t: Math.random() });
+});
+let playDot = null;
+(function tick(prev) {
+  requestAnimationFrame(now => {
+    const dt = prev ? Math.min(now - prev, 50) : 16;
+    for (const d of ambient) {
+      d.t = (d.t + dt * .00045) % 1;
+      const pt = d.p.getPointAtLength(d.t * d.len);
+      d.c.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
+    }
+    tick(now);
+  });
+})();
+
+/* ── 左侧索引 ── */
+const nav = document.getElementById("nav");
+for (const d of DATA.districts) {
+  nav.insertAdjacentHTML("beforeend",
+    `<div class="grp" style="color:${mix(tintOf[d.id], 72, "var(--ink)")};background:${mix(tintOf[d.id], 14, "var(--card)")}">${ic(d.icon)}<span>${d.label}</span></div>`);
+  for (const n of DATA.nodes.filter(n => n.district === d.id))
+    nav.insertAdjacentHTML("beforeend",
+      `<div class="item" data-code="${n.code}">${ic(n.icon || d.icon, 12)}<span class="code">${n.code}</span>
+       <span class="nm">${n.short || n.name}</span>${n.count ? `<span class="ct">×${n.count}</span>` : ""}</div>`);
+}
+
+/* ── 面板 ── */
+let tab = "what", sel = null;
+const panel = document.getElementById("panel");
+const tabWhat = document.getElementById("tabWhat"), tabHow = document.getElementById("tabHow");
+function srcList(a) {
+  const repo = DATA.meta.repoUrl;
+  return `<h3>出处</h3><ul>` + a.map(s =>
+    repo ? `<li>${ic("file", 11)} <a class="src" target="_blank" href="${repo}/${s}"><code>${s}</code></a></li>`
+         : `<li class="src" data-path="${s}">${ic("file", 11)} <code>${s}</code></li>`).join("") + "</ul>";
+}
+const kicker = (icn, label, color) =>
+  `<div class="kicker" ${color ? `style="color:${color}"` : ""}>${ic(icn)}<span>${label}</span></div>`;
+function systemPanel() {
+  const m = DATA.meta;
+  if (tab === "what") return kicker("globe", "系统") + `<h2>${m.headline}</h2>${m.what}
+    <h3>怎么读这张图</h3>${m.reading}`;
+  return kicker("globe", "系统") + `<h2>实现纪律</h2>${m.how}${srcList(m.sources)}`;
+}
+function nodePanel(code) {
+  const n = N[code], d = DIST[n.district];
+  const body = tab === "what" ? `<p>${n.what}</p>` : `<p>${n.how}</p>${srcList(n.sources)}`;
+  return kicker(n.icon || d.icon, d.label, mix(tintOf[d.id], 55, "var(--ink)")) + `<h2>${n.name}</h2>${body}`;
+}
+function linkPanel(i) {
+  const l = DATA.links[i];
+  return kicker("gateway", "结构关系") + `<h2>${l.label}</h2>
+    <p>${l.what || ""}</p><p><code>${N[l.from].name}</code> → <code>${N[l.to].name}</code></p>
+    ${srcList([...N[l.from].sources.slice(0, 1), ...N[l.to].sources.slice(0, 1)])}`;
+}
+function flowPanel(i) {
+  const f = DATA.flow[i];
+  const list = DATA.flow.map((s, j) =>
+    `<li class="${j < i ? "done" : j === i ? "now" : ""}" data-step="${j}">${j + 1}. ${s.title}</li>`).join("");
+  return kicker("play", "一次运行") + `<h2>第 ${i + 1}/${DATA.flow.length} 步 · ${f.title}</h2>
+    <p>${f.what}</p><p><code>${N[f.from].name}</code> → <code>${N[f.to].name}</code></p>
+    ${tab === "how" ? srcList(f.sources || [...N[f.from].sources.slice(0,1), ...N[f.to].sources.slice(0,1)]) : ""}
+    <h3>全部步骤（可点击）</h3><ul class="steps">${list}</ul>`;
+}
+function render() {
+  panel.innerHTML =
+    sel == null ? systemPanel() :
+    typeof sel === "number" ? flowPanel(sel) :
+    sel.startsWith("L") ? linkPanel(+sel.slice(1)) : nodePanel(sel);
+  document.querySelectorAll("nav .item").forEach(e =>
+    e.classList.toggle("sel", e.dataset.code === sel));
+  panel.querySelectorAll(".steps li").forEach(li =>
+    li.addEventListener("click", () => { pauseAuto(); showStep(+li.dataset.step); }));
+  panel.querySelectorAll("li.src").forEach(li =>
+    li.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(li.dataset.path); } catch {}
+      const c = li.querySelector("code"), t = c.textContent;
+      c.textContent = "已复制 ✓"; setTimeout(() => c.textContent = t, 900);
+    }));
+}
+tabWhat.onclick = () => { tab = "what"; tabWhat.classList.add("on"); tabHow.classList.remove("on"); render(); };
+tabHow.onclick = () => { tab = "how"; tabHow.classList.add("on"); tabWhat.classList.remove("on"); render(); };
+
+/* ── 聚焦 ── */
+function focusSet(set) {
+  for (const [c, g] of Object.entries(nodeEls)) g.classList.toggle("dim", !!set && !set.has(c));
+  for (const g of gPlate.children) g.classList.toggle("dim", !!set && !set.has(g.dataset.code));
+  for (const g of [...gLink.children, ...gFlow.children]) {
+    const [a, b] = g.dataset.n.split(" ");
+    g.classList.toggle("dim", !!set && !(set.has(a) && set.has(b)));
+  }
+}
+const hood = code => new Set([code, ...(adj[code] || [])]);
+function markSel(code) {
+  gSel.innerHTML = "";
+  if (!code) return;
+  const n = N[code];
+  el("polygon", { id: "selring", points: P([
+    iso(n.x - .35, n.y - .35), iso(n.x + n.w + .35, n.y - .35),
+    iso(n.x + n.w + .35, n.y + n.d + .35), iso(n.x - .35, n.y + n.d + .35)]),
+    fill: "none", stroke: "var(--accent)", "stroke-width": 2 }, gSel);
+}
+function select(code) {
+  stopFlowVisual(); sel = code; markSel(typeof code === "string" && !code.startsWith("L") ? code : null);
+  focusSet(typeof code === "string" && !code.startsWith("L") ? hood(code) : null);
+  render();
+}
+function bindNode(g) {
+  const code = g.dataset.code;
+  g.addEventListener("mouseenter", () => {
+    if (typeof sel !== "number") { focusSet(hood(code)); if (sel == null) panel.innerHTML = nodePanel(code); }
+  });
+  g.addEventListener("mouseleave", () => {
+    if (typeof sel !== "number") {
+      focusSet(typeof sel === "string" && !sel.startsWith("L") ? hood(sel) : null);
+      if (sel == null) render();
+    }
+  });
+  g.addEventListener("click", e => { e.stopPropagation(); select(code); });
+}
+Object.values(nodeEls).forEach(bindNode);
+[...gPlate.children].forEach(bindNode);
+linkEls.forEach(({ g, p, l }, i) => {
+  g.addEventListener("mouseenter", () => { p.setAttribute("stroke-width", 2); showEdgeTag(p, l.label); });
+  g.addEventListener("mouseleave", () => { p.setAttribute("stroke-width", 1); edgeTag.style.display = "none"; });
+  g.addEventListener("click", e => { e.stopPropagation(); select("L" + i); });
+});
+flowEls.forEach(({ g, p, f }, i) => {
+  g.addEventListener("mouseenter", () => showEdgeTag(p, `${i + 1}. ${f.title}`));
+  g.addEventListener("mouseleave", () => edgeTag.style.display = "none");
+  g.addEventListener("click", e => { e.stopPropagation(); pauseAuto(); showStep(i); });
+});
+nav.addEventListener("click", e => {
+  const it = e.target.closest(".item"); if (it) select(it.dataset.code);
+});
+nav.addEventListener("mouseover", e => {
+  const it = e.target.closest(".item");
+  if (it && typeof sel !== "number") focusSet(hood(it.dataset.code));
+});
+nav.addEventListener("mouseout", () => {
+  if (typeof sel !== "number") focusSet(typeof sel === "string" && !sel.startsWith("L") ? hood(sel) : null);
+});
+
+/* ── 流程追踪 ── */
+let auto = null, stepIdx = -1;
+function showStep(i) {
+  stepIdx = i; sel = i; markSel(null); render();
+  flowEls.forEach(({ p, glow }, j) => {
+    p.setAttribute("stroke", j === i ? "var(--accent)" : "var(--ink)");
+    p.setAttribute("stroke-width", j === i ? 2.6 : j < i ? 2 : 1.6);
+    p.setAttribute("marker-end", j === i ? "url(#arrA)" : "url(#arr)");
+    p.setAttribute("opacity", j <= i ? 1 : .35);
+    glow.setAttribute("opacity", j === i ? .22 : 0);
+  });
+  const f = DATA.flow[i];
+  focusSet(new Set([f.from, f.to]));
+  gDot.style.display = "none";
+  if (playDot) playDot.remove();
+  const p = flowEls[i].p, len = p.getTotalLength(), t0 = performance.now(), dur = motionOK ? 260 : 0;
+  playDot = makeDot(gTag, 4.5);
+  (function anim(now) {
+    const k = dur ? Math.min((now - t0) / dur, 1) : 1;
+    const pt = p.getPointAtLength(k * len);
+    playDot.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
+    if (k < 1 && stepIdx === i) requestAnimationFrame(anim);
+  })(t0);
+}
+function pauseAuto() { if (auto) clearTimeout(auto); auto = null; }
+function stopFlowVisual() {
+  pauseAuto(); stepIdx = -1;
+  if (playDot) { playDot.remove(); playDot = null; }
+  gDot.style.display = "";
+  flowEls.forEach(({ p, glow }) => { p.setAttribute("stroke", "var(--ink)");
+    p.setAttribute("stroke-width", 1.6); p.setAttribute("marker-end", "url(#arr)");
+    p.setAttribute("opacity", 1); glow.setAttribute("opacity", 0); });
+}
+document.getElementById("btnPlay").onclick = () => {
+  stopFlowVisual(); showStep(0);
+  const tick = () => {
+    if (stepIdx + 1 >= DATA.flow.length) { auto = null; return; }
+    showStep(stepIdx + 1);
+    auto = setTimeout(tick, motionOK ? 620 : 400);
+  };
+  auto = setTimeout(tick, motionOK ? 620 : 400);
+};
+document.getElementById("btnStep").onclick = () => { pauseAuto(); showStep((stepIdx + 1) % DATA.flow.length); };
+
+/* ── 取景 / 平移缩放 / 响应式 ── */
+const stage = document.getElementById("stage");
+function fitHome() {
+  const boxes = [gDist.getBBox(), gNode.getBBox(), gPlate.getBBox()];
+  const x = Math.min(...boxes.map(b => b.x)) - 18, y = Math.min(...boxes.map(b => b.y)) - 16;
+  return { x, y,
+    w: Math.max(...boxes.map(b => b.x + b.width)) + 18 - x,
+    h: Math.max(...boxes.map(b => b.y + b.height)) + 16 - y };
+}
+const HOME = fitHome();
+let vb = { ...HOME }, homeView = true;
+const applyVB = () => svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+document.getElementById("btnReset").onclick = () => { stopFlowVisual(); select(null); vb = { ...HOME }; homeView = true; applyVB(); };
+new ResizeObserver(() => { if (homeView) applyVB(); }).observe(stage);
+let pan = null, moved = false;
+stage.addEventListener("pointerdown", e => {
+  if (e.target.closest(".b") || e.target.closest(".lk")) return;
+  pan = { px: e.clientX, py: e.clientY, x: vb.x, y: vb.y }; moved = false;
+  stage.classList.add("panning"); stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener("pointermove", e => {
+  if (!pan) return;
+  if (Math.hypot(e.clientX - pan.px, e.clientY - pan.py) > 3) moved = true;
+  const k = vb.w / stage.clientWidth;
+  vb.x = pan.x - (e.clientX - pan.px) * k; vb.y = pan.y - (e.clientY - pan.py) * k;
+  if (moved) { homeView = false; applyVB(); }
+});
+stage.addEventListener("pointerup", e => {
+  const wasPan = pan; pan = null; stage.classList.remove("panning");
+  if (wasPan && !moved && !e.target.closest(".b") && !e.target.closest(".lk")) select(null);
+});
+stage.addEventListener("wheel", e => {
+  e.preventDefault();
+  const k = e.deltaY > 0 ? 1.12 : 1 / 1.12;
+  const r = svg.getBoundingClientRect();
+  const mx = vb.x + (e.clientX - r.left) / r.width * vb.w;
+  const my = vb.y + (e.clientY - r.top) / r.height * vb.h;
+  vb = { x: mx - (mx - vb.x) * k, y: my - (my - vb.y) * k, w: vb.w * k, h: vb.h * k };
+  homeView = false; applyVB();
+}, { passive: false });
+
+applyVB();
+render();
+</script>
+</body>
+</html>
