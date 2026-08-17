@@ -18,13 +18,21 @@
 
 读取所引用路径的文件。用户通常会直接传入路径或 issue 编号。
 
+## 工单生命周期
+
+任何执行方共用同一套流转，不区分 solo 会话还是被派发的 agent。`Status:` 字符串见 `triage-labels.md`。
+
+- **认领**：动手前把 `Status:` 改为 `<in-progress>` 并保存。已处于 `<in-progress>` 的工单视为他人已认领，不要抢。
+- **完成**：本地 tracker 没有合并这一步，改动验证通过后直接把 `Status:` 改为 `resolved`。
+- **放弃**：未完成就中止时把 `Status:` 改回 `<ready-for-agent>`，不把工单留在进行中。
+
 ## Wayfinding 操作
 
 由 `/wayfinder` 使用。地图是一个文件，每个 ticket 对应一个子文件。
 
 - **地图**：`.scratch/<effort>/map.md` — Notes / Decisions-so-far / Fog 正文。
-- **子 ticket**：`.scratch/<effort>/issues/NN-<slug>.md`，从 `01` 编号，正文中包含问题。`Type:` 行记录 ticket 类型（`research`/`prototype`/`grilling`/`task`）；`Status:` 行记录 `claimed`/`resolved`。
+- **子 ticket**：`.scratch/<effort>/issues/NN-<slug>.md`，从 `01` 编号，正文中包含问题。`Type:` 行记录 ticket 类型（`research`/`prototype`/`grilling`/`task`）；`Status:` 行记录生命周期状态或 `resolved`。
 - **阻塞**：顶部附近的 `Blocked by: NN, NN` 行。列出的每个文件都处于 `resolved` 后，ticket 才解除阻塞。
 - **前沿**：扫描 `.scratch/<effort>/issues/`，查找开放、未阻塞且未认领的文件；按编号取第一个。
-- **认领**：设置 `Status: claimed` 并保存，然后才能进行任何工作。
+- **认领**：按上方工单生命周期设置 `Status:` 并保存，然后才能进行任何工作。
 - **解决**：在 `## Answer` 标题下追加答案，设置 `Status: resolved`，然后将上下文指针（gist + link）追加到 `map.md` 的 Decisions-so-far。

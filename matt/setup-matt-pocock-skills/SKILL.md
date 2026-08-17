@@ -9,7 +9,7 @@ disable-model-invocation: true
 搭建工程技能所依赖的每仓库配置：
 
 - **Issue tracker** — issue 所在的位置（默认是 GitHub；同时开箱即用地支持本地 markdown）
-- **分流标签** — 五个规范分流角色所使用的字符串
+- **标签词汇** — 分流、类型和生命周期角色所使用的字符串
 - **领域文档** — `CONTEXT.md` 和 ADR 的位置，以及读取它们的使用方规则
 
 这是一个由提示驱动的技能，不是确定性脚本。先探索，展示发现的内容，向用户确认，然后写入。
@@ -26,14 +26,13 @@ disable-model-invocation: true
 - `docs/adr/` 以及任何 `src/*/docs/adr/` 目录
 - `docs/agents/` — 这个技能之前的输出是否已经存在？
 - `.scratch/` — 是否表明已经在使用本地 markdown issue tracker 约定？
-- 是否已安装 `triage` 技能？（与本技能并列的 `triage` 技能目录，或可用技能中的 `triage`。）这决定是否完全运行 B 部分。
 - Monorepo 信号 — `pnpm-workspace.yaml`、`package.json` 中的 `workspaces` 字段，或有自身 `src/` 的非空 `packages/*`。只有真正大型的多包仓库才会出现；没有这些信号就表示单一上下文，这几乎适用于所有仓库。
 
 ### 2. 展示发现并询问
 
 总结已有和缺少的内容。然后按顺序处理各部分——一次一部分，回答后再进入下一部分。
 
-每部分先给出推荐答案，让用户可以用一个词接受。仅在选择确实分叉时提供一行解释；如果探索已经确定选择，则完全跳过该部分（未安装 `triage` 时跳过 B，没有 monorepo 时跳过 C）。
+每部分先给出推荐答案，让用户可以用一个词接受。仅在选择确实分叉时提供一行解释；如果探索已经确定选择，则完全跳过该部分（没有 monorepo 时跳过 C）。
 
 **A 部分——Issue tracker。**
 
@@ -48,13 +47,13 @@ disable-model-invocation: true
 
 将选择记录到 `docs/agents/issue-tracker.md`。GitHub 和 GitLab 模板带有“PR 作为请求入口”标志，默认设为 **off** — 保持关闭，不要主动提出；希望将外部 PR 放入 triage 队列的用户之后可以在文件中切换该标志。
 
-**B 部分——分流标签词汇。** 如果未安装 `triage` 技能，则完全跳过此部分（探索时已经得知）——未安装的技能不需要标签。
+**B 部分——标签词汇。** 无条件运行：分流标签供 `triage` 使用，类型标签供建票技能使用，生命周期标签供每个领工单的执行方使用——后两类与 `triage` 是否安装无关。
 
-如果已安装，只问一个问题：
+只问一个问题：
 
-> 是否保留默认分流标签？（推荐：**是**）
+> 是否保留默认标签词汇？（推荐：**是**）
 
-默认值是五个规范角色，每个标签字符串都等于其名称：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。如果回答 **是**，原样写入。只有用户回答否时——通常因为其 tracker 已使用其他名称（例如用 `bug:triage` 表示 `needs-triage`）——才收集覆盖值，让 `triage` 使用现有标签而不是创建重复标签。映射表中另有类型标签节（如 `spec`），同机制随表维护。
+默认值是每个标签字符串都等于其角色名：分流的 `needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`，类型的 `spec`，生命周期的 `in-progress`、`blocked`。如果回答 **是**，原样写入。只有用户回答否时——通常因为其 tracker 已使用其他名称（例如用 `bug:triage` 表示 `needs-triage`）——才收集覆盖值，让技能使用现有标签而不是创建重复标签。
 
 **C 部分——领域文档。** 默认使用**单一上下文**——仓库根目录下一个 `CONTEXT.md` 和 `docs/adr/`。这适合几乎所有仓库；直接写入，不询问。
 
@@ -65,7 +64,7 @@ disable-model-invocation: true
 向用户展示以下内容的草稿：
 
 - 要添加到正在编辑的 `CLAUDE.md` / `AGENTS.md` 中的 `## Agent skills` 块（选择规则见第 4 步）
-- `docs/agents/issue-tracker.md`、`docs/agents/domain.md` 和 `docs/agents/triage-labels.md` 的内容（仅在安装了 `triage` 时展示最后一个）
+- `docs/agents/issue-tracker.md`、`docs/agents/triage-labels.md` 和 `docs/agents/domain.md` 的内容
 
 写入前允许用户编辑。
 
@@ -90,7 +89,7 @@ disable-model-invocation: true
 
 [issue 跟踪位置的一行摘要]。参见 `docs/agents/issue-tracker.md`。
 
-### Triage labels
+### Labels
 
 [标签词汇的一行摘要]。参见 `docs/agents/triage-labels.md`。
 
@@ -99,14 +98,12 @@ disable-model-invocation: true
 [布局的一行摘要——“single-context”或“multi-context”]。参见 `docs/agents/domain.md`。
 ```
 
-仅在安装了 `triage` 且运行了 B 部分时，才包含 `### Triage labels` 子块，并写入 `docs/agents/triage-labels.md`。未安装时，两者都省略。
-
 然后使用本技能目录中的种子模板作为起点写入文档文件：
 
 - [issue-tracker-github.md](./issue-tracker-github.md) — GitHub issue tracker
 - [issue-tracker-gitlab.md](./issue-tracker-gitlab.md) — GitLab issue tracker
 - [issue-tracker-local.md](./issue-tracker-local.md) — 本地 markdown issue tracker
-- [triage-labels.md](./triage-labels.md) — 标签映射（仅在安装了 `triage` 时）
+- [triage-labels.md](./triage-labels.md) — 标签映射
 - [domain.md](./domain.md) — 领域文档使用方规则 + 布局
 
 对于“其他” issue tracker，根据用户的描述从头写入 `docs/agents/issue-tracker.md`。

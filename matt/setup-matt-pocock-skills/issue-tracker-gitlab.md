@@ -34,6 +34,15 @@
 
 运行 `glab issue view <number> --comments`。
 
+## 工单生命周期
+
+任何执行方共用同一套流转，不区分 solo 会话还是被派发的 agent。标签字符串见 `triage-labels.md`。
+
+- **认领**：动手前一条命令完成 `glab issue update <n> --assignee @me --label "<in-progress>" --unlabel "<ready-for-agent>"`。已有受理人的工单视为他人已认领，不要抢。
+- **交付**：MR 描述写 `Closes #<n>`，一个 MR 对应一张工单；一个 MR 收口多张时逐行写。
+- **关闭**：合并时由 GitLab 自动关闭，不手动 `glab issue close`。不产生 MR 的工单（问题型、分流拒绝）由解决方发 note 后直接关闭。
+- **放弃**：未合并就中止时回滚认领（`--unassign`、标签换回 `<ready-for-agent>`），不把工单留在进行中。
+
 ## Wayfinding 操作
 
 由 `/wayfinder` 使用。地图是一个带有子 issue 作为 ticket 的单一 issue。
@@ -42,5 +51,5 @@
 - **子 ticket**：在描述顶部写有 `Part of #<map>`、并带有 `wayfinder:<type>`（`research`/`prototype`/`grilling`/`task`）标签的 issue。认领后，将 ticket 分配给负责的开发者。
 - **阻塞**：GitLab 的**原生 blocking link** 是规范且在 UI 中可见的表示。使用作为 note 发布的 `/blocked_by #<n>` quick action 添加（`glab issue note <child> --message "/blocked_by #<blocker>"`）。原生阻塞链接是 Premium/Ultimate 功能；在免费层级（或不可用时）退回在描述顶部写入 `Blocked by: #<n>, #<n>`。所有阻塞者都关闭后，ticket 才解除阻塞。
 - **前沿查询**：使用 `glab issue list -F json` 限定到地图的子项，排除有开放阻塞者——指向开放 issue 的原生 `blocked_by` 链接（`glab api projects/:id/issues/:iid/links`），或 `Blocked by` 行中的开放 issue——或已有受理人的项；按地图顺序取第一个。
-- **认领**：`glab issue update <n> --assignee @me` — 本会话的第一次写入。
+- **认领**：按上方工单生命周期的认领命令 — 本会话的第一次写入。
 - **解决**：`glab issue note <n> --message "<answer>"`，然后 `glab issue close <n>`，最后将上下文指针（gist + link）追加到地图的 Decisions-so-far。
