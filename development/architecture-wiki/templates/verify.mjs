@@ -182,6 +182,7 @@ const notices = [];
 
 // 1. Sources: file exists, hash matches, symbols still present.
 // Regenerated pages are exempt — their freshness check is the lag notice below.
+const HEALTH_HEADINGS = ["## 死代码", "## 循环依赖", "## 高危热点", "## 断点"];
 for (const page of pages) {
   if (page.generated) {
     if (!page.generatedAt) { errors.push(`${page.rel}: generated page missing generated-at: <commit>`); continue; }
@@ -191,6 +192,9 @@ for (const page of pages) {
     } catch {
       errors.push(`${page.rel}: generated-at commit not found: ${page.generatedAt}`);
     }
+    if (page.rel === "health.md")
+      for (const h of HEALTH_HEADINGS)
+        if (!page.body.includes(h)) errors.push(`health.md: missing fixed heading "${h}" (HTML 警示标锚点依赖它)`);
     continue;
   }
   for (const src of page.sources) {
@@ -240,6 +244,9 @@ const claims = (p) => f => f === p || f.startsWith(p.endsWith("/") ? p : p + "/"
     ...pages.flatMap((p) => p.covers.map((c) => ({ owner: p.rel, kind: "covers", match: claims(c), raw: c }))),
     ...(pages.find((p) => p.rel === "index.md")?.exclude ?? []).map((c) => ({ owner: "index.md", kind: "exclude", match: claims(c), raw: c })),
   ];
+  for (const p of pages)
+    if (p.rel !== "index.md" && p.exclude.length)
+      errors.push(`${p.rel}: exclude belongs in index.md frontmatter only (move it there)`);
   const hit = new Set();
   const unclaimed = [];
   for (const f of tracked) {

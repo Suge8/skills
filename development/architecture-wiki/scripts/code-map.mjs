@@ -51,10 +51,10 @@ for (const file of files.sort()) {
     const res = resolver.resolveFileSync(abs, spec);
     if (res.path && res.path.startsWith(root) && !res.path.includes("node_modules")) {
       imports.add(relative(root, res.path));
+    } else if (!res.path && spec.startsWith(".")) {
+      unresolved.add(spec);
     } else if (!spec.startsWith(".") && !spec.startsWith("node:")) {
       packages.add(spec.startsWith("@") ? spec.split("/").slice(0, 2).join("/") : spec.split("/")[0]);
-    } else if (spec.startsWith(".")) {
-      unresolved.add(spec);
     }
   }
   const exports = [...new Set(mod.staticExports.flatMap((e) =>
