@@ -514,15 +514,16 @@ document.getElementById("hdr").innerHTML =
   `<div class="statbar">` + DATA.meta.stats.map(([k, v, tip]) =>
     `<div class="stat"${tip ? ` title="${tip}"` : ""}>${ic(statIcon(k), 12)}<span class="k">${k}</span><span class="v">${v}</span></div>`
   ).join(`<span class="sep"></span>`) + `</div>` +
+  // 体检入口归信息区（紧跟统计条），不混进右侧的播放控制组
+  (WIKI["health.md"]
+    ? `<button id="btnHealth" class="vitals-btn compact" title="体检报告">${ic("shield")}<span class="lb">体检报告</span><span class="dot"></span></button>`
+    : "") +
   `<div class="spacer"></div>
    <div class="ops">
      <button id="btnPlay" class="primary">${ic("play")}<span class="lb">播放</span></button>
      <button id="btnStep" class="compact" title="单步">${ic("stepfwd")}<span class="lb">单步</span></button>
      <button id="btnReset" class="compact" title="重置取景">${ic("reset")}<span class="lb">重置</span></button>
-   </div>` +
-  (WIKI["health.md"]
-    ? `<button id="btnHealth" class="vitals-btn compact" title="体检报告">${ic("shield")}<span class="lb">体检报告</span><span class="dot"></span></button>`
-    : "");
+   </div>`;
 /* 把手：骑在两张卡片内边缘，收起后停靠屏幕边缘；窄屏默认收起 */
 if (matchMedia("(max-width: 1080px)").matches) document.body.classList.add("nav-off");
 if (matchMedia("(max-width: 820px)").matches) document.body.classList.add("aside-off");
