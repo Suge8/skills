@@ -1,7 +1,7 @@
 ---
 name: architecture-wiki
 disable-model-invocation: true
-description: 在目标仓库建立并维护 docs/architecture/：Markdown wiki 事实源 + 自包含 architecture.html 可视化 + verify 过期检查接入 lint/CI，标配死代码/循环依赖/热点体检页。用户要架构图、要死代码体检报告，或架构 verify 报错时使用。
+description: 在目标仓库建立并维护 docs/architecture/：Markdown wiki 事实源 + 自包含可视化 + verify 过期检查接入 lint/CI，附死代码/循环依赖/热点体检页。
 ---
 
 # Architecture Wiki
