@@ -185,13 +185,13 @@
   /* 图例：虚实两种边是不同语义，不解释等于没编码 */
   #legend {
     position: absolute; right: 12px; bottom: 12px; z-index: 4;
-    display: flex; align-items: center; gap: 13px;
-    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-    padding: 6px 12px; font-size: 11px; color: var(--ink-soft);
-    box-shadow: 0 1px 4px rgba(20, 20, 19, .05);
+    display: flex; align-items: center; gap: 15px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 11px;
+    padding: 8px 14px; font: 600 11.5px var(--sans); color: var(--ink);
+    box-shadow: 0 2px 10px rgba(20, 20, 19, .07);
   }
-  #legend span { display: flex; align-items: center; gap: 6px; }
-  #legend svg { width: 24px; height: 7px; flex-shrink: 0; }
+  #legend span { display: flex; align-items: center; gap: 7px; }
+  #legend svg { width: 26px; height: 8px; flex-shrink: 0; }
   @media (max-width: 700px) { #legend { display: none; } }
   aside {
     width: var(--asidew);
@@ -347,6 +347,8 @@
   .hbadge .ring { transition: r .15s ease-out; }
   .hbadge:hover .ring { r: 8.5; }
   .b.dim, .lk.dim { opacity: .13; }
+  /* 聚焦时结构边要真的亮起来：细虚线本身就淡，只靠不压暗看不出区别 */
+  #svg g.lk.hi > path:first-child { opacity: 1; stroke-width: 1.7; stroke: var(--ink); }
   #svg g.b:not([data-plate]):hover { transform: translateY(-3px); }
   #svg g.b.hop { animation: hop .5s ease; }
   @keyframes hop { 30% { transform: translateY(-7px); } 60% { transform: translateY(-1px); } }
@@ -471,8 +473,8 @@
   <nav id="nav"></nav>
   <div id="stage"><div id="flowbar" hidden></div><svg id="svg" aria-label="等距系统地图"></svg>
     <div id="legend">
-      <span><svg viewBox="0 0 24 7"><line x1="1" y1="3.5" x2="23" y2="3.5" stroke="var(--ink-soft)" stroke-width="1.2" stroke-dasharray="2.5 3.5"/></svg>结构依赖</span>
-      <span><svg viewBox="0 0 24 7"><line x1="1" y1="3.5" x2="18" y2="3.5" stroke="var(--ink)" stroke-width="1.6"/><path d="M18 1.6 23 3.5 18 5.4Z" fill="var(--ink)"/></svg>运行流</span>
+      <span><svg viewBox="0 0 26 8"><line x1="1" y1="4" x2="25" y2="4" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 3.5"/></svg>结构依赖</span>
+      <span><svg viewBox="0 0 26 8"><line x1="1" y1="4" x2="19" y2="4" stroke="var(--ink)" stroke-width="2"/><path d="M19 1.7 25 4 19 6.3Z" fill="var(--ink)"/></svg>运行流</span>
     </div>
   </div>
   <aside>
@@ -1354,7 +1356,9 @@ function focusSet(set) {
   }
   for (const g of [...gLink.children, ...gFlow.children]) {
     const [a, b] = g.dataset.n.split(" ");
-    g.classList.toggle("dim", !!set && !(set.has(a) && set.has(b)));
+    const live = !set || (set.has(a) && set.has(b));
+    g.classList.toggle("dim", !live);
+    g.classList.toggle("hi", !!set && live);
   }
 }
 const hood = code => new Set([code, ...(adj[code] || [])]);
