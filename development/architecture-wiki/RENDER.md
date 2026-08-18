@@ -21,8 +21,10 @@
     "index.md": "…", "system.md": "…", "data-flow.md": "…", "modules/auth.md": "…"
   },
   "health": { "files": 163, "dead": 2, "suspects": 5, "deadExports": 184, "cycles": 0, "breaks": 0 },  // 可选；体检计数全部取自工具输出（见 HEALTH.md），files 为源文件数供密度化评分；公式固化在模板，不手填分数
+  "files": ["src/a.ts", "src/b.ts"],          // 可选；全量源文件清单（code-map 输出的键）。面板据此把模块页 covers 展开成「管辖范围」，与「关键出处」（sources）分开展示；粒度是页，同页的多栋楼共享同一范围
   "districts": [   // 进程/部署边界；按序自动分配暖调低饱和色，可用 tint 覆盖
-    { "id": "go", "label": "GO 控制面", "icon": "grid", "r": [1, 2, 3, 4] }
+    { "id": "go", "label": "GO 控制面", "icon": "grid", "r": [1, 2, 3, 4],
+      "page": "system.md#控制面" }   // page 可选：分区可点选，面板渲染该小节；不填则只显示图数据派生的区内模块与跨区往来
   ],
   "nodes": [
     { "code": "G2", "district": "go", "name": "auth 域", "short": "认证",  // code 是图上门牌：分区首字母+序号，不自造缩写；short ≤4 字
@@ -51,7 +53,7 @@
 ## 形态语义
 
 - `box` 普通域；`tall`（h 1.6–1.8）编排者、闸口等关键枢纽；`stack` 数据库；`cylinder` 缓存/对象存储；`slabs`（w 1.9 + count）同类模块群；`external` 外部供应商（虚线盒）。
-- 地面名牌（icon + code + short）自动放在建筑前方并避让重叠；全名在侧边栏和面板。建筑控制在 20–40 栋——放开的是 wiki 页数，不是楼数；装不下的模块进群组节点如实计数，多个 wiki 页可映射到同一栋楼的不同锚点。
+- 地面名牌（icon + code + short）自动放在建筑前方并避让重叠；全名在侧边栏和面板。楼数由模块页粒度自然决定，密度由 verify 几何红线兜底（挤不下会直接报错）；装不下的模块进群组节点如实计数，一个 wiki 页可对应多栋楼（同一职责域的不同侧面），多个 wiki 页也可映射到同一栋楼的不同锚点。
 
 ## 布局几何（等距投影约束）
 

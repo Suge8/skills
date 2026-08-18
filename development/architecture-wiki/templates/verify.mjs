@@ -323,6 +323,11 @@ function checkData(d) {
       if (typeof v !== "number" || v < 0) errors.push(`data.json: health.${k} must be a non-negative number`);
   const nodes = d.nodes || [], districts = d.districts || [];
   const flows = d.flows || [];
+  if (d.files && (!Array.isArray(d.files) || d.files.some((f) => typeof f !== "string")))
+    errors.push("data.json: files must be an array of repo-relative paths");
+  for (const dd of districts)
+    if (dd.page && !existsSync(join(wikiDir, dd.page.split("#")[0])))
+      errors.push(`data.json: district ${dd.id} page not found: ${dd.page.split("#")[0]}`);
   const codes = new Set(nodes.map((n) => n.code));
   const touched = new Set();
   for (const l of d.links || []) {

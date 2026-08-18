@@ -17,7 +17,7 @@
     --accent-deep: #2C5E47;
     --warn: #BE5560;
     --navw: clamp(195px, 15vw, 235px);
-    --asidew: clamp(295px, 24vw, 355px);
+    --asidew: clamp(300px, 26vw, 420px);
     --paper: var(--card);
     --paper-hi: var(--card);
     --mono: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace;
@@ -32,6 +32,12 @@
     display: flex; flex-direction: column; overflow: hidden;
   }
   .ic { width: 13px; height: 13px; flex-shrink: 0; vertical-align: -2px; }
+  /* Outline 默认、Fill 表选中：两层叠放做 cross-fade，槽位固定不抽动 */
+  .isw { position: relative; display: inline-flex; flex-shrink: 0; vertical-align: -2px; }
+  .isw .ic { vertical-align: 0; transition: opacity .16s cubic-bezier(.2, 0, 0, 1); }
+  .isw .if { position: absolute; inset: 0; opacity: 0; }
+  .sel .isw .if, .on .isw .if { opacity: 1; }
+  .sel .isw .io, .on .isw .io { opacity: 0; }
   header { display: flex; align-items: center; gap: 10px; padding: 12px 16px 4px; }
   .brand { display: flex; align-items: center; gap: 10px; margin-right: 6px; }
   .brand img, .brand svg.logo { width: 28px; height: 28px; }
@@ -68,7 +74,7 @@
   dialog#healthDlg[open] { display: flex; align-items: center; justify-content: center; }
   dialog#healthDlg::backdrop { background: rgba(32, 38, 31, .4); }
   .hmodal {
-    width: min(720px, 92vw); max-height: 84vh; overflow-y: auto;
+    width: min(860px, 92vw); max-height: 84vh; overflow-y: auto;
     background: var(--card); border: 1px solid var(--line); border-radius: 18px;
     padding: 18px 24px 26px; box-shadow: 0 20px 60px rgba(20, 20, 19, .24);
   }
@@ -78,6 +84,10 @@
     background: var(--card); border: 1px solid var(--line); color: var(--ink-soft); cursor: pointer;
   }
   .hmodal .hclose:hover { background: var(--surface); color: var(--ink); }
+  .hmodal .hhead {
+    display: flex; align-items: center; gap: 9px; color: var(--warn);
+    font: 700 19px/1.3 var(--serif); margin: 0 0 14px;
+  }
   dialog#healthDlg[open] .hmodal { animation: hin .2s cubic-bezier(.16, 1, .3, 1); }
   @keyframes hin { from { opacity: 0; transform: translateY(8px) scale(.985); } }
   main { flex: 1; display: flex; min-height: 0; gap: 10px; padding: 10px 12px 12px; position: relative; }
@@ -95,6 +105,14 @@
   body.nav-off #handleNav { left: 6px; }
   body.nav-off #handleNav .ic { transform: rotate(180deg); }
   #handleAside { right: calc(12px + var(--asidew) - 13px); }
+  #asideResize {
+    position: absolute; z-index: 25; top: 10px; bottom: 12px; width: 6px; border-radius: 3px;
+    right: calc(12px + var(--asidew) - 3px); cursor: col-resize;
+    transition: right .24s cubic-bezier(.2, 0, 0, 1), background .15s;
+  }
+  #asideResize:hover, #asideResize.on { background: color-mix(in srgb, var(--accent) 32%, transparent); }
+  body.aside-off #asideResize { display: none; }
+  body.resizing nav, body.resizing aside, body.resizing .handle, body.resizing #asideResize { transition: none; }
   #handleAside .ic { transform: rotate(180deg); }
   body.aside-off #handleAside { right: 6px; }
   body.aside-off #handleAside .ic { transform: rotate(0deg); }
@@ -109,8 +127,12 @@
   body.nav-off nav { margin-left: calc(-1 * var(--navw) - 10px); opacity: 0; pointer-events: none; }
   body.aside-off aside { margin-right: calc(-1 * var(--asidew) - 10px); opacity: 0; pointer-events: none; }
   nav .filter { position: sticky; top: 0; background: var(--card); padding: 2px 2px 8px; z-index: 2; }
+  nav .filter .sic {
+    position: absolute; left: 11px; top: calc(50% - 4px); transform: translateY(-50%);
+    color: var(--ink-soft); pointer-events: none;
+  }
   nav .filter input {
-    width: 100%; font: 12px var(--sans); padding: 6px 10px; border-radius: 9px;
+    width: 100%; font: 12px var(--sans); padding: 6px 10px 6px 30px; border-radius: 9px;
     border: 1px solid var(--line); background: var(--bg); color: var(--ink); outline: none;
   }
   nav .filter input:focus { border-color: var(--accent); }
@@ -120,7 +142,13 @@
     margin: 12px 4px 4px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
   }
   nav .grp .ct { margin-left: auto; font-weight: 400; letter-spacing: 0; }
-  nav .grp .chev { transition: transform .15s; font-size: 9px; }
+  nav .grp .chev {   /* 独立命中区 ≥28px（无障碍基线），箭头本身保持小尺寸 */
+    width: 28px; height: 28px; margin: -5px -8px -5px 2px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: inherit; cursor: pointer;
+    font-size: 9px; border-radius: 8px; transition: transform .15s, background .15s;
+  }
+  nav .grp .chev:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
   nav .grp.closed .chev { transform: rotate(-90deg); }
   nav .grpbody.closed { display: none; }
   nav .item {
@@ -198,6 +226,13 @@
   }
   #panel .chip.hchip:hover { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
   #panel .dimtext { color: var(--ink-soft); font-size: 12px; }
+  #panel h3 + .dimtext { margin: -4px 0 6px; font-size: 11px; line-height: 1.5; }
+  #panel .flist.collapsed li:nth-child(n+9) { display: none; }
+  #panel .morebtn {
+    font: 600 11.5px var(--sans); background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 5px 11px; cursor: pointer; color: var(--ink-soft); margin-top: 3px;
+  }
+  #panel .morebtn:hover { border-color: var(--accent); color: var(--accent-deep); }
   #panel .md-body h1 { font: 700 15px/1.5 var(--serif); margin: 16px 0 8px; }
   #panel .md-body h2 { font: 700 13px/1.5 var(--sans); letter-spacing: .01em; margin: 20px 0 8px; }
   #panel .md-body h3, #panel .md-body h4 { font: 700 12px var(--sans); letter-spacing: 0; color: var(--ink); margin: 12px 0 6px; }
@@ -256,6 +291,10 @@
   #panel .md-body hr { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
   #panel .wl { cursor: pointer; text-decoration: underline dotted; }
   .b, .lk { transition: opacity .18s, transform .2s ease; cursor: pointer; }
+  .dfloor { cursor: pointer; }
+  .dfloor polygon { transition: fill .18s, stroke-width .18s; }
+  .dfloor.sel polygon { stroke-dasharray: none; stroke-width: 2.4; }
+  nav .grp.sel { outline: 1.5px solid currentColor; outline-offset: -1.5px; }
   .hbadge { cursor: pointer; }
   .hbadge .ring { transition: r .15s ease-out; }
   .hbadge:hover .ring { r: 8.5; }
@@ -268,7 +307,7 @@
   @media (prefers-reduced-motion: reduce) {
     #selring, #svg g.b.hop { animation: none; }
     #svg g.b:not([data-plate]):hover { transform: none; }
-    nav, aside, .handle { transition: none; }
+    nav, aside, .handle, .isw .ic { transition: none; }
   }
   /* 窄屏：两栏转为固定抽屉，把手停靠屏幕边缘 */
   @media (max-width: 1080px) {
@@ -283,6 +322,7 @@
     body.nav-off #handleNav { left: 6px; }
   }
   @media (max-width: 820px) {
+    #asideResize { display: none; }
     aside {
       position: fixed; right: 0; top: 0; bottom: 0; z-index: 20; margin: 0;
       width: min(88vw, 360px); border-radius: 16px 0 0 16px;
@@ -342,6 +382,40 @@
 <symbol id="ic-doc" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><path d="M200,224H56a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h96l56,56V216A8,8,0,0,1,200,224Z"/><polyline points="152 32 152 88 208 88"/><line x1="96" y1="136" x2="160" y2="136"/><line x1="96" y1="168" x2="160" y2="168"/></symbol>
 <symbol id="ic-chevron" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><polyline points="160 208 80 128 160 48"/></symbol>
 <symbol id="ic-x" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></symbol>
+<symbol id="ic-search" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><circle cx="112" cy="112" r="80"/><line x1="168.57" y1="168.57" x2="224" y2="224"/></symbol>
+<symbol id="ic-globe-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24h0A104,104,0,1,0,232,128,104.12,104.12,0,0,0,128,24Zm78.36,64H170.71a135.28,135.28,0,0,0-22.3-45.6A88.29,88.29,0,0,1,206.37,88ZM216,128a87.61,87.61,0,0,1-3.33,24H174.16a157.44,157.44,0,0,0,0-48h38.51A87.61,87.61,0,0,1,216,128ZM128,43a115.27,115.27,0,0,1,26,45H102A115.11,115.11,0,0,1,128,43ZM102,168H154a115.11,115.11,0,0,1-26,45A115.27,115.27,0,0,1,102,168Zm-3.9-16a140.84,140.84,0,0,1,0-48h59.88a140.84,140.84,0,0,1,0,48Zm50.35,61.6a135.28,135.28,0,0,0,22.3-45.6h35.66A88.29,88.29,0,0,1,148.41,213.6Z"/></symbol>
+<symbol id="ic-sliders-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M136,120v96a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm64,72a8,8,0,0,0-8,8v16a8,8,0,0,0,16,0V200A8,8,0,0,0,200,192Zm24-48H208V40a8,8,0,0,0-16,0V144H176a8,8,0,0,0-8,8v16a8,8,0,0,0,8,8h48a8,8,0,0,0,8-8V152A8,8,0,0,0,224,144ZM56,160a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V168A8,8,0,0,0,56,160Zm24-48H64V40a8,8,0,0,0-16,0v72H32a8,8,0,0,0-8,8v16a8,8,0,0,0,8,8H80a8,8,0,0,0,8-8V120A8,8,0,0,0,80,112Zm72-48H136V40a8,8,0,0,0-16,0V64H104a8,8,0,0,0-8,8V88a8,8,0,0,0,8,8h48a8,8,0,0,0,8-8V72A8,8,0,0,0,152,64Z"/></symbol>
+<symbol id="ic-gateway-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,181.66l-32,32A8,8,0,0,1,168,208V184H48a8,8,0,0,1,0-16H168V144a8,8,0,0,1,13.66-5.66l32,32A8,8,0,0,1,213.66,181.66Zm-139.32-64A8,8,0,0,0,88,112V88H208a8,8,0,0,0,0-16H88V48a8,8,0,0,0-13.66-5.66l-32,32a8,8,0,0,0,0,11.32Z"/></symbol>
+<symbol id="ic-lock-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96Z"/></symbol>
+<symbol id="ic-user-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M230.93,220a8,8,0,0,1-6.93,4H32a8,8,0,0,1-6.92-12c15.23-26.33,38.7-45.21,66.09-54.16a72,72,0,1,1,73.66,0c27.39,8.95,50.86,27.83,66.09,54.16A8,8,0,0,1,230.93,220Z"/></symbol>
+<symbol id="ic-card-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48ZM136,176H120a8,8,0,0,1,0-16h16a8,8,0,0,1,0,16Zm64,0H168a8,8,0,0,1,0-16h32a8,8,0,0,1,0,16ZM32,88V64H224V88Z"/></symbol>
+<symbol id="ic-calendar-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,48H48V48H72v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24Z"/></symbol>
+<symbol id="ic-target-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M211.2,79.39a8,8,0,0,0-3.77,10.67A88.09,88.09,0,1,1,184.3,60.39L161.53,83.16A56,56,0,0,0,88.4,167.59h0a56,56,0,0,0,95.5-42.79,8,8,0,1,0-16,.9,40,40,0,0,1-62,35.67l23.95-23.95L167.6,99.72h0l62.06-62a8,8,0,0,0-11.32-11.32L195.67,49A104,104,0,0,0,54.46,201.54,104,104,0,0,0,221.87,83.16,8,8,0,0,0,211.2,79.39Z"/></symbol>
+<symbol id="ic-shield-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M224,56v56c0,52.72-25.52,84.67-46.93,102.19-23.06,18.86-46,25.27-47,25.53a8,8,0,0,1-4.2,0c-1-.26-23.91-6.67-47-25.53C57.52,196.67,32,164.72,32,112V56A16,16,0,0,1,48,40H208A16,16,0,0,1,224,56Z"/></symbol>
+<symbol id="ic-cube-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,120,47.65,76,128,32l80.35,44Zm8,99.64V133.83l80-43.78v85.76Z"/></symbol>
+<symbol id="ic-coin-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M184,89.57V84c0-25.08-37.83-44-88-44S8,58.92,8,84v40c0,20.89,26.25,37.49,64,42.46V172c0,25.08,37.83,44,88,44s88-18.92,88-44V132C248,111.3,222.58,94.68,184,89.57ZM56,146.87C36.41,141.4,24,132.39,24,124V109.93c8.16,5.78,19.09,10.44,32,13.57Zm80-23.37c12.91-3.13,23.84-7.79,32-13.57V124c0,8.39-12.41,17.4-32,22.87Zm-16,71.37C100.41,189.4,88,180.39,88,172v-4.17c2.63.1,5.29.17,8,.17,3.88,0,7.67-.13,11.39-.35A121.92,121.92,0,0,0,120,171.41Zm0-44.62A163,163,0,0,1,96,152a163,163,0,0,1-24-1.75V126.46A183.74,183.74,0,0,0,96,128a183.74,183.74,0,0,0,24-1.54Zm64,48a165.45,165.45,0,0,1-48,0V174.4a179.48,179.48,0,0,0,24,1.6,183.74,183.74,0,0,0,24-1.54ZM232,172c0,8.39-12.41,17.4-32,22.87V171.5c12.91-3.13,23.84-7.79,32-13.57Z"/></symbol>
+<symbol id="ic-book-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M240,56V200a8,8,0,0,1-8,8H160a24,24,0,0,0-24,23.94,7.9,7.9,0,0,1-5.12,7.55A8,8,0,0,1,120,232a24,24,0,0,0-24-24H24a8,8,0,0,1-8-8V56a8,8,0,0,1,8-8H88a32,32,0,0,1,32,32v87.73a8.17,8.17,0,0,0,7.47,8.25,8,8,0,0,0,8.53-8V80a32,32,0,0,1,32-32h64A8,8,0,0,1,240,56Z"/></symbol>
+<symbol id="ic-bridge-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M232,160h-8V120.5c1.63.81,3.29,1.57,5,2.26a8,8,0,0,0,6-14.83A55.78,55.78,0,0,1,200,56a8,8,0,0,0-16,0A56,56,0,0,1,72,56a8,8,0,0,0-16,0,55.78,55.78,0,0,1-35,51.93,8,8,0,0,0,6,14.83c1.71-.69,3.37-1.45,5-2.26V160H24.6c-6.31,0-8.6,4.78-8.6,8a8,8,0,0,0,8,8H56v24a8,8,0,0,0,16,0V176H184v24a8,8,0,0,0,16,0V176h32a8,8,0,0,0,0-16ZM72,152a8,8,0,0,1-16,0V104.12a8,8,0,0,1,16,0Zm40,0a8,8,0,0,1-16,0V132.32a8,8,0,0,1,16,0Zm48,0a8,8,0,0,1-16,0V132.32a8,8,0,0,1,16,0Zm40,0a8,8,0,0,1-16,0V104.12a8,8,0,0,1,16,0Z"/></symbol>
+<symbol id="ic-grid-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M120,56v48a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40h48A16,16,0,0,1,120,56Zm80-16H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm-96,96H56a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,104,136Zm96,0H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,200,136Z"/></symbol>
+<symbol id="ic-users-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M164.47,195.63a8,8,0,0,1-6.7,12.37H10.23a8,8,0,0,1-6.7-12.37,95.83,95.83,0,0,1,47.22-37.71,60,60,0,1,1,66.5,0A95.83,95.83,0,0,1,164.47,195.63Zm87.91-.15a95.87,95.87,0,0,0-47.13-37.56A60,60,0,0,0,144.7,54.59a4,4,0,0,0-1.33,6A75.83,75.83,0,0,1,147,150.53a4,4,0,0,0,1.07,5.53,112.32,112.32,0,0,1,29.85,30.83,23.92,23.92,0,0,1,3.65,16.47,4,4,0,0,0,3.95,4.64h60.3a8,8,0,0,0,7.73-5.93A8.22,8.22,0,0,0,252.38,195.48Z"/></symbol>
+<symbol id="ic-chat-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M232,128A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Z"/></symbol>
+<symbol id="ic-layers-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M220,169.09l-92,53.65L36,169.09A8,8,0,0,0,28,182.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,169.09Z"/><path d="M220,121.09l-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09Z"/><path d="M28,86.91l96,56a8,8,0,0,0,8.06,0l96-56a8,8,0,0,0,0-13.82l-96-56a8,8,0,0,0-8.06,0l-96,56a8,8,0,0,0,0,13.82Z"/></symbol>
+<symbol id="ic-file-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM152,88V44l44,44Z"/></symbol>
+<symbol id="ic-cpu-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M104,104h48v48H104Zm136,48a8,8,0,0,1-8,8H216v40a16,16,0,0,1-16,16H160v16a8,8,0,0,1-16,0V216H112v16a8,8,0,0,1-16,0V216H56a16,16,0,0,1-16-16V160H24a8,8,0,0,1,0-16H40V112H24a8,8,0,0,1,0-16H40V56A16,16,0,0,1,56,40H96V24a8,8,0,0,1,16,0V40h32V24a8,8,0,0,1,16,0V40h40a16,16,0,0,1,16,16V96h16a8,8,0,0,1,0,16H216v32h16A8,8,0,0,1,240,152ZM168,96a8,8,0,0,0-8-8H96a8,8,0,0,0-8,8v64a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8Z"/></symbol>
+<symbol id="ic-server-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M208,40H48A16,16,0,0,0,32,56v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40ZM180,92a12,12,0,1,1,12-12A12,12,0,0,1,180,92Z"/><path d="M208,136H48a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V152A16,16,0,0,0,208,136Zm-28,52a12,12,0,1,1,12-12A12,12,0,0,1,180,188Z"/></symbol>
+<symbol id="ic-wrench-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M232,96a72,72,0,0,1-100.94,66L79,222.22c-.12.14-.26.29-.39.42a32,32,0,0,1-45.26-45.26c.14-.13.28-.27.43-.39L94,124.94a72.07,72.07,0,0,1,83.54-98.78,8,8,0,0,1,3.93,13.19L144,80l5.66,26.35L176,112l40.65-37.52a8,8,0,0,1,13.19,3.93A72.6,72.6,0,0,1,232,96Z"/></symbol>
+<symbol id="ic-plug-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M237.66,77.66,203.31,112l26.35,26.34a8,8,0,0,1-11.32,11.32L212,143.31l-53,53a40,40,0,0,1-56.57,0L86.75,180.57,37.66,229.66a8,8,0,0,1-11.32-11.32l49.09-49.09L59.72,153.54a40,40,0,0,1,0-56.57l53-53-6.35-6.34a8,8,0,0,1,11.32-11.32L144,52.69l34.34-34.35a8,8,0,1,1,11.32,11.32L155.31,64,192,100.69l34.34-34.35a8,8,0,0,1,11.32,11.32Z"/></symbol>
+<symbol id="ic-db-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.83,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64Zm-21.61,74.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"/></symbol>
+<symbol id="ic-bolt-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M213.85,125.46l-112,120a8,8,0,0,1-13.69-7l14.66-73.33L45.19,143.49a8,8,0,0,1-3-13l112-120a8,8,0,0,1,13.69,7L153.18,90.9l57.63,21.61a8,8,0,0,1,3,12.95Z"/></symbol>
+<symbol id="ic-folder-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M216,72H131.31L104,44.69A15.88,15.88,0,0,0,92.69,40H40A16,16,0,0,0,24,56V200.62A15.41,15.41,0,0,0,39.39,216h177.5A15.13,15.13,0,0,0,232,200.89V88A16,16,0,0,0,216,72ZM40,56H92.69l16,16H40Z"/></symbol>
+<symbol id="ic-sparkle-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"/></symbol>
+<symbol id="ic-bell-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216Z"/></symbol>
+<symbol id="ic-play-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></symbol>
+<symbol id="ic-stepfwd-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M208,40V216a8,8,0,0,1-16,0V146.77L72.43,221.55A15.95,15.95,0,0,1,48,208.12V47.88A15.95,15.95,0,0,1,72.43,34.45L192,109.23V40a8,8,0,0,1,16,0Z"/></symbol>
+<symbol id="ic-reset-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L60.63,81.29l17,17A8,8,0,0,1,72,112H24a8,8,0,0,1-8-8V56A8,8,0,0,1,29.66,50.3L49.31,70,60.25,60A96,96,0,0,1,224,128Z"/></symbol>
+<symbol id="ic-doc-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,176H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm0-32H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm-8-56V44l44,44Z"/></symbol>
+<symbol id="ic-chevron-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M163.06,40.61a8,8,0,0,0-8.72,1.73l-80,80a8,8,0,0,0,0,11.32l80,80A8,8,0,0,0,168,208V48A8,8,0,0,0,163.06,40.61Z"/></symbol>
+<symbol id="ic-search-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M168,112a56,56,0,1,1-56-56A56,56,0,0,1,168,112Zm61.66,117.66a8,8,0,0,1-11.32,0l-50.06-50.07a88,88,0,1,1,11.32-11.31l50.06,50.06A8,8,0,0,1,229.66,229.66ZM112,184a72,72,0,1,0-72-72A72.08,72.08,0,0,0,112,184Z"/></symbol>
 </defs>
 </svg>
 <header id="hdr"></header>
@@ -350,13 +424,14 @@
   <div id="stage"><div id="flowbar" hidden></div><svg id="svg" aria-label="等距系统地图"></svg></div>
   <aside>
     <div class="tabs">
-      <button id="tabPage" class="on"><svg class="ic"><use href="#ic-doc"/></svg>介绍</button>
-      <button id="tabRel"><svg class="ic"><use href="#ic-gateway"/></svg>关系</button>
+      <button id="tabPage" class="on"><span class="isw" style="width:13px;height:13px"><svg class="ic io"><use href="#ic-doc"/></svg><svg class="ic if"><use href="#ic-doc-fill"/></svg></span>介绍</button>
+      <button id="tabRel"><span class="isw" style="width:13px;height:13px"><svg class="ic io"><use href="#ic-gateway"/></svg><svg class="ic if"><use href="#ic-gateway-fill"/></svg></span>关系</button>
     </div>
     <div id="panel"></div>
   </aside>
   <button id="handleNav" class="handle"><svg class="ic"><use href="#ic-chevron"/></svg></button>
   <button id="handleAside" class="handle"><svg class="ic"><use href="#ic-chevron"/></svg></button>
+  <div id="asideResize" title="拖动调宽"></div>
 </main>
 <dialog id="healthDlg"><div class="hmodal" id="healthBody"></div></dialog>
 <script>
@@ -366,6 +441,9 @@ const WIKI = DATA.wiki || {};
 let activeFlow = -1;   // -1 = 总览：只画结构边，不画场景箭头
 
 const ic = (name, s = 13) => `<svg class="ic" style="width:${s}px;height:${s}px"><use href="#ic-${name}"/></svg>`;
+const icSwap = (name, s = 13) => `<span class="isw" style="width:${s}px;height:${s}px">` +
+  `<svg class="ic io" style="width:${s}px;height:${s}px"><use href="#ic-${name}"/></svg>` +
+  `<svg class="ic if" style="width:${s}px;height:${s}px"><use href="#ic-${name}-fill"/></svg></span>`;
 
 /* ── 分区色（Anthropic 风暖调低饱和）── */
 const TINTS = ["#3E7A5E", "#C9704A", "#557FA8", "#9A6FB4", "#B08F4C", "#BE5560"];
@@ -382,10 +460,12 @@ document.getElementById("hdr").innerHTML =
     `<div class="stat"${tip ? ` title="${tip}"` : ""}>${ic(statIcon(k), 12)}<span class="k">${k}</span><span class="v">${v}</span></div>`
   ).join(`<span class="sep"></span>`) + `</div>` +
   `<div class="spacer"></div>
-   <button id="btnPlay" class="primary">${ic("play")}<span class="lb">播放场景</span></button>
+   <button id="btnPlay" class="primary">${ic("play")}<span class="lb">播放</span></button>
    <button id="btnStep" class="compact" title="单步">${ic("stepfwd")}<span class="lb">单步</span></button>
-   <button id="btnReset" class="compact" title="重置取景">${ic("reset")}<span class="lb">重置</span></button>` +
-  (WIKI["health.md"] ? `<button id="btnHealth" class="vitals-btn compact" title="体检报告">${ic("shield")}<span class="lb">体检报告</span><span class="dot"></span></button>` : "");
+   <button id="btnReset" class="compact" title="重置取景">${ic("reset")}<span class="lb">重置</span></button>`;
+// 体检入口紧跟统计条（信息区），与右侧播放控制组分开
+if (WIKI["health.md"]) document.querySelector("header .spacer").insertAdjacentHTML("beforebegin",
+  `<button id="btnHealth" class="vitals-btn compact" title="体检报告">${ic("shield")}<span class="lb">体检报告</span><span class="dot"></span></button>`);
 /* 把手：骑在两张卡片内边缘，收起后停靠屏幕边缘；窄屏默认收起 */
 if (matchMedia("(max-width: 1080px)").matches) document.body.classList.add("nav-off");
 if (matchMedia("(max-width: 820px)").matches) document.body.classList.add("aside-off");
@@ -517,12 +597,22 @@ for (let i = -1; i <= GX; i++)
   el("polyline", { points: P([iso(i, -1), iso(i, GY)]), stroke: "var(--ink)", "stroke-width": .25, opacity: .1, fill: "none" }, gGrid);
 for (let i = -1; i <= GY; i++)
   el("polyline", { points: P([iso(-1, i), iso(GX, i)]), stroke: "var(--ink)", "stroke-width": .25, opacity: .1, fill: "none" }, gGrid);
+/* 地板可交互：分区是架构的第一层结构（进程/部署边界），hover 高亮全区、点击看介绍 */
+const districtNodes = id => DATA.nodes.filter(n => n.district === id).map(n => n.code);
 for (const d of DATA.districts) {
   const [x, y, w, dd] = d.r;
+  const g = el("g", { class: "dfloor", "data-d": d.id }, gDist);
   el("polygon", { points: P([iso(x,y),iso(x+w,y),iso(x+w,y+dd),iso(x,y+dd)]),
     fill: mix(tintOf[d.id], 6, "transparent"),
     stroke: mix(tintOf[d.id], 60, "var(--ink-soft)"), "stroke-width": 1.8,
-    "stroke-dasharray": "0.5 7", "stroke-linecap": "round" }, gDist);
+    "stroke-dasharray": "0.5 7", "stroke-linecap": "round" }, g);
+  g.addEventListener("mouseenter", () => {
+    if (typeof sel !== "number") focusSet(new Set(districtNodes(d.id)));
+  });
+  g.addEventListener("mouseleave", () => {
+    if (typeof sel !== "number") focusSet(baseFocus());
+  });
+  g.addEventListener("click", e => { e.stopPropagation(); select({ district: d.id }); });
 }
 
 /* ── 建筑绘制 ── */
@@ -677,9 +767,16 @@ function buildEdges(list = stepsFor()) {
     const g = el("g", { class: "lk", "data-n": l.from + " " + l.to }, gLink);
     const p = el("path", { d: edgePath(l.from, l.to, l.via, offFor(l)), stroke: "var(--ink-soft)", "stroke-width": 1,
       "stroke-dasharray": "2.5 3.5", fill: "none", opacity: .65 }, g);
-    el("path", { d: p.getAttribute("d"), stroke: "transparent", "stroke-width": 12, fill: "none" }, g);
-    g.addEventListener("mouseenter", () => { p.setAttribute("stroke-width", 2); showEdgeTag(p, l.label); });
-    g.addEventListener("mouseleave", () => { p.setAttribute("stroke-width", 1); edgeTag.style.display = "none"; });
+    el("path", { d: p.getAttribute("d"), stroke: "transparent", "stroke-width": 8, fill: "none" }, g);
+    g.addEventListener("mouseenter", e => {
+      p.setAttribute("stroke-width", 2); showEdgeTag(l.label, e);
+      if (typeof sel !== "number") focusSet(new Set([l.from, l.to]));   // 两端与本线亮，其余压暗
+    });
+    g.addEventListener("mousemove", e => showEdgeTag(l.label, e));
+    g.addEventListener("mouseleave", () => {
+      p.setAttribute("stroke-width", 1); hideEdgeTag();
+      if (typeof sel !== "number") focusSet(baseFocus());
+    });
     g.addEventListener("click", e => { e.stopPropagation(); select("L" + i); });
     return { g, p, l };
   });
@@ -690,9 +787,17 @@ function buildEdges(list = stepsFor()) {
       fill: "none", opacity: 0, "stroke-linecap": "round" }, g);
     const p = el("path", { d: glow.getAttribute("d"), stroke: "var(--ink)", "stroke-width": 1.6,
       fill: "none", "marker-end": "url(#arr)" }, g);
-    el("path", { d: glow.getAttribute("d"), stroke: "transparent", "stroke-width": 12, fill: "none" }, g);
-    g.addEventListener("mouseenter", () => showEdgeTag(p, `${FLOWS[it.fi].title} · ${it.si + 1}. ${f.title}`));
-    g.addEventListener("mouseleave", () => edgeTag.style.display = "none");
+    el("path", { d: glow.getAttribute("d"), stroke: "transparent", "stroke-width": 8, fill: "none" }, g);
+    const flabel = `${FLOWS[it.fi].title} · ${it.si + 1}. ${f.title}`;
+    g.addEventListener("mouseenter", e => {
+      showEdgeTag(flabel, e);
+      if (typeof sel !== "number") focusSet(new Set([f.from, f.to]));
+    });
+    g.addEventListener("mousemove", e => showEdgeTag(flabel, e));
+    g.addEventListener("mouseleave", () => {
+      hideEdgeTag();
+      if (typeof sel !== "number") focusSet(baseFocus());
+    });
     g.addEventListener("click", e => { e.stopPropagation(); showScenarioStep(it.fi, it.si); });
     return { g, p, glow, f };
   });
@@ -734,13 +839,18 @@ resolvePlates();
 const edgeTag = el("g", { style: "display:none;pointer-events:none" }, gTag);
 const etRect = el("rect", { fill: "var(--ink)", height: 16, rx: 6 }, edgeTag);
 const etText = el("text", { "font-size": 10, "font-weight": 700, fill: "var(--paper)" }, edgeTag);
-function showEdgeTag(pathEl, label) {
+/* 气泡跟随指针：连线是延展目标，路径中点并不是用户注视点 */
+function hideEdgeTag() { edgeTag.style.display = "none"; }
+function showEdgeTag(label, ev) {
   etText.textContent = label;
   edgeTag.style.display = "";
-  const mid = pathEl.getPointAtLength(pathEl.getTotalLength() / 2);
+  const r = svg.getBoundingClientRect();
+  const x = vb.x + (ev.clientX - r.left) / r.width * vb.w;
+  const y = vb.y + (ev.clientY - r.top) / r.height * vb.h;
+  const k = vb.w / r.width;   // 气泡尺寸随缩放变，偏移量同比例保持视觉距离
   const w = etText.getComputedTextLength() + 12;
-  etRect.setAttribute("x", mid.x - w / 2); etRect.setAttribute("y", mid.y - 22); etRect.setAttribute("width", w);
-  etText.setAttribute("x", mid.x - w / 2 + 6); etText.setAttribute("y", mid.y - 10);
+  etRect.setAttribute("x", x - w / 2); etRect.setAttribute("y", y - 26 * k); etRect.setAttribute("width", w);
+  etText.setAttribute("x", x - w / 2 + 6); etText.setAttribute("y", y - 26 * k + 11);
 }
 buildEdges(allSteps());   // 初始总览：全部场景的线都在流动
 
@@ -786,7 +896,8 @@ function showScenarioStep(fi, si) {
 
 /* ── 左侧索引：分区折叠 + 过滤 ── */
 const nav = document.getElementById("nav");
-nav.insertAdjacentHTML("beforeend", `<div class="filter"><input id="navq" placeholder="过滤模块…"></div>`);
+nav.insertAdjacentHTML("beforeend",
+  `<div class="filter"><svg class="ic sic"><use href="#ic-search"/></svg><input id="navq" aria-label="搜索模块"></div>`);
 /* 窄屏抽屉：点导航项后自动收起，让位给地图或面板 */
 const autoCloseNav = () => {
   if (matchMedia("(max-width: 1080px)").matches && !document.body.classList.contains("nav-off"))
@@ -797,25 +908,44 @@ for (const d of DATA.districts) {
   nav.insertAdjacentHTML("beforeend",
     `<div class="grp" data-d="${d.id}"
        style="color:${mix(tintOf[d.id], 72, "var(--ink)")};background:${mix(tintOf[d.id], 14, "var(--card)")}">
-       ${ic(d.icon)}<span>${d.label}</span><span class="ct">${items.length}</span><span class="chev">▾</span></div>
+       ${icSwap(d.icon)}<span>${d.label}</span><span class="ct">${items.length}</span><button class="chev" aria-label="折叠分组">▾</button></div>
      <div class="grpbody" data-d="${d.id}">` +
     items.map(n =>
-      `<div class="item" data-code="${n.code}">${ic(n.icon || d.icon, 12)}<span class="code">${n.code}</span>
+      `<div class="item" data-code="${n.code}">${icSwap(n.icon || d.icon, 12)}<span class="code">${n.code}</span>
        <span class="nm">${n.short || n.name}</span>${n.health?.length ? `<span class="hdot" title="${healthTip(n)}"></span>` : ""}${n.count ? `<span class="ct" title="群组节点：汇聚 ${n.count} 个同类模块">${n.count} 模块</span>` : ""}</div>`).join("") +
     `</div>`);
 }
 nav.addEventListener("click", e => {
-  const grp = e.target.closest(".grp");
-  if (grp) {
+  const chev = e.target.closest(".chev");   // 箭头管折叠，标题其余部分选中分区
+  if (chev) {
+    const grp = chev.closest(".grp");
     grp.classList.toggle("closed");
     nav.querySelector(`.grpbody[data-d="${grp.dataset.d}"]`).classList.toggle("closed");
     return;
   }
+  const grp = e.target.closest(".grp");
+  if (grp) { select({ district: grp.dataset.d }); autoCloseNav(); return; }
   const it = e.target.closest(".item");
   if (!it) return;
   select(it.dataset.code);
   autoCloseNav();
 });
+/* 面板拖动调宽：不持久化，HTML 是可重建的派生产物 */
+const asideResize = document.getElementById("asideResize");
+let rsz = null;
+asideResize.addEventListener("pointerdown", e => {
+  rsz = { x: e.clientX, w: document.querySelector("aside").getBoundingClientRect().width };
+  asideResize.classList.add("on"); document.body.classList.add("resizing");
+  asideResize.setPointerCapture(e.pointerId); e.preventDefault();
+});
+asideResize.addEventListener("pointermove", e => {
+  if (!rsz) return;
+  const w = Math.min(680, Math.max(280, rsz.w - (e.clientX - rsz.x)));
+  document.documentElement.style.setProperty("--asidew", w + "px");
+});
+const endRsz = () => { rsz = null; asideResize.classList.remove("on"); document.body.classList.remove("resizing"); };
+asideResize.addEventListener("pointerup", endRsz);
+asideResize.addEventListener("pointercancel", endRsz);
 document.getElementById("navq").addEventListener("input", e => {
   const q = e.target.value.trim().toLowerCase();
   for (const body of nav.querySelectorAll(".grpbody")) {
@@ -846,12 +976,42 @@ nav.addEventListener("mouseout", e => {
 let tab = "page", sel = null;
 const panel = document.getElementById("panel");
 const tabPage = document.getElementById("tabPage"), tabRel = document.getElementById("tabRel");
+/* 两类文件清单职责不同，分开命名：
+   关键出处 = sources，支撑论断的锚点，参与哈希漂移检查
+   管辖范围 = 页面 covers 展开，责任田边界，参与认领对账（粒度是页，同页的多栋楼共享同一范围）*/
+const FILES = DATA.files || [];
+const fileItem = s => DATA.meta.repoUrl
+  ? `<li>${ic("file", 11)} <a class="src" target="_blank" href="${DATA.meta.repoUrl}/${s}"><code>${s}</code></a></li>`
+  : `<li class="src" data-path="${s}">${ic("file", 11)} <code>${s}</code></li>`;
+function coversOf(pageRef) {
+  const m = (WIKI[(pageRef || "").split("#")[0]] || "").match(/^---\n([\s\S]*?)\n---/);
+  if (!m) return [];
+  const out = [];
+  let on = false;
+  for (const l of m[1].split("\n")) {
+    if (/^covers:\s*$/.test(l)) { on = true; continue; }
+    if (!on) continue;
+    const it = l.match(/^\s+-\s+(\S+)\s*$/);
+    if (it) out.push(it[1]); else break;
+  }
+  return out;
+}
+const filesOf = pageRef => {
+  const cs = coversOf(pageRef);
+  return cs.length ? FILES.filter(f => cs.some(c => f === c || (c.endsWith("/") && f.startsWith(c)))) : [];
+};
 function srcList(a) {
   if (!a?.length) return "";
-  const repo = DATA.meta.repoUrl;
-  return `<h3>出处</h3><ul>` + a.map(s =>
-    repo ? `<li>${ic("file", 11)} <a class="src" target="_blank" href="${repo}/${s}"><code>${s}</code></a></li>`
-         : `<li class="src" data-path="${s}">${ic("file", 11)} <code>${s}</code></li>`).join("") + "</ul>";
+  return `<h3>关键出处</h3><p class="dimtext">支撑本页论断的锚点文件，它们改动会触发 wiki 同步检查</p><ul>` +
+    a.map(fileItem).join("") + "</ul>";
+}
+function scopeList(pageRef) {
+  const files = filesOf(pageRef);
+  if (!files.length) return "";
+  const more = files.length > 8;
+  return `<h3>管辖范围 · ${files.length}</h3><p class="dimtext">本模块页认领的全部文件</p>` +
+    `<ul class="flist${more ? " collapsed" : ""}">${files.map(fileItem).join("")}</ul>` +
+    (more ? `<button class="morebtn">展开全部 ${files.length} 个</button>` : "");
 }
 const kicker = (icn, label, color) =>
   `<div class="kicker" ${color ? `style="color:${color}"` : ""}>${ic(icn)}<span>${label}</span></div>`;
@@ -898,7 +1058,7 @@ function nodePanel(code) {
     `<h3>上游 · 谁依赖它</h3>` + chips(up) +
     `<h3>下游 · 它依赖谁</h3>` + chips(down) +
     `<h3>参与场景</h3>` + chips(flowRefs(code)) +
-    srcList(n.sources);
+    srcList(n.sources) + scopeList(n.page);
 }
 function pageTitle(pageRef) {
   const page = pageRef.split("#")[0];
@@ -951,7 +1111,7 @@ function scrollToSection(root, name) {
 }
 function openHealth(anchor) {
   healthBody.innerHTML = `<button class="hclose" title="关闭">${ic("x")}</button>` +
-    kicker("shield", "体检", "var(--warn)") + `<h2>${pageTitle("health.md")}</h2>` +
+    `<div class="hhead">${ic("shield", 18)}<span>${pageTitle("health.md")}</span></div>` +
     vitalsCard() + mdRender(WIKI["health.md"] || "");
   if (!healthDlg.open) healthDlg.showModal();
   healthBody.querySelector(".hclose").onclick = () => healthDlg.close();
@@ -982,6 +1142,27 @@ function scenarioPanel(fi) {
     `<h3>途经模块</h3>` + chips(route.map(c => nodeChip(c))) +
     `<h3>步骤（可点击播放）</h3>` + steps;
 }
+function districtPanel(id) {
+  const d = DIST[id];
+  const codes = districtNodes(id), inSet = new Set(codes);
+  const head = kicker(d.icon, "分区", mix(tintOf[id], 60, "var(--ink)")) + `<h2>${d.label}</h2>`;
+  if (tab === "page") {
+    const body = d.page ? pageBody(d.page) : "";
+    return head + (body ||
+      `<p class="dimtext">分区是进程与职责边界的划分，本区包含 ${codes.length} 个模块。切到「关系」看它们是谁、与区外怎么往来。</p>`);
+  }
+  const cross = (DATA.links || []).filter(l => inSet.has(l.from) !== inSet.has(l.to))
+    .map(l => { const out = inSet.has(l.from); const other = out ? l.to : l.from;
+      return N[other] ? `<span class="chip" data-code="${other}">${out ? "→" : "←"} ${N[other].short || N[other].name}${l.label ? " · " + l.label : ""}</span>` : ""; })
+    .filter(Boolean);
+  const scen = FLOWS.map((f, i) => [f, i])
+    .filter(([f]) => f.steps.some(s => inSet.has(s.from) || inSet.has(s.to)))
+    .map(([f, i]) => `<span class="chip" data-flow="${i}" data-step="0">${f.title}</span>`);
+  return head +
+    `<h3>包含模块 · ${codes.length}</h3>` + chips(codes.map(c => nodeChip(c))) +
+    `<h3>跨区往来 · ${cross.length}</h3>` + chips(cross) +
+    `<h3>参与场景</h3>` + chips(scen);
+}
 function linkPanel(i) {
   const l = DATA.links[i];
   return kicker("gateway", "结构关系") + `<h2>${l.label}</h2>
@@ -1007,7 +1188,7 @@ function render() {
   panel.innerHTML =
     sel == null ? systemPanel() :
     typeof sel === "number" ? flowPanel(sel) :
-    typeof sel === "object" ? (sel.flow != null ? scenarioPanel(sel.flow) : wikiPanel()) :
+    typeof sel === "object" ? (sel.flow != null ? scenarioPanel(sel.flow) : sel.district ? districtPanel(sel.district) : wikiPanel()) :
     sel.startsWith("L") ? linkPanel(+sel.slice(1)) : nodePanel(sel);
   document.querySelectorAll("nav .item").forEach(e => {
     e.classList.toggle("sel", e.dataset.code === sel);
@@ -1027,6 +1208,10 @@ function render() {
     ch.addEventListener("click", () => showScenarioStep(+ch.dataset.flow, +ch.dataset.step)));
   panel.querySelectorAll("[data-hsec]").forEach(ch =>
     ch.addEventListener("click", () => openHealth(ch.dataset.hsec)));
+  panel.querySelector(".morebtn")?.addEventListener("click", e => {
+    panel.querySelector(".flist.collapsed")?.classList.remove("collapsed");
+    e.target.remove();
+  });
   panel.querySelectorAll("a.wl").forEach(a =>
     a.addEventListener("click", () => {
       const cur = (sel && typeof sel === "object" && (sel.page || FLOWS[sel.flow]?.page)) ||
@@ -1071,17 +1256,24 @@ function hopNode(code) {
 }
 function baseFocus() {
   if (typeof sel === "string" && !sel.startsWith("L")) return hood(sel);
-  if (sel && typeof sel === "object" && sel.flow != null)
-    return new Set(FLOWS[sel.flow].steps.flatMap(s => [s.from, s.to]));
+  if (sel && typeof sel === "object") {
+    if (sel.flow != null) return new Set(FLOWS[sel.flow].steps.flatMap(s => [s.from, s.to]));
+    if (sel.district) return new Set(districtNodes(sel.district));
+  }
   return null;
 }
+function markDistrict(id) {
+  for (const g of gDist.children) g.classList.toggle("sel", g.dataset.d === id);
+  for (const e of nav.querySelectorAll(".grp")) e.classList.toggle("sel", e.dataset.d === id);
+}
 function select(code) {
-  stopFlowVisual(); sel = code;
+  stopFlowVisual(); sel = code; hideEdgeTag();
   if (code == null && activeFlow >= 0) { activeFlow = -1; syncFlowbar(); }  // 点空白回总览
   const isNode = typeof code === "string" && !code.startsWith("L");
   buildEdges();
   markSel(isNode ? code : null);
-  focusSet(isNode ? hood(code) : null);
+  markDistrict(code && typeof code === "object" ? code.district : null);
+  focusSet(baseFocus());
   if (isNode) hopNode(code);
   render();
 }
@@ -1244,6 +1436,7 @@ stage.addEventListener("pointercancel", endPointer);
 stage.addEventListener("pointerup", e => {
   endPointer(e);
   const wasPan = pan; pan = null; stage.classList.remove("panning");
+  if (e.pointerType !== "mouse") hideEdgeTag();   // 触屏无 mouseleave，气泡会滞留
   if (wasPan && !moved && !e.target.closest(".b") && !e.target.closest(".lk") && !e.target.closest("#flowbar")) select(null);
 });
 stage.addEventListener("wheel", e => {

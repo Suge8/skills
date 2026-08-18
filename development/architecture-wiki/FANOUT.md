@@ -4,7 +4,7 @@
 
 ## 派工
 
-按 code-map 输出切分模块后，给每个工人一张任务卡，四要素齐全：
+按 code-map 输出切分模块（粒度守 SKILL.md 阈值：单页超 20 文件或 6000 行必须再拆）后，给每个工人一张任务卡，四要素齐全：
 
 - 目标：产出一页完整的 `docs/architecture/wiki/modules/<name>.md`，含 sources 与 covers frontmatter（covers 即分配的路径范围）及 SKILL.md 规定的固定四节（职责、对外接口、数据怎么流、改动指南），直接写入该文件。
 - 预置事实：该模块的文件清单及每个文件的 imports/exports/loc 摘要，从 code-map 输出切片粘入任务卡；工人从这里出发读码，不从零探索。
