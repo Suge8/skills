@@ -230,7 +230,7 @@
   #panel .flist.collapsed li:nth-child(n+9) { display: none; }
   #panel li.fi { display: flex; align-items: baseline; gap: 6px; }
   #panel li.fi .loc {
-    position: relative; margin-left: auto; flex-shrink: 0; padding-bottom: 5px; width: 46px;
+    position: relative; flex-shrink: 0; padding-bottom: 5px; width: 46px;
     font: 11px var(--mono); color: var(--ink-soft); text-align: right; font-variant-numeric: tabular-nums;
   }
   /* 行数下的条：相对本清单最大值，扫一眼就知道哪个重。只有成组对比时才画（.bar） */
@@ -246,6 +246,8 @@
   #panel li.fi.mod { cursor: pointer; padding: 3px 7px; margin: 0 -7px; border-radius: 8px; transition: background .15s; }
   #panel li.fi.mod:hover { background: var(--surface); }
   #panel li.fi.mod .mn { font-size: 12.5px; }
+  #panel li.fi > :nth-child(2) { flex: 1; min-width: 0; }
+  #panel li.fi .sub { font-size: 10.5px; color: var(--ink-soft); flex-shrink: 0; margin-right: 9px; }
   #panel .steps li {
     display: flex; align-items: baseline; gap: 8px;
     padding: 5px 8px; margin: 1px -8px; border-radius: 8px;
@@ -1101,13 +1103,32 @@ function pageBody(pageRef) {
   const page = pageRef?.split("#")[0];
   return page && WIKI[page] ? mdRender(WIKI[page]) : "";
 }
+/* 分区清单：与模块/文件清单同形，总览页的主体 */
+function districtRows() {
+  const rows = DATA.districts.map(d => {
+    const fs = districtFiles(d.id);
+    return { d, mods: districtNodes(d.id).length, files: fs.length, lines: linesOf(fs) };
+  }).sort((a, b) => b.lines - a.lines);
+  const max = Math.max(1, ...rows.map(r => r.lines));
+  return `<ul class="flist">` + rows.map(r =>
+    `<li class="fi mod" data-district="${r.d.id}">${ic(r.d.icon, 11)}<span class="mn">${r.d.label}</span>` +
+    `<span class="sub">${r.mods} 模块${r.files ? ` · ${r.files} 文件` : ""}</span>` +
+    (r.lines ? `<span class="loc bar"><i style="width:${Math.max(6, Math.round(r.lines / max * 100))}%"></i>${r.lines}</span>` : "") +
+    `</li>`).join("") + `</ul>`;
+}
 function systemPanel() {
   const m = DATA.meta;
   if (tab === "page")
     return kicker("globe", "系统") + `<h2>${m.headline}</h2>` +
       (pageBody("system.md") || "");
-  return kicker("globe", "系统") + `<h2>怎么读这张图</h2>${m.reading}
-    <h3>场景</h3>` + chips(FLOWS.map((f, i) =>
+  const all = new Set();
+  for (const d of DATA.districts) for (const f of districtFiles(d.id)) all.add(f);
+  const files = [...all];
+  return kicker("globe", "系统") + `<h2>${m.headline}</h2>` +
+    statRow([[DATA.districts.length, "个分区"], [DATA.nodes.length, "个模块"],
+      [files.length, "个文件"], fmtLines(linesOf(files))]) +
+    `<h3>分区</h3>` + districtRows() +
+    `<h3>场景</h3>` + chips(FLOWS.map((f, i) =>
       `<span class="chip" data-flow="${i}" data-step="0">${f.title} · ${f.steps.length} 步</span>`)) +
     srcList(m.sources);
 }
@@ -1277,6 +1298,8 @@ function render() {
     }));
   panel.querySelectorAll(".chip[data-code], li.mod[data-code]").forEach(ch =>
     ch.addEventListener("click", () => select(ch.dataset.code)));
+  panel.querySelectorAll("li.mod[data-district]").forEach(li =>
+    li.addEventListener("click", () => select({ district: li.dataset.district })));
   panel.querySelectorAll(".chip[data-flow]").forEach(ch =>
     ch.addEventListener("click", () => showScenarioStep(+ch.dataset.flow, +ch.dataset.step)));
   panel.querySelectorAll("[data-hsec]").forEach(ch =>

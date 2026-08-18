@@ -2,7 +2,7 @@
 
 渲染是模板驱动的，保证任何仓库、任何 agent 产出几乎一致的界面：复制 [templates/architecture.html](./templates/architecture.html)，把 `__ARCH_DATA__` 替换为数据 JSON、`__TITLE__` 替换为标题、`__WIKI_DIGEST__` 替换为 `node docs/architecture/verify.mjs --digest` 的输出，写入 `docs/architecture/architecture.html`；数据 JSON 同时存为 `docs/architecture/data.json`（派生产物，随渲染更新，供增量微调与 diff）。视觉语言全部固化在模板里：森纸单主题（暖纸底 + 墨绿主色，分区鼠尾草绿/陶土/雾蓝）、等距城市、总览/多场景切换与白色流光、节点聚焦显示其跨场景数据流、侧边栏分组折叠与过滤、左右两栏整体可收起、平移缩放；体检命中的节点带警示标（楼顶与侧边栏），点击跳体检页对应小节。要改视觉改模板，不逐仓库定制。
 
-**零手写论断**：HTML 中关于代码库的每一句话，要么是嵌入的 wiki 页原文直接渲染，要么由图数据确定性派生（上下游、参与场景）。数据 JSON 里不出现独立撰写的功能/原理文字；`meta.reading` 只描述怎么读这张图，不描述代码库。内容不够好去改 wiki 页，不在 JSON 里补写。
+**零手写论断**：HTML 中关于代码库的每一句话，要么是嵌入的 wiki 页原文直接渲染，要么由图数据确定性派生（上下游、参与场景、分区/模块/文件的计数与行数）。数据 JSON 里不出现独立撰写的功能/原理文字，也不写界面使用说明（交互靠界面自解释）。内容不够好去改 wiki 页，不在 JSON 里补写。
 
 ## 数据 JSON
 
@@ -14,7 +14,6 @@
     "logo": "<svg class=\"logo\" style=\"fill:currentColor\" ...>",  // 可选；仓库有 logo/favicon 就内联（去 style、改 currentColor）
     "repoUrl": "https://github.com/x/y/blob/main",                  // 可选；有则出处变跳转链接，无则点击复制路径
     "stats": [["语言", "Go · TS"], ["行数", "4.6 万", "源码总行数（code-map 实测）"], ["入口", "4", "外部触发系统的门：HTTP、CLI、定时…"]],  // 全部真实数字；行数/源文件等规模信号优先，第三元素可选，hover 提示一句人话解释
-    "reading": "<p>怎么读这张图（描述可视化本身，不描述代码库）</p>",
     "sources": ["docs/architecture/wiki/system.md"]
   },
   "wiki": {                                   // 全部 wiki 页原文嵌入（含 frontmatter），键为 wiki/ 相对路径
