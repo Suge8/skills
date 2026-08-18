@@ -33,7 +33,7 @@
       "sources": ["src/auth/token.ts"],
       "health": ["hotspot"] }                                             // 可选；体检命中类别 dead/cycles/hotspot/breaks，按 HEALTH.md 从 health.md 条目映射，未命中不写
   ],
-  "links": [   // 静态结构关系：覆盖 code-map 聚合后的全部模块级依赖，多条文件级 import 合并为一条；细虚线，hover 显示 label
+  "links": [   // 静态结构关系（代码上的依赖，未必有运行时数据流）：覆盖 code-map 聚合后的全部模块级依赖，多条文件级 import 合并为一条；渲染为细虚线（与实线箭头的运行流区分，画布右下角有图例），hover 显示 label
     { "from": "A", "to": "B", "label": "说明", "what": "可选详情", "via": [[1, 2]] }
   ],
   "flows": [   // 多场景运行流：每个真实入口（HTTP API、CLI、队列消费者、定时任务…）至少一条，同类入口可合并；步数由真实调用链决定——一条流程讲一件完整的事，长到一屏看不完先想想是不是两件事；顶部悬浮 tab 切换，点 tab 时面板渲染 page 指向的 data-flow.md 小节

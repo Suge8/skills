@@ -182,6 +182,17 @@
     color: var(--ink-soft); padding: 5px 12px; border-radius: 9px; cursor: pointer; white-space: nowrap;
   }
   #flowbar button.on { background: var(--accent); color: #FFF; }
+  /* 图例：虚实两种边是不同语义，不解释等于没编码 */
+  #legend {
+    position: absolute; right: 12px; bottom: 12px; z-index: 4;
+    display: flex; align-items: center; gap: 13px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 6px 12px; font-size: 11px; color: var(--ink-soft);
+    box-shadow: 0 1px 4px rgba(20, 20, 19, .05);
+  }
+  #legend span { display: flex; align-items: center; gap: 6px; }
+  #legend svg { width: 24px; height: 7px; flex-shrink: 0; }
+  @media (max-width: 700px) { #legend { display: none; } }
   aside {
     width: var(--asidew);
     display: flex; flex-direction: column; flex-shrink: 0;
@@ -458,7 +469,12 @@
 <header id="hdr"></header>
 <main>
   <nav id="nav"></nav>
-  <div id="stage"><div id="flowbar" hidden></div><svg id="svg" aria-label="等距系统地图"></svg></div>
+  <div id="stage"><div id="flowbar" hidden></div><svg id="svg" aria-label="等距系统地图"></svg>
+    <div id="legend">
+      <span><svg viewBox="0 0 24 7"><line x1="1" y1="3.5" x2="23" y2="3.5" stroke="var(--ink-soft)" stroke-width="1.2" stroke-dasharray="2.5 3.5"/></svg>结构依赖</span>
+      <span><svg viewBox="0 0 24 7"><line x1="1" y1="3.5" x2="18" y2="3.5" stroke="var(--ink)" stroke-width="1.6"/><path d="M18 1.6 23 3.5 18 5.4Z" fill="var(--ink)"/></svg>运行流</span>
+    </div>
+  </div>
   <aside>
     <div class="tabs">
       <button id="tabPage" class="on"><span class="isw" style="width:13px;height:13px"><svg class="ic io"><use href="#ic-doc"/></svg><svg class="ic if"><use href="#ic-doc-fill"/></svg></span>介绍</button>
