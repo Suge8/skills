@@ -612,7 +612,7 @@ for (const d of DATA.districts) {
   g.addEventListener("mouseleave", () => {
     if (typeof sel !== "number") focusSet(baseFocus());
   });
-  g.addEventListener("click", e => { e.stopPropagation(); select({ district: d.id }); });
+  // 选中不绑 click：画布平移会 setPointerCapture，click 会被重定向到画布，地板收不到。统一在 stage 的 pointerup 里处理
 }
 
 /* ── 建筑绘制 ── */
@@ -847,10 +847,10 @@ function showEdgeTag(label, ev) {
   const r = svg.getBoundingClientRect();
   const x = vb.x + (ev.clientX - r.left) / r.width * vb.w;
   const y = vb.y + (ev.clientY - r.top) / r.height * vb.h;
-  const k = vb.w / r.width;   // 气泡尺寸随缩放变，偏移量同比例保持视觉距离
+  // 偏移与矩形/文字同为世界单位，气泡整体随缩放同步，不会在放大时盖住指针
   const w = etText.getComputedTextLength() + 12;
-  etRect.setAttribute("x", x - w / 2); etRect.setAttribute("y", y - 26 * k); etRect.setAttribute("width", w);
-  etText.setAttribute("x", x - w / 2 + 6); etText.setAttribute("y", y - 26 * k + 11);
+  etRect.setAttribute("x", x - w / 2); etRect.setAttribute("y", y - 26); etRect.setAttribute("width", w);
+  etText.setAttribute("x", x - w / 2 + 6); etText.setAttribute("y", y - 15);
 }
 buildEdges(allSteps());   // 初始总览：全部场景的线都在流动
 
@@ -996,9 +996,10 @@ function coversOf(pageRef) {
   }
   return out;
 }
+// 前缀语义与 verify.mjs 的认领对账一致：目录写法不带斜杠也照样匹配，否则面板会静默少一节
 const filesOf = pageRef => {
   const cs = coversOf(pageRef);
-  return cs.length ? FILES.filter(f => cs.some(c => f === c || (c.endsWith("/") && f.startsWith(c)))) : [];
+  return cs.length ? FILES.filter(f => cs.some(c => f === c || f.startsWith(c.endsWith("/") ? c : c + "/"))) : [];
 };
 function srcList(a) {
   if (!a?.length) return "";
@@ -1407,7 +1408,9 @@ stage.addEventListener("pointerdown", e => {
     stage.classList.remove("panning");
     return;
   }
-  pan = { px: e.clientX, py: e.clientY, x: vb.x, y: vb.y }; moved = false;
+  // 记住起手落在哪块地板：指针捕获后 pointerup/click 的 target 都会被重定向到画布，当场判不出来
+  pan = { px: e.clientX, py: e.clientY, x: vb.x, y: vb.y, floor: e.target.closest(".dfloor")?.dataset.d || null };
+  moved = false;
   stage.classList.add("panning");
 });
 stage.addEventListener("pointermove", e => {
@@ -1437,7 +1440,8 @@ stage.addEventListener("pointerup", e => {
   endPointer(e);
   const wasPan = pan; pan = null; stage.classList.remove("panning");
   if (e.pointerType !== "mouse") hideEdgeTag();   // 触屏无 mouseleave，气泡会滞留
-  if (wasPan && !moved && !e.target.closest(".b") && !e.target.closest(".lk") && !e.target.closest("#flowbar")) select(null);
+  // 未拖动的单击：落在地板上选中分区，落在真空白处取消选中
+  if (wasPan && !moved) select(wasPan.floor ? { district: wasPan.floor } : null);
 });
 stage.addEventListener("wheel", e => {
   e.preventDefault();
