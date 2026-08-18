@@ -23,8 +23,19 @@
     --mono: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace;
     --sans: -apple-system, "PingFang SC", "Segoe UI", sans-serif;
     --serif: "Georgia", "Songti SC", serif;
+    /* 浮空层材质：1px 半透 ring + 两层贴身柔光，代替「边框 + 一团模糊阴影」 */
+    --shadow-float: 0 0 0 1px oklch(0 0 0 / .07), 0 1px 2px -1px oklch(0 0 0 / .07), 0 3px 8px -2px oklch(0 0 0 / .07);
   }
   * { box-sizing: border-box; margin: 0; }
+  ::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  nav, #panel, .hmodal, #flowbar { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 25%, transparent) transparent; }
+  #panel, .hmodal { text-wrap: pretty; }
+  /* 按下反馈：独立 scale/translate 属性不碰既有 transform/transition，可中断回弹；按压 80ms 释放 160ms */
+  .tabs button, #flowbar button, #panel .chip, #panel .morebtn, .hmodal .hclose { transition: scale .16s cubic-bezier(.2, 0, 0, 1); }
+  header button:active, .tabs button:active, #flowbar button:active, #panel .chip:active, #panel .morebtn:active, .vstat:active { scale: .96; transition-duration: .08s; }
+  .hmodal .hclose:active, nav .grp .chev:active { scale: .92; transition-duration: .08s; }
+  nav .item:active, nav .grp:active, #panel .steps li:active, #panel li.fi.mod:active { translate: 0 1px; }
   html, body { height: 100%; }
   body {
     background: var(--bg); color: var(--ink);
@@ -58,7 +69,7 @@
     display: flex; align-items: center; gap: 6px; height: 32px;
     font: 600 12px var(--sans); cursor: pointer; border-radius: 10px;
     background: var(--card); color: var(--ink); border: 1px solid var(--line); padding: 0 14px;
-    transition: background .15s, color .15s, border-color .15s;
+    transition: background .15s, color .15s, border-color .15s, scale .16s cubic-bezier(.2, 0, 0, 1);
   }
   header button.primary { background: var(--accent); color: #FFF; border-color: transparent; }
   header button.primary:hover { background: var(--accent-deep); }
@@ -80,9 +91,11 @@
   dialog#healthDlg::backdrop { background: rgba(32, 38, 31, .4); }
   .hmodal {
     width: min(860px, 92vw); max-height: 84vh; overflow-y: auto;
-    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-    padding: 18px 24px 26px; box-shadow: 0 20px 60px rgba(20, 20, 19, .24);
+    background: var(--card); border-radius: 18px;
+    padding: 18px 24px 26px; box-shadow: var(--shadow-float), 0 20px 60px rgba(20, 20, 19, .24);
   }
+  /* forced-colors 会把 box-shadow 归零，只靠阴影画的边界要补真边框 */
+  @media (forced-colors: active) { #flowbar, .hmodal { border: 1px solid CanvasText; } }
   .hmodal .hclose {
     position: sticky; top: 0; float: right; margin: -4px -8px 0 0;
     width: 28px; height: 28px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
@@ -168,7 +181,7 @@
     width: 28px; height: 28px; margin: -5px -8px -5px 2px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     background: none; border: none; color: inherit; cursor: pointer;
-    font-size: 9px; border-radius: 8px; transition: transform .15s, background .15s;
+    font-size: 9px; border-radius: 8px; transition: transform .15s, background .15s, scale .16s cubic-bezier(.2, 0, 0, 1);
   }
   nav .grp .chev:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
   nav .grp.closed .chev { transform: rotate(-90deg); }
@@ -193,9 +206,9 @@
   #stage svg { width: 100%; height: 100%; display: block; }
   #flowbar {
     position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 3px; background: var(--card); border: 1px solid var(--line);
+    display: flex; gap: 3px; background: var(--card);
     border-radius: 12px; padding: 3px; z-index: 5; max-width: 86%; overflow-x: auto;
-    box-shadow: 0 2px 10px rgba(20, 20, 19, .06);
+    box-shadow: var(--shadow-float);
   }
   #flowbar button {
     font: 600 11.5px var(--sans); border: 1px solid transparent; background: none;
@@ -228,7 +241,7 @@
     display: flex; align-items: center; gap: 7px;
     font-size: 10.5px; letter-spacing: .15em; color: var(--ink-soft);
   }
-  #panel h2, .hmodal h2 { font: 700 18px/1.4 var(--serif); margin: 6px 0 12px; }
+  #panel h2, .hmodal h2 { font: 700 18px/1.4 var(--serif); margin: 6px 0 12px; text-wrap: balance; }
   #panel .titlerow { display: flex; align-items: baseline; gap: 10px; justify-content: space-between; }
   #panel .titlerow h2 { margin-bottom: 10px; }
   #panel .titlerow .chips { margin: 0; flex-shrink: 0; }
@@ -332,7 +345,7 @@
   .vadvice div { font-size: 11px; line-height: 1.6; color: var(--ink-soft); }
   .vadvice b { font-weight: 700; }
   .vstats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .vstat { background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 5px 3px; text-align: center; cursor: pointer; transition: border-color .15s; }
+  .vstat { background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 5px 3px; text-align: center; cursor: pointer; transition: border-color .15s, scale .16s cubic-bezier(.2, 0, 0, 1); }
   .vstat:hover { border-color: var(--accent); }
   .vstat .vv { font: 700 14px var(--mono); color: var(--ink-soft); }
   .vstat .vv em { font: 600 9.5px var(--sans); font-style: normal; opacity: .85; }
@@ -1449,6 +1462,9 @@ function select(code) {
   focusSet(baseFocus());
   if (isNode) hopNode(code);
   render();
+  // 面板内容淡入仅限点选：hover 预览和播放节拍是高频替换，不进这条路径，不加动画
+  if (motionOK) panel.animate({ opacity: [0, 1], translate: ["0 3px", "0 0"] },
+    { duration: 160, easing: "cubic-bezier(.16, 1, .3, 1)" });
 }
 /* 打开 wiki 页时同步地图：模块页→点亮对应楼；场景小节→激活对应路线；跨模块页→不选中。
    面板收起时先展开——内容不能渲染进看不见的地方 */
