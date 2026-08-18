@@ -1245,8 +1245,7 @@ document.getElementById("btnHealth")?.addEventListener("click", () => openHealth
 function scenarioPanel(fi) {
   const F = FLOWS[fi];
   const head = kicker("play", "场景") + `<h2>${F.title}</h2>`;
-  const steps = `<ul class="steps">${F.steps.map((s, j) =>
-    `<li data-step="${j}"><span class="no">${j + 1}</span>${s.title}</li>`).join("")}</ul>`;
+  const steps = `<ul class="steps">${stepRows(F, -1)}</ul>`;
   if (tab === "page") {
     const body = pageBody(F.page || "data-flow.md");
     return head + (body || `<h3>步骤</h3>` + steps);
@@ -1288,14 +1287,27 @@ function linkPanel(i) {
     <p>${l.what || ""}</p><p><code>${N[l.from].name}</code> → <code>${N[l.to].name}</code></p>
     ${srcList([...(N[l.from].sources || []).slice(0, 1), ...(N[l.to].sources || []).slice(0, 1)])}`;
 }
+/* 同一拍的步骤共用序号、用 a/b/c 区分，一眼看得出哪几步是同时发生的 */
+function stepRows(F, curBeat) {
+  return beatsOf(F.steps).flatMap((b, k) => b.map((j, m) => {
+    const no = b.length > 1 ? `${k + 1}${String.fromCharCode(97 + m)}` : `${k + 1}`;
+    const state = curBeat < 0 ? "" : k < curBeat ? "done" : k === curBeat ? "now" : "";
+    return `<li class="${state}" data-step="${j}"><span class="no">${no}</span>${F.steps[j].title}</li>`;
+  })).join("");
+}
 function flowPanel(i) {
-  const F = FLOWS[activeFlow], f = F.steps[i];
-  const list = F.steps.map((s, j) =>
-    `<li class="${j < i ? "done" : j === i ? "now" : ""}" data-step="${j}"><span class="no">${j + 1}</span>${s.title}</li>`).join("");
-  return kicker("play", F.title) + `<h2>第 ${i + 1}/${F.steps.length} 步 · ${f.title}</h2>
-    <p>${f.what}</p><p><code>${N[f.from].name}</code> → <code>${N[f.to].name}</code></p>
-    ${srcList(f.sources || [...(N[f.from].sources || []).slice(0, 1), ...(N[f.to].sources || []).slice(0, 1)])}
-    <h3>全部步骤</h3><ul class="steps">${list}</ul>`;
+  const F = FLOWS[activeFlow], beats = beatsOf(F.steps);
+  const k = beats.findIndex(b => b.includes(i));
+  const cur = beats[k], many = cur.length > 1;
+  const head = kicker("play", F.title) +
+    `<h2>第 ${k + 1}/${beats.length} ${many ? `拍 · 并行 ${cur.length} 步` : `步 · ${F.steps[cur[0]].title}`}</h2>`;
+  const body = cur.map(j => {
+    const f = F.steps[j];
+    return (many ? `<h3>${f.title}</h3>` : "") +
+      `<p>${f.what}</p><p><code>${N[f.from].name}</code> → <code>${N[f.to].name}</code></p>` +
+      srcList(f.sources || [...(N[f.from].sources || []).slice(0, 1), ...(N[f.to].sources || []).slice(0, 1)]);
+  }).join("");
+  return head + body + `<h3>全部步骤</h3><ul class="steps">${stepRows(F, k)}</ul>`;
 }
 function scrollToAnchor(pageRef) {
   const anchor = pageRef?.split("#")[1];
@@ -1452,36 +1464,51 @@ function bindNode(g) {
 Object.values(nodeEls).forEach(bindNode);
 [...gPlate.children].forEach(bindNode);
 
-/* ── 流程追踪 ── */
-let auto = null, stepIdx = -1;
-function showStep(i) {
-  stepIdx = i; sel = i; markSel(null); render();
-  flowEls.forEach(({ p, glow }, j) => {
-    p.setAttribute("stroke", j === i ? "var(--accent)" : "var(--ink)");
-    p.setAttribute("stroke-width", j === i ? 2.6 : j < i ? 2 : 1.6);
-    p.setAttribute("marker-end", j === i ? "url(#arrA)" : "url(#arr)");
-    p.setAttribute("opacity", j <= i ? 1 : .35);
-    glow.setAttribute("opacity", j === i ? .22 : 0);
-  });
-  const f = FLOWS[activeFlow].steps[i];
-  focusSet(new Set([f.from, f.to]));
-  hopNode(f.to);
-  gStreak.style.display = "none";
-  if (playPulse) playPulse.remove();
-  const p = flowEls[i].p, len = p.getTotalLength(), t0 = performance.now(), dur = motionOK ? 340 : 0;
-  playPulse = el("path", { d: p.getAttribute("d"), stroke: "#FFFFFF", "stroke-width": 3,
+/* ── 流程追踪：按「拍」推进而不是按步——标了 par 的步骤与上一步同时发生 ── */
+let auto = null, beatIdx = -1, playPulses = [];
+const beatsOf = (steps = []) => steps.reduce((out, s, i) => {
+  if (i > 0 && s.par) out[out.length - 1].push(i); else out.push([i]);
+  return out;
+}, []);
+const curBeats = () => beatsOf(FLOWS[activeFlow]?.steps);
+function clearPulses() { for (const p of playPulses) p.remove(); playPulses = []; }
+function addPulse(pathEl, myBeat) {
+  const len = pathEl.getTotalLength(), t0 = performance.now(), dur = motionOK ? 340 : 0;
+  const pulse = el("path", { d: pathEl.getAttribute("d"), stroke: "#FFFFFF", "stroke-width": 3,
     fill: "none", "stroke-linecap": "round", opacity: .95,
     "stroke-dasharray": `22 ${(len + 22).toFixed(1)}`, "stroke-dashoffset": 22 }, gTag);
+  playPulses.push(pulse);
   (function anim(now) {
     const k = dur ? Math.min((now - t0) / dur, 1) : 1;
-    playPulse.setAttribute("stroke-dashoffset", (22 - k * (len + 22)).toFixed(1));
-    if (k < 1 && stepIdx === i) requestAnimationFrame(anim);
+    pulse.setAttribute("stroke-dashoffset", (22 - k * (len + 22)).toFixed(1));
+    if (k < 1 && beatIdx === myBeat) requestAnimationFrame(anim);
   })(t0);
 }
+function showBeat(k) {
+  const F = FLOWS[activeFlow], beats = beatsOf(F?.steps);
+  if (!F || k < 0 || k >= beats.length) return;
+  beatIdx = k;
+  const now = new Set(beats[k]), done = new Set(beats.slice(0, k).flat());
+  sel = beats[k][0]; markSel(null); render();
+  flowEls.forEach(({ p, glow }, j) => {
+    const isNow = now.has(j);
+    p.setAttribute("stroke", isNow ? "var(--accent)" : "var(--ink)");
+    p.setAttribute("stroke-width", isNow ? 2.6 : done.has(j) ? 2 : 1.6);
+    p.setAttribute("marker-end", isNow ? "url(#arrA)" : "url(#arr)");
+    p.setAttribute("opacity", isNow || done.has(j) ? 1 : .35);
+    glow.setAttribute("opacity", isNow ? .22 : 0);
+  });
+  const steps = beats[k].map(j => F.steps[j]);
+  focusSet(new Set(steps.flatMap(s => [s.from, s.to])));
+  for (const s of steps) hopNode(s.to);
+  gStreak.style.display = "none";
+  clearPulses();
+  for (const j of beats[k]) if (flowEls[j]) addPulse(flowEls[j].p, k);
+}
+const showStep = i => showBeat(curBeats().findIndex(b => b.includes(i)));
 function pauseAuto() { if (auto) clearTimeout(auto); auto = null; }
 function stopFlowVisual() {
-  pauseAuto(); stepIdx = -1;
-  if (playPulse) { playPulse.remove(); playPulse = null; }
+  pauseAuto(); beatIdx = -1; clearPulses();
   gStreak.style.display = "";
   flowEls.forEach(({ p, glow }) => { p.setAttribute("stroke", "var(--ink)");
     p.setAttribute("stroke-width", 1.6); p.setAttribute("marker-end", "url(#arr)");
@@ -1489,18 +1516,18 @@ function stopFlowVisual() {
 }
 document.getElementById("btnPlay").onclick = () => {
   if (activeFlow < 0) { activeFlow = 0; syncFlowbar(); }
-  stopFlowVisual(); buildEdges(stepsOf(activeFlow)); showStep(0);
-  const steps = FLOWS[activeFlow]?.steps || [];
+  stopFlowVisual(); buildEdges(stepsOf(activeFlow)); showBeat(0);
+  const total = curBeats().length;
   const tick = () => {
-    if (stepIdx + 1 >= steps.length) { auto = null; return; }
-    showStep(stepIdx + 1);
+    if (beatIdx + 1 >= total) { auto = null; return; }
+    showBeat(beatIdx + 1);
     auto = setTimeout(tick, motionOK ? 620 : 400);
   };
   auto = setTimeout(tick, motionOK ? 620 : 400);
 };
 document.getElementById("btnStep").onclick = () => {
   if (activeFlow < 0) { activeFlow = 0; syncFlowbar(); buildEdges(stepsOf(0)); }
-  pauseAuto(); showStep((stepIdx + 1) % (FLOWS[activeFlow]?.steps.length || 1));
+  pauseAuto(); showBeat((beatIdx + 1) % (curBeats().length || 1));
 };
 
 /* ── 取景 / 平移缩放 / 响应式 ── */

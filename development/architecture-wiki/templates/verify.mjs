@@ -350,13 +350,17 @@ function checkData(d) {
   for (const f of flows) {
     if (f.page && !existsSync(join(wikiDir, f.page.split("#")[0])))
       errors.push(`data.json: flow "${f.title}" page not found: ${f.page.split("#")[0]}`);
-    for (const s of f.steps || []) {
+    (f.steps || []).forEach((s, i) => {
       touched.add(s.from); touched.add(s.to);
       if (!codes.has(s.from) || !codes.has(s.to))
         errors.push(`data.json: flow "${f.title}" step "${s.title}" references unknown node`);
       if (!s.sources?.length)
         errors.push(`data.json: flow "${f.title}" step "${s.title}" missing sources (call-site evidence)`);
-    }
+      if (s.par !== undefined && typeof s.par !== "boolean")
+        errors.push(`data.json: flow "${f.title}" step "${s.title}" par must be boolean`);
+      if (s.par && i === 0)
+        errors.push(`data.json: flow "${f.title}" first step cannot be par (nothing to run alongside)`);
+    });
   }
   for (const n of nodes) {
     // 坐标没有合理默认值：缺了会算出 NaN，SVG 会静默丢弃图形而不报错

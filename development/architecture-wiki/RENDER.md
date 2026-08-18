@@ -39,7 +39,8 @@
   "flows": [   // 多场景运行流：每个真实入口（HTTP API、CLI、队列消费者、定时任务…）至少一条，同类入口可合并；步数由真实调用链决定——一条流程讲一件完整的事，长到一屏看不完先想想是不是两件事；顶部悬浮 tab 切换，点 tab 时面板渲染 page 指向的 data-flow.md 小节
     { "title": "用户下单", "page": "data-flow.md#用户下单（HTTP）", "steps": [
       { "from": "A", "to": "B", "title": "步骤名", "what": "这一步发生了什么",
-        "sources": ["src/call-site.ts"], "via": [] }   // sources 必填：这一步的调用点证据
+        "sources": ["src/call-site.ts"], "via": [],   // sources 必填：这一步的调用点证据
+        "par": true }   // 可选：与上一步同时发生，播放时同一拍一起点亮。只标真并行（并发 spawn、扇出广播）；顺序执行标了会把先后关系抹掉
     ] }
   ]
 }
