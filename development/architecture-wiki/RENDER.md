@@ -46,7 +46,7 @@
 
 每条 flow 必须对应 data-flow.md 已写的端到端路径；每个步骤必须有真实调用点，找不到调用点的步骤不得画入。每个节点至少被一条 link 或 flow 触及——孤立节点要么补上真实关系，要么并入群组，要么不该单独成楼（verify 会硬性检查）。
 
-图标名取自模板内置 symbol 集（`ic-*`）：globe、sliders、gateway、lock、user、card、calendar、target、shield、cube、coin、book、bridge、grid、users、chat、layers、file、cpu、server、wrench、plug、db、bolt、folder、sparkle、bell；按语义选最近的。
+图标名取自模板内置 symbol 集（`ic-*`，内联的 Phosphor Icons regular，MIT）：globe、sliders、gateway、lock、user、card、calendar、target、shield、cube、coin、book、bridge、grid、users、chat、layers、file、cpu、server、wrench、plug、db、bolt、folder、sparkle、bell；按语义选最近的。要扩图标集就从 Phosphor 同一 weight 取新 symbol 内联进模板（保持 viewBox 256 与 stroke-width 20），不引外部资源——单文件自包含是硬约束。
 
 ## 形态语义
 
