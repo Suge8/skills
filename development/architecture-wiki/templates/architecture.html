@@ -512,14 +512,14 @@
   <nav id="nav"></nav>
   <div id="stage"><div id="flowbar" hidden></div><svg id="svg" aria-label="等距系统地图"></svg>
     <div id="legend">
-      <span><svg viewBox="0 0 26 8"><line x1="1" y1="4" x2="25" y2="4" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 3.5"/></svg>结构依赖</span>
-      <span><svg viewBox="0 0 26 8"><line x1="1" y1="4" x2="19" y2="4" stroke="var(--ink)" stroke-width="2"/><path d="M19 1.7 25 4 19 6.3Z" fill="var(--ink)"/></svg>运行流</span>
+      <span><svg viewBox="0 0 26 8"><line x1="1" y1="4" x2="25" y2="4" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 3.5"/></svg><span data-t="结构依赖">结构依赖</span></span>
+      <span><svg viewBox="0 0 26 8"><line x1="1" y1="4" x2="19" y2="4" stroke="var(--ink)" stroke-width="2"/><path d="M19 1.7 25 4 19 6.3Z" fill="var(--ink)"/></svg><span data-t="运行流">运行流</span></span>
     </div>
   </div>
   <aside>
     <div class="tabs">
-      <button id="tabPage" class="on"><span class="isw" style="width:13px;height:13px"><svg class="ic io"><use href="#ic-doc"/></svg><svg class="ic if"><use href="#ic-doc-fill"/></svg></span>介绍</button>
-      <button id="tabRel"><span class="isw" style="width:13px;height:13px"><svg class="ic io"><use href="#ic-gateway"/></svg><svg class="ic if"><use href="#ic-gateway-fill"/></svg></span>关系</button>
+      <button id="tabPage" class="on"><span class="isw" style="width:13px;height:13px"><svg class="ic io"><use href="#ic-doc"/></svg><svg class="ic if"><use href="#ic-doc-fill"/></svg></span><span data-t="介绍">介绍</span></button>
+      <button id="tabRel"><span class="isw" style="width:13px;height:13px"><svg class="ic io"><use href="#ic-gateway"/></svg><svg class="ic if"><use href="#ic-gateway-fill"/></svg></span><span data-t="关系">关系</span></button>
     </div>
     <div id="panel"></div>
   </aside>
@@ -532,6 +532,35 @@
 const DATA = __ARCH_DATA__;
 const FLOWS = DATA.flows || [];
 const WIKI = DATA.wiki || {};
+
+/* ── UI 语言：meta.lang === "en" 时切英文，缺省中文。中文字面量即词典键，漏译回退中文可见不崩 ── */
+const LANG = DATA.meta.lang === "en" ? "en" : "zh";
+const EN = {
+  "介绍": "Intro", "关系": "Relations", "结构依赖": "Structural dep", "运行流": "Runtime flow",
+  "体检报告": "Health report", "播放": "Play", "单步": "Step", "重置": "Reset", "重置取景": "Reset view",
+  "搜索模块": "Search modules", "折叠分组": "Collapse group", "拖动调宽": "Drag to resize",
+  "展开": "Expand ", "收起": "Collapse ", "导航栏": "navigation", "面板": "panel",
+  "等距系统地图": "Isometric system map", "总览": "Overview", "关闭": "Close",
+  "系统": "SYSTEM", "场景": "SCENARIO", "分区": "DISTRICT", "结构关系": "STRUCTURAL LINK",
+  "上游": "Upstream", "下游": "Downstream", "参与场景": "In scenarios", "关键出处": "Key sources",
+  "范围": "Scope", "包含模块": "Modules", "步骤": "Steps", "全部步骤": "All steps",
+  "入口": "Entry", "途经模块": "Modules on route", "无": "None",
+  "未关联 wiki 页。": "No wiki page linked.", "页面不存在：": "Page not found: ",
+  "支撑本页论断的锚点文件，它们改动会触发 wiki 同步检查": "Anchor files behind this page's claims; changing them triggers the wiki sync check",
+  "个文件": "files", "行": "lines", "个分区": "districts", "个模块": "modules",
+  "已复制 ✓": "Copied ✓", "体检：": "Health: ", "分": "pts",
+  "死代码": "Dead code", "死导出": "Dead exports", "循环依赖": "Cycles", "断点": "Breaks",
+  "健康": "Healthy", "尚可": "Fair", "亚健康": "Subpar", "高危": "Critical",
+  "零死码零断裂，保持住就是满分状态": "Zero dead code, zero breakage — keep it up",
+};
+const T = s => LANG === "en" ? (EN[s] ?? s) : s;
+const TX = (zh, en) => LANG === "en" ? en : zh;
+if (LANG === "en") {
+  document.documentElement.lang = "en";
+  document.querySelectorAll("[data-t]").forEach(e => { e.textContent = T(e.dataset.t); });
+  document.getElementById("svg").setAttribute("aria-label", T("等距系统地图"));
+  document.getElementById("asideResize").title = T("拖动调宽");
+}
 let activeFlow = -1;   // -1 = 总览：只画结构边，不画场景箭头
 
 const ic = (name, s = 13) => `<svg class="ic" style="width:${s}px;height:${s}px"><use href="#ic-${name}"/></svg>`;
@@ -545,11 +574,11 @@ function healthScore() {
   if (!h) return null;
   const n = h.files || 100;
   const cuts = [
-    [Math.min(25, (h.dead ?? 0) / n * 500), `清理 ${h.dead} 个死文件`],
-    [Math.min(15, (h.deadExports ?? 0) / n * 8), `删除 ${h.deadExports} 个未用导出`],
-    [Math.min(25, (h.cycles ?? 0) * 6), `拆开 ${h.cycles} 条循环依赖`],
-    [Math.min(25, (h.breaks ?? 0) * 8), `修复 ${h.breaks} 处断裂引用`],
-    [Math.min(5, (h.suspects ?? 0) * .5), `逐一确认 ${h.suspects} 个疑似死文件`],
+    [Math.min(25, (h.dead ?? 0) / n * 500), TX(`清理 ${h.dead} 个死文件`, `Remove ${h.dead} dead files`)],
+    [Math.min(15, (h.deadExports ?? 0) / n * 8), TX(`删除 ${h.deadExports} 个未用导出`, `Delete ${h.deadExports} unused exports`)],
+    [Math.min(25, (h.cycles ?? 0) * 6), TX(`拆开 ${h.cycles} 条循环依赖`, `Break ${h.cycles} dependency cycles`)],
+    [Math.min(25, (h.breaks ?? 0) * 8), TX(`修复 ${h.breaks} 处断裂引用`, `Fix ${h.breaks} broken references`)],
+    [Math.min(5, (h.suspects ?? 0) * .5), TX(`逐一确认 ${h.suspects} 个疑似死文件`, `Review ${h.suspects} suspected dead files`)],
   ];
   const score = Math.max(0, Math.round(100 - cuts.reduce((s, [c]) => s + c, 0)));
   const [, grade, color] = HEALTH_GRADES.find(([t]) => score >= t);
@@ -567,7 +596,8 @@ DATA.districts.forEach((d, i) => tintOf[d.id] = d.tint || TINTS[i % TINTS.length
 const mix = (c, pct, base) => `color-mix(in srgb, ${c} ${pct}%, ${base})`;
 
 /* ── header ── */
-const STAT_ICONS = [["语言", "globe"], ["行数", "file"], ["文件", "folder"], ["模块", "cube"], ["入口", "gateway"], ["场景", "play"], ["外部", "plug"], ["依赖", "plug"], ["页", "book"], ["服务", "server"], ["测试", "shield"]];
+const STAT_ICONS = [["语言", "globe"], ["行数", "file"], ["文件", "folder"], ["模块", "cube"], ["入口", "gateway"], ["场景", "play"], ["外部", "plug"], ["依赖", "plug"], ["页", "book"], ["服务", "server"], ["测试", "shield"],
+  ["Lang", "globe"], ["Line", "file"], ["File", "folder"], ["Module", "cube"], ["Entr", "gateway"], ["Scen", "play"], ["Extern", "plug"], ["Dep", "plug"], ["Page", "book"], ["Serv", "server"], ["Test", "shield"]];
 const statIcon = k => (STAT_ICONS.find(([p]) => k.includes(p)) || [0, "sparkle"])[1];
 document.getElementById("hdr").innerHTML =
   `<div class="brand">${DATA.meta.logo || ""}<div class="v">${DATA.meta.title}</div></div>` +
@@ -576,13 +606,13 @@ document.getElementById("hdr").innerHTML =
   ).join(`<span class="sep"></span>`) + `</div>` +
   // 体检入口紧跟统计条，分级色与分数直接上按钮，不点开也知道健康度
   (WIKI["health.md"]
-    ? `<button id="btnHealth" class="vitals-btn compact" title="体检报告"${HS ? ` style="--hc:${HS.color}"` : ""}>${ic("shield")}<span class="lb">体检报告</span>${HS ? `<span class="score">${HS.score}</span>` : ""}</button>`
+    ? `<button id="btnHealth" class="vitals-btn compact" title="${T("体检报告")}"${HS ? ` style="--hc:${HS.color}"` : ""}>${ic("shield")}<span class="lb">${T("体检报告")}</span>${HS ? `<span class="score">${HS.score}</span>` : ""}</button>`
     : "") +
   `<div class="spacer"></div>
    <div class="ops">
-     <button id="btnPlay" class="primary">${ic("play")}<span class="lb">播放</span></button>
-     <button id="btnStep" class="compact" title="单步">${ic("stepfwd")}<span class="lb">单步</span></button>
-     <button id="btnReset" class="compact" title="重置取景">${ic("reset")}<span class="lb">重置</span></button>
+     <button id="btnPlay" class="primary">${ic("play")}<span class="lb">${T("播放")}</span></button>
+     <button id="btnStep" class="compact" title="${T("单步")}">${ic("stepfwd")}<span class="lb">${T("单步")}</span></button>
+     <button id="btnReset" class="compact" title="${T("重置取景")}">${ic("reset")}<span class="lb">${T("重置")}</span></button>
    </div>`;
 /* favicon 从 logo 派生，不另设字段：img 复用其 data URI，内联 SVG 序列化成 data URI（补 xmlns） */
 if (DATA.meta.logo) {
@@ -601,8 +631,11 @@ if (DATA.meta.logo) {
 
 /* ── 数据索引 ── */
 const N = {}; DATA.nodes.forEach(n => { n.w ??= 1.1; n.d ??= 1.1; n.h ??= 0.8; N[n.code] = n; });
-const HEALTH_SECTIONS = { dead: "死代码", cycles: "循环依赖", hotspot: "高危热点", breaks: "断点" };
-const healthTip = n => "体检：" + n.health.map(h => HEALTH_SECTIONS[h] || h).join("、");
+/* 锚点名必须逐字等于 health.md 的 H2 标题（两语言各自的 HEALTH.md 规范定死） */
+const HEALTH_SECTIONS = LANG === "en"
+  ? { dead: "Dead code", cycles: "Circular dependencies", hotspot: "Hotspots", breaks: "Broken references" }
+  : { dead: "死代码", cycles: "循环依赖", hotspot: "高危热点", breaks: "断点" };
+const healthTip = n => T("体检：") + n.health.map(h => HEALTH_SECTIONS[h] || h).join(TX("、", ", "));
 const DIST = {}; DATA.districts.forEach(d => DIST[d.id] = d);
 const adj = {};
 const addAdj = (a, b) => { (adj[a] ??= new Set()).add(b); (adj[b] ??= new Set()).add(a); };
@@ -1012,7 +1045,7 @@ function syncFlowbar() {
 }
 if (FLOWS.length) {
   flowbar.hidden = false;
-  flowbar.innerHTML = `<button data-f="-1" class="on">总览</button>` +
+  flowbar.innerHTML = `<button data-f="-1" class="on">${T("总览")}</button>` +
     FLOWS.map((f, i) => `<button data-f="${i}">${f.title}</button>`).join("");
   segInd(flowbar);
   flowbar.addEventListener("click", e => {
@@ -1037,7 +1070,7 @@ function showScenarioStep(fi, si) {
 const nav = document.getElementById("nav");
 nav.insertAdjacentHTML("beforeend",
   `<div class="filter"><div class="sbox"><svg class="ic sic"><use href="#ic-search"/></svg>` +
-  `<input id="navq" aria-label="搜索模块"></div></div>`);
+  `<input id="navq" aria-label="${T("搜索模块")}"></div></div>`);
 /* 卡片内按钮负责收起，边缘把手只在收起后出现负责展开；跨断点时跟随视口切换 */
 function bindSide(cls, ids, name) {
   const btns = ids.map((id) => document.getElementById(id)).filter(Boolean);
@@ -1045,15 +1078,15 @@ function bindSide(cls, ids, name) {
     const off = document.body.classList.contains(cls);
     for (const b of btns) {
       b.setAttribute("aria-expanded", String(!off));
-      b.title = (off ? "展开" : "收起") + name;
+      b.title = T(off ? "展开" : "收起") + name;
     }
   };
   for (const b of btns) b.onclick = () => { document.body.classList.toggle(cls); sync(); };
   sync();
   return sync;
 }
-const syncNavBtns = bindSide("nav-off", ["handleNav"], "导航栏");
-const syncAsideBtns = bindSide("aside-off", ["handleAside"], "面板");
+const syncNavBtns = bindSide("nav-off", ["handleNav"], T("导航栏"));
+const syncAsideBtns = bindSide("aside-off", ["handleAside"], T("面板"));
 const mqNav = matchMedia("(max-width: 1080px)"), mqAside = matchMedia("(max-width: 820px)");
 function applyNarrow() {
   document.body.classList.add("no-anim");
@@ -1075,11 +1108,11 @@ for (const d of DATA.districts) {
   nav.insertAdjacentHTML("beforeend",
     `<div class="grp" data-d="${d.id}"
        style="color:${mix(tintOf[d.id], 72, "var(--ink)")};background:${mix(tintOf[d.id], 14, "var(--card)")}">
-       ${icSwap(d.icon)}<span>${d.label}</span><span class="ct">${items.length}</span><button class="chev" aria-label="折叠分组">▾</button></div>
+       ${icSwap(d.icon)}<span>${d.label}</span><span class="ct">${items.length}</span><button class="chev" aria-label="${T("折叠分组")}">▾</button></div>
      <div class="grpbody" data-d="${d.id}">` +
     items.map(n =>
       `<div class="item" data-code="${n.code}">${icSwap(n.icon || d.icon, 12)}<span class="code">${n.code}</span>
-       <span class="nm">${n.short || n.name}</span>${n.health?.length ? `<span class="hdot" title="${healthTip(n)}"></span>` : ""}${n.count ? `<span class="ct" title="群组节点：汇聚 ${n.count} 个同类模块">${n.count} 模块</span>` : ""}</div>`).join("") +
+       <span class="nm">${n.short || n.name}</span>${n.health?.length ? `<span class="hdot" title="${healthTip(n)}"></span>` : ""}${n.count ? `<span class="ct" title="${TX(`群组节点：汇聚 ${n.count} 个同类模块`, `Group node: ${n.count} similar modules`)}">${n.count} ${TX("模块", "modules")}</span>` : ""}</div>`).join("") +
     `</div>`);
 }
 nav.addEventListener("click", e => {
@@ -1149,7 +1182,9 @@ const tabPage = document.getElementById("tabPage"), tabRel = document.getElement
 const FILES = DATA.files || {};          // { 仓库相对路径: 行数 }
 const FILE_KEYS = Object.keys(FILES);
 const linesOf = fs => fs.reduce((s, f) => s + (FILES[f] || 0), 0);
-const fmtLines = n => n >= 10000 ? [(n / 10000).toFixed(1), "万行"] : [n.toLocaleString(), "行"];
+const fmtLines = n => LANG === "en"
+  ? (n >= 10000 ? [(n / 1000).toFixed(0) + "k", "lines"] : [n.toLocaleString(), "lines"])
+  : (n >= 10000 ? [(n / 10000).toFixed(1), "万行"] : [n.toLocaleString(), "行"]);
 function fileRows(files, bars = true) {
   const max = bars ? Math.max(1, ...files.map(f => FILES[f] || 0)) : 0;
   return files.map(s => {
@@ -1192,17 +1227,17 @@ const districtFiles = id => {
 };
 function srcList(a) {
   if (!a?.length) return "";
-  return `<h3>关键出处</h3><p class="dimtext">支撑本页论断的锚点文件，它们改动会触发 wiki 同步检查</p><ul>` +
+  return `<h3>${T("关键出处")}</h3><p class="dimtext">${T("支撑本页论断的锚点文件，它们改动会触发 wiki 同步检查")}</p><ul>` +
     fileRows(a, false) + "</ul>";
 }
 function scopeList(pageRef) {
   const files = filesOf(pageRef).sort((a, b) => (FILES[b] || 0) - (FILES[a] || 0));   // 大文件在前，前 8 条预览即是重点
   if (!files.length) return "";
   const more = files.length > 8;
-  return `<h3>范围</h3>` +
-    statRow([[files.length, "个文件"], fmtLines(linesOf(files))]) +
+  return `<h3>${T("范围")}</h3>` +
+    statRow([[files.length, T("个文件")], fmtLines(linesOf(files))]) +
     `<ul class="flist${more ? " collapsed" : ""}">${fileRows(files)}</ul>` +
-    (more ? `<button class="morebtn">展开全部 ${files.length} 个</button>` : "");
+    (more ? `<button class="morebtn">${TX(`展开全部 ${files.length} 个`, `Show all ${files.length}`)}</button>` : "");
 }
 /* 分区的模块清单：与文件清单同形，用行数排序和比例条表达轻重 */
 function moduleRows(codes) {
@@ -1216,7 +1251,7 @@ function moduleRows(codes) {
 }
 const kicker = (icn, label, color) =>
   `<div class="kicker" ${color ? `style="color:${color}"` : ""}>${ic(icn)}<span>${label}</span></div>`;
-const chips = arr => arr.length ? `<div class="chips">${arr.join("")}</div>` : `<p class="dimtext">无</p>`;
+const chips = arr => arr.length ? `<div class="chips">${arr.join("")}</div>` : `<p class="dimtext">${T("无")}</p>`;
 const nodeChip = (code, extra) =>
   `<span class="chip" data-code="${code}">${N[code].short || N[code].name}${extra ? " · " + extra : ""}</span>`;
 function flowRefs(code) {
@@ -1241,7 +1276,7 @@ function districtRows() {
   const max = Math.max(1, ...rows.map(r => r.lines));
   return `<ul class="flist">` + rows.map(r => {
     // 外部系统在仓库之外，本就没有行数——写明它是外部，而不是留个空白像数据缺失
-    const sub = [r.mods && `${r.mods} 模块`, r.exts && `${r.exts} 外部系统`, r.files && `${r.files} 文件`]
+    const sub = [r.mods && `${r.mods} ${TX("模块", "modules")}`, r.exts && `${r.exts} ${TX("外部系统", "external")}`, r.files && `${r.files} ${TX("文件", "files")}`]
       .filter(Boolean).join(" · ");
     return `<li class="fi mod" data-district="${r.d.id}">${ic(r.d.icon, 11)}<span class="mn">${r.d.label}</span>` +
       `<span class="sub">${sub}</span>` +
@@ -1252,17 +1287,17 @@ function districtRows() {
 function systemPanel() {
   const m = DATA.meta;
   if (tab === "page")
-    return kicker("globe", "系统") + `<h2>${m.headline}</h2>` +
+    return kicker("globe", T("系统")) + `<h2>${m.headline}</h2>` +
       (pageBody("system.md") || "");
   const all = new Set();
   for (const d of DATA.districts) for (const f of districtFiles(d.id)) all.add(f);
   const files = [...all];
-  return kicker("globe", "系统") + `<h2>${m.headline}</h2>` +
-    statRow([[DATA.districts.length, "个分区"], [DATA.nodes.filter(n => n.form !== "external").length, "个模块"],
-      [files.length, "个文件"], fmtLines(linesOf(files))]) +
-    `<h3>分区</h3>` + districtRows() +
-    `<h3>场景</h3>` + chips(FLOWS.map((f, i) =>
-      `<span class="chip" data-flow="${i}" data-step="0">${f.title} · ${f.steps.length} 步</span>`)) +
+  return kicker("globe", T("系统")) + `<h2>${m.headline}</h2>` +
+    statRow([[DATA.districts.length, T("个分区")], [DATA.nodes.filter(n => n.form !== "external").length, T("个模块")],
+      [files.length, T("个文件")], fmtLines(linesOf(files))]) +
+    `<h3>${TX("分区", "Districts")}</h3>` + districtRows() +
+    `<h3>${TX("场景", "Scenarios")}</h3>` + chips(FLOWS.map((f, i) =>
+      `<span class="chip" data-flow="${i}" data-step="0">${f.title} · ${f.steps.length} ${TX("步", "steps")}</span>`)) +
     srcList(m.sources);
 }
 function nodePanel(code) {
@@ -1272,17 +1307,17 @@ function nodePanel(code) {
     (n.health?.length ? `<div class="chips">${n.health.map(h =>
       `<span class="chip hchip" data-hsec="${HEALTH_SECTIONS[h]}">${ic("shield", 11)}${HEALTH_SECTIONS[h]}</span>`).join("")}</div>` : "") +
     `</div>` +
-    (n.count ? `<p class="dimtext">群组节点 · 汇聚 ${n.count} 个同类模块为一栋</p>` : "");
+    (n.count ? `<p class="dimtext">${TX(`群组节点 · 汇聚 ${n.count} 个同类模块为一栋`, `Group node · ${n.count} similar modules as one building`)}</p>` : "");
   if (tab === "page") {
     const body = pageBody(n.page);
-    return head + (body || `<p class="dimtext">未关联 wiki 页。</p>`);
+    return head + (body || `<p class="dimtext">${T("未关联 wiki 页。")}</p>`);
   }
   const up = DATA.links.filter(l => l.to === code).map(l => nodeChip(l.from, l.label));
   const down = DATA.links.filter(l => l.from === code).map(l => nodeChip(l.to, l.label));
   return head +
-    `<h3>上游</h3>` + chips(up) +
-    `<h3>下游</h3>` + chips(down) +
-    `<h3>参与场景</h3>` + chips(flowRefs(code)) +
+    `<h3>${T("上游")}</h3>` + chips(up) +
+    `<h3>${T("下游")}</h3>` + chips(down) +
+    `<h3>${T("参与场景")}</h3>` + chips(flowRefs(code)) +
     srcList(n.sources) + scopeList(n.page);
 }
 function pageTitle(pageRef) {
@@ -1294,8 +1329,8 @@ function vitalsCard() {
   if (!HS) return "";
   const h = DATA.health, { score, grade, color, cuts } = HS;
   const advice = cuts.filter(([c]) => c >= 1).sort((a, b) => b[0] - a[0]).slice(0, 2)
-    .map(([c, t]) => `<div>${t} <b style="color:${color}">≈ +${Math.round(c)} 分</b></div>`)
-    .join("") || `<div>零死码零断裂，保持住就是满分状态</div>`;
+    .map(([c, tip]) => `<div>${tip} <b style="color:${color}">≈ +${Math.round(c)} ${T("分")}</b></div>`)
+    .join("") || `<div>${T("零死码零断裂，保持住就是满分状态")}</div>`;
   const C = (2 * Math.PI * 34).toFixed(1);
   const stat = (label, val, sec, extra = "") =>
     `<div class="vstat" data-hsec="${sec}"><div class="vv"${val ? ` style="color:${color}"` : ""}>${val}${extra}</div><div class="vk">${label}</div></div>`;
@@ -1303,15 +1338,15 @@ function vitalsCard() {
     <div class="gauge" style="color:${color}"><svg viewBox="0 0 84 84">
       <circle class="gbg" cx="42" cy="42" r="34"/>
       <circle class="gfg" cx="42" cy="42" r="34" stroke-dasharray="${C}" stroke-dashoffset="${(C * (1 - score / 100)).toFixed(1)}"/></svg>
-      <div class="gscore">${score}<span>分</span></div></div>
-    <div class="vmeta"><div class="vgrade" style="color:${color}">${grade}</div>
+      <div class="gscore">${score}<span>${T("分")}</span></div></div>
+    <div class="vmeta"><div class="vgrade" style="color:${color}">${T(grade)}</div>
       <div class="vadvice">${advice}</div>
-      <div class="vstats">${stat("死代码", h.dead ?? 0, "死代码", h.suspects ? `<em> +${h.suspects} 疑似</em>` : "")}${stat("死导出", h.deadExports ?? 0, "死代码")}${stat("循环依赖", h.cycles ?? 0, "循环依赖")}${stat("断点", h.breaks ?? 0, "断点")}</div>
+      <div class="vstats">${stat(T("死代码"), h.dead ?? 0, HEALTH_SECTIONS.dead, h.suspects ? `<em> +${h.suspects} ${TX("疑似", "suspected")}</em>` : "")}${stat(T("死导出"), h.deadExports ?? 0, HEALTH_SECTIONS.dead)}${stat(T("循环依赖"), h.cycles ?? 0, HEALTH_SECTIONS.cycles)}${stat(T("断点"), h.breaks ?? 0, HEALTH_SECTIONS.breaks)}</div>
     </div></div>`;
 }
 function wikiPanel() {
   return kicker("book", "WIKI") + `<h2>${pageTitle(sel.page)}</h2>` +
-    (pageBody(sel.page) || `<p class="dimtext">页面不存在：${esc(sel.page)}</p>`);
+    (pageBody(sel.page) || `<p class="dimtext">${T("页面不存在：")}${esc(sel.page)}</p>`);
 }
 
 /* 体检：独立模态——它不属于某个节点，没有「介绍/关系」语义，不占侧边面板 */
@@ -1323,7 +1358,7 @@ function scrollToSection(root, name) {
 }
 function openHealth(anchor) {
   if (HS) healthBody.style.setProperty("--hc", HS.color);   // 分级色透给标题图标与评分卡背景
-  healthBody.innerHTML = `<button class="hclose" title="关闭">${ic("x")}</button>` +
+  healthBody.innerHTML = `<button class="hclose" title="${T("关闭")}">${ic("x")}</button>` +
     `<div class="hhead">${ic("shield", 18)}<span>${pageTitle("health.md")}</span></div>` +
     vitalsCard() + mdRender(WIKI["health.md"] || "");
   if (!healthDlg.open) healthDlg.showModal();
@@ -1349,26 +1384,26 @@ healthDlg.addEventListener("click", e => { if (e.target === healthDlg) healthDlg
 document.getElementById("btnHealth")?.addEventListener("click", () => openHealth());
 function scenarioPanel(fi) {
   const F = FLOWS[fi];
-  const head = kicker("play", "场景") + `<h2>${F.title}</h2>`;
+  const head = kicker("play", T("场景")) + `<h2>${F.title}</h2>`;
   const steps = `<ul class="steps">${stepRows(F, -1)}</ul>`;
   if (tab === "page") {
     const body = pageBody(F.page || "data-flow.md");
-    return head + (body || `<h3>步骤</h3>` + steps);
+    return head + (body || `<h3>${T("步骤")}</h3>` + steps);
   }
   const route = [...new Set(F.steps.flatMap(s => [s.from, s.to]))];
   return head +
-    `<h3>入口</h3>` + chips([nodeChip(F.steps[0].from)]) +
-    `<h3>途经模块</h3>` + chips(route.map(c => nodeChip(c))) +
-    `<h3>步骤</h3>` + steps;
+    `<h3>${T("入口")}</h3>` + chips([nodeChip(F.steps[0].from)]) +
+    `<h3>${T("途经模块")}</h3>` + chips(route.map(c => nodeChip(c))) +
+    `<h3>${T("步骤")}</h3>` + steps;
 }
 function districtPanel(id) {
   const d = DIST[id];
   const codes = districtNodes(id), inSet = new Set(codes);
-  const head = kicker(d.icon, "分区", mix(tintOf[id], 60, "var(--ink)")) + `<h2>${d.label}</h2>`;
+  const head = kicker(d.icon, T("分区"), mix(tintOf[id], 60, "var(--ink)")) + `<h2>${d.label}</h2>`;
   if (tab === "page") {
     const body = d.page ? pageBody(d.page) : "";
     return head + (body ||
-      `<p class="dimtext">分区是进程与职责边界的划分，本区包含 ${codes.length} 个模块。切到「关系」看它们是谁、与区外怎么往来。</p>`);
+      `<p class="dimtext">${TX(`分区是进程与职责边界的划分，本区包含 ${codes.length} 个模块。切到「关系」看它们是谁、与区外怎么往来。`, `Districts follow process and responsibility boundaries; this one holds ${codes.length} modules. Switch to Relations to see who they are and how they talk across districts.`)}</p>`);
   }
   const cross = (DATA.links || []).filter(l => inSet.has(l.from) !== inSet.has(l.to))
     .map(l => { const out = inSet.has(l.from); const other = out ? l.to : l.from;
@@ -1380,15 +1415,15 @@ function districtPanel(id) {
   const df = districtFiles(id);
   const mods = codes.filter(c => N[c].form !== "external").length;
   return head +
-    (df.length ? statRow([[mods, "个模块"], [df.length, "个文件"], fmtLines(linesOf(df))])
-      : `<p class="dimtext">本区是仓库之外的系统，不含本仓库代码。</p>`) +
-    `<h3>包含模块</h3>` + moduleRows(codes) +
-    `<h3>跨区往来 · ${cross.length}</h3>` + chips(cross) +
-    `<h3>参与场景</h3>` + chips(scen);
+    (df.length ? statRow([[mods, T("个模块")], [df.length, T("个文件")], fmtLines(linesOf(df))])
+      : `<p class="dimtext">${TX("本区是仓库之外的系统，不含本仓库代码。", "External systems outside this repo — no repo code in this district.")}</p>`) +
+    `<h3>${T("包含模块")}</h3>` + moduleRows(codes) +
+    `<h3>${TX("跨区往来", "Cross-district")} · ${cross.length}</h3>` + chips(cross) +
+    `<h3>${T("参与场景")}</h3>` + chips(scen);
 }
 function linkPanel(i) {
   const l = DATA.links[i];
-  return kicker("gateway", "结构关系") + `<h2>${l.label}</h2>
+  return kicker("gateway", T("结构关系")) + `<h2>${l.label}</h2>
     <p>${l.what || ""}</p><p><code>${N[l.from].name}</code> → <code>${N[l.to].name}</code></p>
     ${srcList([...(N[l.from].sources || []).slice(0, 1), ...(N[l.to].sources || []).slice(0, 1)])}`;
 }
@@ -1405,14 +1440,15 @@ function flowPanel(i) {
   const k = beats.findIndex(b => b.includes(i));
   const cur = beats[k], many = cur.length > 1;
   const head = kicker("play", F.title) +
-    `<h2>第 ${k + 1}/${beats.length} ${many ? `拍 · 并行 ${cur.length} 步` : `步 · ${F.steps[cur[0]].title}`}</h2>`;
+    `<h2>${many ? TX(`第 ${k + 1}/${beats.length} 拍 · 并行 ${cur.length} 步`, `Beat ${k + 1}/${beats.length} · ${cur.length} in parallel`)
+               : TX(`第 ${k + 1}/${beats.length} 步 · ${F.steps[cur[0]].title}`, `Step ${k + 1}/${beats.length} · ${F.steps[cur[0]].title}`)}</h2>`;
   const body = cur.map(j => {
     const f = F.steps[j];
     return (many ? `<h3>${f.title}</h3>` : "") +
       `<p>${f.what}</p><p><code>${N[f.from].name}</code> → <code>${N[f.to].name}</code></p>` +
       srcList(f.sources || [...(N[f.from].sources || []).slice(0, 1), ...(N[f.to].sources || []).slice(0, 1)]);
   }).join("");
-  return head + body + `<h3>全部步骤</h3><ul class="steps">${stepRows(F, k)}</ul>`;
+  return head + body + `<h3>${T("全部步骤")}</h3><ul class="steps">${stepRows(F, k)}</ul>`;
 }
 function scrollToAnchor(pageRef) {
   const anchor = pageRef?.split("#")[1];
@@ -1436,7 +1472,7 @@ function render() {
     li.addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(li.dataset.path); } catch {}
       const c = li.querySelector("code"), t = c.textContent;
-      c.textContent = "已复制 ✓"; setTimeout(() => c.textContent = t, 900);
+      c.textContent = T("已复制 ✓"); setTimeout(() => c.textContent = t, 900);
     }));
   panel.querySelectorAll(".chip[data-code], li.mod[data-code]").forEach(ch =>
     ch.addEventListener("click", () => select(ch.dataset.code)));
