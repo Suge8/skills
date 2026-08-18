@@ -93,19 +93,26 @@
   dialog#healthDlg[open] .hmodal { animation: hin .2s cubic-bezier(.16, 1, .3, 1); }
   @keyframes hin { from { opacity: 0; transform: translateY(8px) scale(.985); } }
   main { flex: 1; display: flex; min-height: 0; gap: 10px; padding: 10px 12px 12px; position: relative; }
+  /* 展开把手：贴视口边缘的半圆（宽 = 高的一半，外侧圆角取满），不做悬浮胶囊 */
   .handle {
-    position: absolute; z-index: 30; top: 50%; transform: translateY(-50%);
-    width: 26px; height: 46px; border-radius: 13px; padding: 0;
+    position: fixed; z-index: 30; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 40px; padding: 0;
     display: none; align-items: center; justify-content: center;
     background: var(--card); border: 1px solid var(--line); cursor: pointer;
-    color: var(--ink-soft); box-shadow: 0 1px 4px rgba(20, 20, 19, .08);
-    transition: background .15s, color .15s;
+    color: var(--ink-soft);
+    transition: width .15s, background .15s, color .15s;
   }
-  .handle:hover { background: var(--surface); color: var(--accent-deep); }
+  .handle:hover { width: 24px; background: var(--surface); color: var(--accent-deep); }
   .handle .ic { width: 12px; height: 12px; }
-  #handleNav { left: 6px; }
+  #handleNav {
+    left: 0; border-left: none; border-radius: 0 20px 20px 0;
+    box-shadow: 2px 0 10px rgba(20, 20, 19, .07);
+  }
   #handleNav .ic { transform: rotate(180deg); }
-  #handleAside { right: 6px; }
+  #handleAside {
+    right: 0; border-right: none; border-radius: 20px 0 0 20px;
+    box-shadow: -2px 0 10px rgba(20, 20, 19, .07);
+  }
   body.nav-off #handleNav, body.aside-off #handleAside { display: flex; }
   #asideResize {
     position: absolute; z-index: 25; top: 10px; bottom: 12px; width: 6px; border-radius: 3px;
@@ -379,7 +386,7 @@
       transition: transform .26s cubic-bezier(.2, 0, 0, 1);
     }
     body.nav-off nav { margin: 0; opacity: 1; transform: translateX(calc(-100% - 40px)); }
-    #handleNav { position: fixed; }
+
   }
   @media (max-width: 820px) {
     #asideResize { display: none; }
@@ -390,7 +397,7 @@
       transition: transform .26s cubic-bezier(.2, 0, 0, 1);
     }
     body.aside-off aside { margin: 0; opacity: 1; transform: translateX(calc(100% + 40px)); }
-    #handleAside { position: fixed; }
+
   }
   @media (max-width: 700px) {
     .statbar { display: none; }
