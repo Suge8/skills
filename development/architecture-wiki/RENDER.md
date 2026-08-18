@@ -21,7 +21,7 @@
     "index.md": "…", "system.md": "…", "data-flow.md": "…", "modules/auth.md": "…"
   },
   "health": { "files": 163, "dead": 2, "suspects": 5, "deadExports": 184, "cycles": 0, "breaks": 0 },  // 可选；体检计数全部取自工具输出（见 HEALTH.md），files 为源文件数供密度化评分；公式固化在模板，不手填分数
-  "files": ["src/a.ts", "src/b.ts"],          // 可选；全量源文件清单（code-map 输出的键）。面板据此把模块页 covers 展开成「管辖范围」，与「关键出处」（sources）分开展示；粒度是页，同页的多栋楼共享同一范围
+  "files": { "src/a.ts": 245, "src/b.ts": 88 },   // 可选；全量源文件 → 行数（直接取 code-map 的 loc）。面板据此把模块页 covers 展开成「管辖范围」并统计行数，与「关键出处」（sources）分开展示；粒度是页，同页的多栋楼共享同一范围，分区统计按文件去重
   "districts": [   // 进程/部署边界；按序自动分配暖调低饱和色，可用 tint 覆盖
     { "id": "go", "label": "GO 控制面", "icon": "grid", "r": [1, 2, 3, 4],
       "page": "system.md#控制面" }   // page 可选：分区可点选，面板渲染该小节；不填则只显示图数据派生的区内模块与跨区往来

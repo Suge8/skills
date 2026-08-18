@@ -228,6 +228,8 @@
   #panel .dimtext { color: var(--ink-soft); font-size: 12px; }
   #panel h3 + .dimtext { margin: -4px 0 6px; font-size: 11px; line-height: 1.5; }
   #panel .flist.collapsed li:nth-child(n+9) { display: none; }
+  #panel li.fi { display: flex; align-items: baseline; gap: 6px; }
+  #panel li.fi .loc { margin-left: auto; font: 10.5px var(--mono); color: var(--ink-soft); flex-shrink: 0; }
   #panel .morebtn {
     font: 600 11.5px var(--sans); background: var(--surface); border: 1px solid var(--line);
     border-radius: 8px; padding: 5px 11px; cursor: pointer; color: var(--ink-soft); margin-top: 3px;
@@ -979,10 +981,16 @@ const tabPage = document.getElementById("tabPage"), tabRel = document.getElement
 /* 两类文件清单职责不同，分开命名：
    关键出处 = sources，支撑论断的锚点，参与哈希漂移检查
    管辖范围 = 页面 covers 展开，责任田边界，参与认领对账（粒度是页，同页的多栋楼共享同一范围）*/
-const FILES = DATA.files || [];
-const fileItem = s => DATA.meta.repoUrl
-  ? `<li>${ic("file", 11)} <a class="src" target="_blank" href="${DATA.meta.repoUrl}/${s}"><code>${s}</code></a></li>`
-  : `<li class="src" data-path="${s}">${ic("file", 11)} <code>${s}</code></li>`;
+const FILES = DATA.files || {};          // { 仓库相对路径: 行数 }
+const FILE_KEYS = Object.keys(FILES);
+const linesOf = fs => fs.reduce((s, f) => s + (FILES[f] || 0), 0);
+const fmtLines = n => n >= 10000 ? (n / 10000).toFixed(1) + " 万行" : n.toLocaleString() + " 行";
+const fileItem = s => {
+  const loc = FILES[s] ? `<span class="loc">${FILES[s]}</span>` : "";
+  return DATA.meta.repoUrl
+    ? `<li class="fi">${ic("file", 11)}<a class="src" target="_blank" href="${DATA.meta.repoUrl}/${s}"><code>${s}</code></a>${loc}</li>`
+    : `<li class="fi src" data-path="${s}">${ic("file", 11)}<code>${s}</code>${loc}</li>`;
+};
 function coversOf(pageRef) {
   const m = (WIKI[(pageRef || "").split("#")[0]] || "").match(/^---\n([\s\S]*?)\n---/);
   if (!m) return [];
@@ -999,7 +1007,16 @@ function coversOf(pageRef) {
 // 前缀语义与 verify.mjs 的认领对账一致：目录写法不带斜杠也照样匹配，否则面板会静默少一节
 const filesOf = pageRef => {
   const cs = coversOf(pageRef);
-  return cs.length ? FILES.filter(f => cs.some(c => f === c || f.startsWith(c.endsWith("/") ? c : c + "/"))) : [];
+  return cs.length ? FILE_KEYS.filter(f => cs.some(c => f === c || f.startsWith(c.endsWith("/") ? c : c + "/"))) : [];
+};
+/* 分区文件：区内节点去重到页、再按文件去重——多页重叠认领时不能把同一文件算两次 */
+const districtFiles = id => {
+  const set = new Set();
+  for (const n of DATA.nodes) {
+    if (n.district !== id || !n.page) continue;
+    for (const f of filesOf(n.page)) set.add(f);
+  }
+  return [...set];
 };
 function srcList(a) {
   if (!a?.length) return "";
@@ -1010,7 +1027,8 @@ function scopeList(pageRef) {
   const files = filesOf(pageRef);
   if (!files.length) return "";
   const more = files.length > 8;
-  return `<h3>管辖范围 · ${files.length}</h3><p class="dimtext">本模块页认领的全部文件</p>` +
+  return `<h3>管辖范围 · ${files.length} 个文件</h3>` +
+    `<p class="dimtext">本模块页认领的全部文件，共 ${fmtLines(linesOf(files))}</p>` +
     `<ul class="flist${more ? " collapsed" : ""}">${files.map(fileItem).join("")}</ul>` +
     (more ? `<button class="morebtn">展开全部 ${files.length} 个</button>` : "");
 }
@@ -1159,8 +1177,11 @@ function districtPanel(id) {
   const scen = FLOWS.map((f, i) => [f, i])
     .filter(([f]) => f.steps.some(s => inSet.has(s.from) || inSet.has(s.to)))
     .map(([f, i]) => `<span class="chip" data-flow="${i}" data-step="0">${f.title}</span>`);
+  const df = districtFiles(id);
   return head +
-    `<h3>包含模块 · ${codes.length}</h3>` + chips(codes.map(c => nodeChip(c))) +
+    `<h3>包含模块 · ${codes.length}</h3>` +
+    (df.length ? `<p class="dimtext">共 ${df.length} 个文件 · ${fmtLines(linesOf(df))}</p>` : "") +
+    chips(codes.map(c => nodeChip(c))) +
     `<h3>跨区往来 · ${cross.length}</h3>` + chips(cross) +
     `<h3>参与场景</h3>` + chips(scen);
 }
