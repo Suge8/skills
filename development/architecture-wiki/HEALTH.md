@@ -4,7 +4,7 @@
 
 ## 命令（写死，不开配置口）
 
-1. **死代码/循环依赖**：按 [LANGUAGES.md](./LANGUAGES.md) 体检表跑对应语言命令。JS/TS 为 `npx -y knip@5 --reporter json --include files,exports,cycles`（钉主版本：跨大版本 CLI 会变，@latest 会让体检静默变行为）；退出码非零 = 有发现，不是失败。
+1. **死代码/循环依赖**：按 [LANGUAGES.md](./LANGUAGES.md) 体检表跑对应语言命令（命令原文以表为准，钉主版本：跨大版本 CLI 会变，@latest 会让体检静默变行为）；退出码非零 = 有发现，不是失败。
 2. **高危热点**：零依赖 git 管道——`git log --since="12 months ago" --name-only --pretty=format: | sort | uniq -c | sort -rn` 得每文件 churn，乘以当前行数（`wc -l`），取乘积前 10（或到明显断层处）且仍存在的源码文件。
 3. **断点**：JS/TS 取 code-map 输出的 `error`（解析失败）与 `unresolved`（悬空相对导入）；其他语言为读码时确认的悬空引用，逐条注明出处。盲区如实注明：模板字符串动态导入对静态解析不可见（不进 imports 也不进 unresolved），靠死文件复核与工人边界回报兜底，断点小节末尾固定带一句此说明。
 
