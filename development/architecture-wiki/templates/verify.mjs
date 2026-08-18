@@ -309,6 +309,9 @@ if (!existsSync(htmlPath)) {
 }
 
 // 6. data.json (when present): graph completeness + geometry red lines.
+const NODE_M = 0.18;   // 穿楼判定的收缩量：宁漏报不误报
+const rectOf = (n, m = NODE_M) => [n.x + m, n.y + m, n.x + (n.w ?? 1.1) - m, n.y + (n.d ?? 1.1) - m];
+
 const HEALTH_KEYS = new Set(["dead", "cycles", "hotspot", "breaks"]);
 const dataPath = join(here, "data.json");
 if (existsSync(dataPath)) {
@@ -432,9 +435,36 @@ function checkAisles(d, nodes, districts) {
   if (hits.length)
     notices.push(`${hits.length} 条连线斜贯多个无关分区（加 via 航点走通道，或把分区沿 x 重排不要堆成对角线）：${hits.slice(0, 5).join("、")}${hits.length > 5 ? " …" : ""}`);
 }
+/* 绕行航点建议：避障是几何计算，不该让写 wiki 的人手算坐标。
+   候选取各楼四边中点与四角的外侧，选两段都不穿楼、绕路最短的那个。*/
+function suggestVia(p, q, nodes, skip) {
+  const G = 0.9;
+  const cands = [];
+  for (const n of nodes) {
+    const [x0, y0, x1, y1] = rectOf(n, 0);
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    cands.push([cx, y0 - G], [cx, y1 + G], [x0 - G, cy], [x1 + G, cy],
+      [x0 - G, y0 - G], [x1 + G, y0 - G], [x0 - G, y1 + G], [x1 + G, y1 + G]);
+  }
+  const blocked = (a, b) => nodes.some((n) => {
+    if (skip.has(n.code)) return false;
+    const [x0, y0, x1, y1] = rectOf(n);
+    return segHitsRect(a[0], a[1], b[0], b[1], x0, y0, x1, y1);
+  });
+  const insideAny = (m) => nodes.some((n) => {
+    const [x0, y0, x1, y1] = rectOf(n, -0.3);
+    return m[0] > x0 && m[0] < x1 && m[1] > y0 && m[1] < y1;
+  });
+  let best = null, bestCost = Infinity;
+  for (const m of cands) {
+    if (insideAny(m) || blocked(p, m) || blocked(m, q)) continue;
+    const cost = Math.hypot(m[0] - p[0], m[1] - p[1]) + Math.hypot(q[0] - m[0], q[1] - m[1]);
+    if (cost < bestCost) { bestCost = cost; best = m; }
+  }
+  return best;
+}
 function checkCrossings(d, nodes) {
   const NM = {}; nodes.forEach((n) => NM[n.code] = n);
-  const M = 0.18;
   const center = (n) => [n.x + (n.w ?? 1.1) / 2, n.y + (n.d ?? 1.1) / 2];
   const edges = [
     ...(d.links || []).map((l) => ({ ...l, tag: `link ${l.from}→${l.to}` })),
@@ -444,16 +474,18 @@ function checkCrossings(d, nodes) {
     const a = NM[e.from], b = NM[e.to];
     if (!a || !b) continue;
     const pts = [center(a), ...(e.via || []), center(b)];
+    const hit = [];
     for (const n of nodes) {
       if (n.code === e.from || n.code === e.to) continue;
-      const x0 = n.x + M, y0 = n.y + M, x1 = n.x + (n.w ?? 1.1) - M, y1 = n.y + (n.d ?? 1.1) - M;
-      for (let i = 0; i < pts.length - 1; i++) {
-        if (segHitsRect(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], x0, y0, x1, y1)) {
-          errors.push(`data.json: ${e.tag} crosses node ${n.code} footprint (route via waypoints)`);
-          break;
-        }
-      }
+      const [x0, y0, x1, y1] = rectOf(n);
+      for (let i = 0; i < pts.length - 1; i++)
+        if (segHitsRect(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], x0, y0, x1, y1)) { hit.push(n.code); break; }
     }
+    if (!hit.length) continue;
+    const via = suggestVia(center(a), center(b), nodes, new Set([e.from, e.to]));
+    errors.push(`data.json: ${e.tag} crosses ${hit.join("/")} footprint — ` + (via
+      ? `改成 "via": [[${via[0].toFixed(1)}, ${via[1].toFixed(1)}]]`
+      : `周围无可行绕路，需重排节点`));
   }
 }
 
