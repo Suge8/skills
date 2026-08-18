@@ -229,7 +229,25 @@
   #panel h3 + .dimtext { margin: -4px 0 6px; font-size: 11px; line-height: 1.5; }
   #panel .flist.collapsed li:nth-child(n+9) { display: none; }
   #panel li.fi { display: flex; align-items: baseline; gap: 6px; }
-  #panel li.fi .loc { margin-left: auto; font: 10.5px var(--mono); color: var(--ink-soft); flex-shrink: 0; }
+  #panel li.fi .loc {
+    position: relative; margin-left: auto; flex-shrink: 0; padding-bottom: 5px; width: 46px;
+    font: 11px var(--mono); color: var(--ink-soft); text-align: right; font-variant-numeric: tabular-nums;
+  }
+  /* 行数下的条：相对本清单最大值占满 56px 轨道，扫一眼就知道哪个文件重 */
+  #panel li.fi .loc::before {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 3px; border-radius: 2px;
+    background: color-mix(in srgb, var(--ink) 7%, transparent);
+  }
+  #panel li.fi .loc i {
+    position: absolute; right: 0; bottom: 1px; height: 3px; border-radius: 2px;
+    background: color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  #panel .statrow { display: flex; gap: 7px; margin: 5px 0 9px; }
+  #panel .sv {
+    flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 7px 11px; font: 700 15px var(--mono); color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  #panel .sv em { display: block; font: 400 10.5px var(--sans); font-style: normal; color: var(--ink-soft); margin-top: 1px; }
   #panel .morebtn {
     font: 600 11.5px var(--sans); background: var(--surface); border: 1px solid var(--line);
     border-radius: 8px; padding: 5px 11px; cursor: pointer; color: var(--ink-soft); margin-top: 3px;
@@ -984,13 +1002,20 @@ const tabPage = document.getElementById("tabPage"), tabRel = document.getElement
 const FILES = DATA.files || {};          // { 仓库相对路径: 行数 }
 const FILE_KEYS = Object.keys(FILES);
 const linesOf = fs => fs.reduce((s, f) => s + (FILES[f] || 0), 0);
-const fmtLines = n => n >= 10000 ? (n / 10000).toFixed(1) + " 万行" : n.toLocaleString() + " 行";
-const fileItem = s => {
-  const loc = FILES[s] ? `<span class="loc">${FILES[s]}</span>` : "";
-  return DATA.meta.repoUrl
-    ? `<li class="fi">${ic("file", 11)}<a class="src" target="_blank" href="${DATA.meta.repoUrl}/${s}"><code>${s}</code></a>${loc}</li>`
-    : `<li class="fi src" data-path="${s}">${ic("file", 11)}<code>${s}</code>${loc}</li>`;
-};
+const fmtLines = n => n >= 10000 ? [(n / 10000).toFixed(1), "万行"] : [n.toLocaleString(), "行"];
+function fileRows(files, bars = true) {
+  const max = bars ? Math.max(1, ...files.map(f => FILES[f] || 0)) : 0;
+  return files.map(s => {
+    const n = FILES[s] || 0;
+    const bar = max && n ? `<i style="width:${Math.max(6, Math.round(n / max * 100))}%"></i>` : "";
+    const loc = n ? `<span class="loc">${bar}${n}</span>` : "";
+    return DATA.meta.repoUrl
+      ? `<li class="fi">${ic("file", 11)}<a class="src" target="_blank" href="${DATA.meta.repoUrl}/${s}"><code>${s}</code></a>${loc}</li>`
+      : `<li class="fi src" data-path="${s}">${ic("file", 11)}<code>${s}</code>${loc}</li>`;
+  }).join("");
+}
+const statRow = pairs => `<div class="statrow">` +
+  pairs.map(([v, k]) => `<span class="sv">${v}<em>${k}</em></span>`).join("") + `</div>`;
 function coversOf(pageRef) {
   const m = (WIKI[(pageRef || "").split("#")[0]] || "").match(/^---\n([\s\S]*?)\n---/);
   if (!m) return [];
@@ -1021,15 +1046,15 @@ const districtFiles = id => {
 function srcList(a) {
   if (!a?.length) return "";
   return `<h3>关键出处</h3><p class="dimtext">支撑本页论断的锚点文件，它们改动会触发 wiki 同步检查</p><ul>` +
-    a.map(fileItem).join("") + "</ul>";
+    fileRows(a, false) + "</ul>";
 }
 function scopeList(pageRef) {
   const files = filesOf(pageRef);
   if (!files.length) return "";
   const more = files.length > 8;
-  return `<h3>管辖范围 · ${files.length} 个文件</h3>` +
-    `<p class="dimtext">本模块页认领的全部文件，共 ${fmtLines(linesOf(files))}</p>` +
-    `<ul class="flist${more ? " collapsed" : ""}">${files.map(fileItem).join("")}</ul>` +
+  return `<h3>管辖范围</h3><p class="dimtext">本模块页认领的全部文件</p>` +
+    statRow([[files.length, "个文件"], fmtLines(linesOf(files))]) +
+    `<ul class="flist${more ? " collapsed" : ""}">${fileRows(files)}</ul>` +
     (more ? `<button class="morebtn">展开全部 ${files.length} 个</button>` : "");
 }
 const kicker = (icn, label, color) =>
@@ -1179,8 +1204,8 @@ function districtPanel(id) {
     .map(([f, i]) => `<span class="chip" data-flow="${i}" data-step="0">${f.title}</span>`);
   const df = districtFiles(id);
   return head +
-    `<h3>包含模块 · ${codes.length}</h3>` +
-    (df.length ? `<p class="dimtext">共 ${df.length} 个文件 · ${fmtLines(linesOf(df))}</p>` : "") +
+    (df.length ? statRow([[codes.length, "个模块"], [df.length, "个文件"], fmtLines(linesOf(df))]) : "") +
+    `<h3>包含模块</h3>` +
     chips(codes.map(c => nodeChip(c))) +
     `<h3>跨区往来 · ${cross.length}</h3>` + chips(cross) +
     `<h3>参与场景</h3>` + chips(scen);
