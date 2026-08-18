@@ -1106,15 +1106,20 @@ function pageBody(pageRef) {
 /* 分区清单：与模块/文件清单同形，总览页的主体 */
 function districtRows() {
   const rows = DATA.districts.map(d => {
-    const fs = districtFiles(d.id);
-    return { d, mods: districtNodes(d.id).length, files: fs.length, lines: linesOf(fs) };
+    const ns = districtNodes(d.id).map(c => N[c]), fs = districtFiles(d.id);
+    const mods = ns.filter(n => n.form !== "external").length;
+    return { d, mods, exts: ns.length - mods, files: fs.length, lines: linesOf(fs) };
   }).sort((a, b) => b.lines - a.lines);
   const max = Math.max(1, ...rows.map(r => r.lines));
-  return `<ul class="flist">` + rows.map(r =>
-    `<li class="fi mod" data-district="${r.d.id}">${ic(r.d.icon, 11)}<span class="mn">${r.d.label}</span>` +
-    `<span class="sub">${r.mods} 模块${r.files ? ` · ${r.files} 文件` : ""}</span>` +
-    (r.lines ? `<span class="loc bar"><i style="width:${Math.max(6, Math.round(r.lines / max * 100))}%"></i>${r.lines}</span>` : "") +
-    `</li>`).join("") + `</ul>`;
+  return `<ul class="flist">` + rows.map(r => {
+    // 外部系统在仓库之外，本就没有行数——写明它是外部，而不是留个空白像数据缺失
+    const sub = [r.mods && `${r.mods} 模块`, r.exts && `${r.exts} 外部系统`, r.files && `${r.files} 文件`]
+      .filter(Boolean).join(" · ");
+    return `<li class="fi mod" data-district="${r.d.id}">${ic(r.d.icon, 11)}<span class="mn">${r.d.label}</span>` +
+      `<span class="sub">${sub}</span>` +
+      (r.lines ? `<span class="loc bar"><i style="width:${Math.max(6, Math.round(r.lines / max * 100))}%"></i>${r.lines}</span>`
+               : `<span class="loc">—</span>`) + `</li>`;
+  }).join("") + `</ul>`;
 }
 function systemPanel() {
   const m = DATA.meta;
@@ -1125,7 +1130,7 @@ function systemPanel() {
   for (const d of DATA.districts) for (const f of districtFiles(d.id)) all.add(f);
   const files = [...all];
   return kicker("globe", "系统") + `<h2>${m.headline}</h2>` +
-    statRow([[DATA.districts.length, "个分区"], [DATA.nodes.length, "个模块"],
+    statRow([[DATA.districts.length, "个分区"], [DATA.nodes.filter(n => n.form !== "external").length, "个模块"],
       [files.length, "个文件"], fmtLines(linesOf(files))]) +
     `<h3>分区</h3>` + districtRows() +
     `<h3>场景</h3>` + chips(FLOWS.map((f, i) =>
@@ -1251,8 +1256,10 @@ function districtPanel(id) {
     .filter(([f]) => f.steps.some(s => inSet.has(s.from) || inSet.has(s.to)))
     .map(([f, i]) => `<span class="chip" data-flow="${i}" data-step="0">${f.title}</span>`);
   const df = districtFiles(id);
+  const mods = codes.filter(c => N[c].form !== "external").length;
   return head +
-    (df.length ? statRow([[codes.length, "个模块"], [df.length, "个文件"], fmtLines(linesOf(df))]) : "") +
+    (df.length ? statRow([[mods, "个模块"], [df.length, "个文件"], fmtLines(linesOf(df))])
+      : `<p class="dimtext">本区是仓库之外的系统，不含本仓库代码。</p>`) +
     `<h3>包含模块</h3>` + moduleRows(codes) +
     `<h3>跨区往来 · ${cross.length}</h3>` + chips(cross) +
     `<h3>参与场景</h3>` + chips(scen);
