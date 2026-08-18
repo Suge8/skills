@@ -1,5 +1,6 @@
 ---
 name: promo
+disable-model-invocation: true
 description: 制作项目宣传物料：Hero/OG/社媒图、商店截图、README 配图和演示 GIF/视频。根据项目现状产出到 design/promo/；应用 UI 用 ui-craft，单独 Logo 用 gpt-image。
 ---
 
@@ -17,13 +18,13 @@ description: 制作项目宣传物料：Hero/OG/社媒图、商店截图、READM
 
 按用途列菜单（缺的标出来），等用户挑，不全做：
 
-| 物料 | 用在哪 | 分支 |
-|---|---|---|
-| Logo / 3D 资产系列 | 应用内、README、社媒头像 | [VISUAL.md](./VISUAL.md) 链 A |
-| AI 宣传底图（hero/OG/社媒） | 官网首屏、GitHub social、推文卡片 | [VISUAL.md](./VISUAL.md) 链 B |
-| 产品截图（美化合成） | README hero、商店图库、Product Hunt | [SHOTS.md](./SHOTS.md) |
-| 演示 GIF / 视频 | README、社媒、商店 | [MOTION.md](./MOTION.md) |
-| 配套文案（标题/口号） | 叠加在图上、社媒帖 | copywriting → stop-slop |
+| 物料                        | 用在哪                              | 分支                          |
+| --------------------------- | ----------------------------------- | ----------------------------- |
+| Logo / 3D 资产系列          | 应用内、README、社媒头像            | [VISUAL.md](./VISUAL.md) 链 A |
+| AI 宣传底图（hero/OG/社媒） | 官网首屏、GitHub social、推文卡片   | [VISUAL.md](./VISUAL.md) 链 B |
+| 产品截图（美化合成）        | README hero、商店图库、Product Hunt | [SHOTS.md](./SHOTS.md)        |
+| 演示 GIF / 视频             | README、社媒、商店                  | [MOTION.md](./MOTION.md)      |
+| 配套文案（标题/口号）       | 叠加在图上、社媒帖                  | copywriting → stop-slop       |
 
 ## Step 2 — 生产纪律
 
