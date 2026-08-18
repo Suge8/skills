@@ -12,7 +12,8 @@ const tplPath = process.argv[2] ||
   join(dirname(fileURLToPath(import.meta.url)), "../templates/architecture.html");
 
 const DATA = {
-  meta: { title: "烟测", headline: "烟测系统", stats: [["行数", "1k"]] },
+  meta: { title: "烟测", headline: "烟测系统", stats: [["行数", "1k"]],
+    logo: '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="">' },
   health: { files: 100, dead: 2, suspects: 3, deadExports: 10, cycles: 0, breaks: 0 },
   wiki: { "index.md": "# 索引", "system.md": "# 系统", "health.md": "# 体检\n正文" },
   districts: [{ id: "a", label: "分区A", icon: "cube", r: [0, 0, 8, 6] }],
@@ -41,8 +42,8 @@ const r = spawnSync(chrome, ["--headless", "--disable-gpu", "--dump-dom",
 const dom = (r.stdout || "").replace(/<script>[\s\S]*?<\/script>/g, "");
 const uncaught = ((r.stderr || "").match(/"Uncaught[^\n]*/g) || []);
 
-// 每个断言对应一条独立渲染管线：导航/建筑、体检按钮与分数、分区名牌、场景条、面板首屏
-const musts = ['data-code="N1"', 'id="btnHealth"', 'class="score">', "分区A", 'data-f="0"', "烟测系统"];
+// 每个断言对应一条独立渲染管线：导航/建筑、体检按钮与分数、分区名牌、场景条、面板首屏、logo 派生的 favicon
+const musts = ['data-code="N1"', 'id="btnHealth"', 'class="score">', "分区A", 'data-f="0"', "烟测系统", 'rel="icon"'];
 const missing = musts.filter((m) => !dom.includes(m));
 
 if (missing.length || uncaught.length) {

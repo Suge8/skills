@@ -584,6 +584,20 @@ document.getElementById("hdr").innerHTML =
      <button id="btnStep" class="compact" title="单步">${ic("stepfwd")}<span class="lb">单步</span></button>
      <button id="btnReset" class="compact" title="重置取景">${ic("reset")}<span class="lb">重置</span></button>
    </div>`;
+/* favicon 从 logo 派生，不另设字段：img 复用其 data URI，内联 SVG 序列化成 data URI（补 xmlns） */
+if (DATA.meta.logo) {
+  const img = DATA.meta.logo.match(/src="(data:[^"]+)"/);
+  const svg = DATA.meta.logo.startsWith("<svg")
+    ? "data:image/svg+xml," + encodeURIComponent(
+        DATA.meta.logo.includes("xmlns") ? DATA.meta.logo : DATA.meta.logo.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"'))
+    : null;
+  const href = img ? img[1] : svg;
+  if (href) {
+    const l = document.createElement("link");
+    l.rel = "icon"; l.href = href;
+    document.head.appendChild(l);
+  }
+}
 
 /* ── 数据索引 ── */
 const N = {}; DATA.nodes.forEach(n => { n.w ??= 1.1; n.d ??= 1.1; n.h ??= 0.8; N[n.code] = n; });
