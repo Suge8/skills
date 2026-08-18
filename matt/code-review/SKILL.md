@@ -9,7 +9,7 @@ description: 实现完成或用户要求审查当前工作时，通过 FireRevie
 
 ### 调用方式
 
-使用 bash 运行本目录的 [`request-review.sh`](request-review.sh)。默认直接无参调用（FireReview 会自动提取上下文与代码改动）；仅在用户明确指定了审查关注点时，才将重点文本作为参数传入。
+使用 bash 运行本目录的 [`request-review.sh`](request-review.sh)。默认直接无参调用（FireReview 会自动提取本次会话上下文与代码改动，审查对象为本次会话中工作内容）。
 
 ### 运行机制与自动闭环
 
