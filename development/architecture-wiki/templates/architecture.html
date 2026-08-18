@@ -32,7 +32,14 @@
   nav, #panel, .hmodal, #flowbar { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 25%, transparent) transparent; }
   #panel, .hmodal { text-wrap: pretty; }
   /* 按下反馈：独立 scale/translate 属性不碰既有 transform/transition，可中断回弹；按压 80ms 释放 160ms */
-  .tabs button, #flowbar button, #panel .chip, #panel .morebtn, .hmodal .hclose { transition: scale .16s cubic-bezier(.2, 0, 0, 1); }
+  #panel .chip, #panel .morebtn, .hmodal .hclose { transition: scale .16s cubic-bezier(.2, 0, 0, 1); }
+  /* 分段控件滑动指示器：选中态是一枚在按钮间滑动的药丸，位置/宽度由 JS 实测驱动 */
+  .seg-ind {
+    position: absolute; top: 3px; bottom: 3px; left: 0; z-index: 0; border-radius: 8px; pointer-events: none;
+    transition: translate .26s cubic-bezier(.22, 1, .36, 1), width .26s cubic-bezier(.22, 1, .36, 1);
+  }
+  .tabs .seg-ind { background: var(--card); border: 1px solid var(--line); }
+  #flowbar .seg-ind { border-radius: 9px; background: var(--accent); }
   header button:active, .tabs button:active, #flowbar button:active, #panel .chip:active, #panel .morebtn:active, .vstat:active { scale: .96; transition-duration: .08s; }
   .hmodal .hclose:active, nav .grp .chev:active { scale: .92; transition-duration: .08s; }
   nav .item:active, nav .grp:active, #panel .steps li:active, #panel li.fi.mod:active { translate: 0 1px; }
@@ -211,10 +218,12 @@
     box-shadow: var(--shadow-float);
   }
   #flowbar button {
+    position: relative; z-index: 1;
     font: 600 11.5px var(--sans); border: 1px solid transparent; background: none;
     color: var(--ink-soft); padding: 5px 12px; border-radius: 9px; cursor: pointer; white-space: nowrap;
+    transition: color .16s, scale .16s cubic-bezier(.2, 0, 0, 1);
   }
-  #flowbar button.on { background: var(--accent); color: #FFF; }
+  #flowbar button.on { color: #FFF; }
   /* 图例：虚实两种边是不同语义，不解释等于没编码。无壳居中，纯注记不抢画布 */
   #legend {
     position: absolute; left: 50%; transform: translateX(-50%); bottom: 12px; z-index: 4;
@@ -229,13 +238,14 @@
     width: var(--asidew);
     display: flex; flex-direction: column; flex-shrink: 0;
   }
-  .tabs { display: flex; gap: 4px; margin: 10px 12px 0; background: var(--surface); border-radius: 11px; padding: 3px; }
+  .tabs { position: relative; display: flex; gap: 4px; margin: 10px 12px 0; background: var(--surface); border-radius: 11px; padding: 3px; }
   .tabs button {
-    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
     font: 600 12.5px var(--sans); padding: 7px 0; border-radius: 8px;
     background: none; color: var(--ink-soft); border: 1px solid transparent; cursor: pointer;
+    transition: color .16s, scale .16s cubic-bezier(.2, 0, 0, 1);
   }
-  .tabs button.on { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .tabs button.on { color: var(--ink); }
   #panel { flex: 1; overflow-y: auto; padding: 16px 20px 30px; }
   #panel .kicker {
     display: flex; align-items: center; gap: 7px;
@@ -391,7 +401,7 @@
   @media (prefers-reduced-motion: reduce) {
     #selring, #svg g.b.hop { animation: none; }
     #svg g.b:not([data-plate]):hover { transform: none; }
-    nav, aside, .handle, .isw .ic { transition: none; }
+    nav, aside, .handle, .isw .ic, .seg-ind { transition: none; }
   }
   /* 窄屏：两栏转为固定抽屉，把手停靠屏幕边缘 */
   @media (max-width: 1080px) {
@@ -947,6 +957,7 @@ function showEdgeTag(label, ev) {
 }
 buildEdges(allSteps());   // 初始总览：全部场景的线都在流动
 
+let vbT = null;   // 滚轮缩放的追赶目标；手势平移/捿合直写 vb 不经过它
 (function tick(prev) {
   requestAnimationFrame(now => {
     const dt = prev ? Math.min(now - prev, 50) : 16;
@@ -955,19 +966,41 @@ buildEdges(allSteps());   // 初始总览：全部场景的线都在流动
       const off = (-d.t * d.period).toFixed(1);
       for (const s of d.ss) s.setAttribute("stroke-dashoffset", off);
     }
+    if (vbT) {   // 指数平滑追赶：每步滚轮只改目标，画面柔和地跟上
+      const a = 1 - Math.exp(-dt / 55);
+      vb.x += (vbT.x - vb.x) * a; vb.y += (vbT.y - vb.y) * a;
+      vb.w += (vbT.w - vb.w) * a; vb.h += (vbT.h - vb.h) * a;
+      if (Math.abs(vbT.w - vb.w) + Math.abs(vbT.x - vb.x) + Math.abs(vbT.y - vb.y) < vbT.w * .002) { vb = { ...vbT }; vbT = null; }
+      applyVB();
+    }
     tick(now);
   });
 })();
 
 /* ── 场景切换 ── */
 const flowbar = document.getElementById("flowbar");
+/* 滑动指示器：首次创建不播入场，之后位置/宽度变化由 CSS 过渡接管，可中断 */
+function segInd(box) {
+  if (!box || box.hidden) return;
+  let ind = box.querySelector(".seg-ind");
+  const fresh = !ind;
+  if (fresh) { ind = document.createElement("div"); ind.className = "seg-ind"; box.prepend(ind); }
+  const on = box.querySelector("button.on");
+  if (!on) { ind.style.width = "0px"; return; }
+  if (fresh) ind.style.transition = "none";
+  ind.style.translate = on.offsetLeft + "px 0";
+  ind.style.width = on.offsetWidth + "px";
+  if (fresh) requestAnimationFrame(() => ind.style.transition = "");
+}
 function syncFlowbar() {
-  [...flowbar.children].forEach(b => b.classList.toggle("on", +b.dataset.f === activeFlow));
+  [...flowbar.children].forEach(b => b.tagName === "BUTTON" && b.classList.toggle("on", +b.dataset.f === activeFlow));
+  segInd(flowbar);
 }
 if (FLOWS.length) {
   flowbar.hidden = false;
   flowbar.innerHTML = `<button data-f="-1" class="on">总览</button>` +
     FLOWS.map((f, i) => `<button data-f="${i}">${f.title}</button>`).join("");
+  segInd(flowbar);
   flowbar.addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     const i = +b.dataset.f;
@@ -1284,10 +1317,17 @@ function openHealth(anchor) {
   healthBody.querySelectorAll("[data-hsec]").forEach(el =>
     el.addEventListener("click", () => scrollToSection(healthBody, el.dataset.hsec)));
   const gfg = healthBody.querySelector(".gauge .gfg");
-  if (gfg && motionOK) {   // 入场：从 0 长到得分
+  if (gfg && motionOK) {   // 入场：圆环从 0 长到得分，数字同节奏数上去
     const off = gfg.getAttribute("stroke-dashoffset");
     gfg.setAttribute("stroke-dashoffset", gfg.getAttribute("stroke-dasharray"));
     requestAnimationFrame(() => requestAnimationFrame(() => gfg.setAttribute("stroke-dashoffset", off)));
+    const gs = healthBody.querySelector(".gscore");
+    const end = +gs.firstChild.textContent, t0 = performance.now();
+    (function cnt(now) {
+      const k = Math.min((now - t0) / 700, 1);
+      gs.firstChild.textContent = Math.round(end * (1 - (1 - k) ** 3));
+      if (k < 1) requestAnimationFrame(cnt);
+    })(t0);
   }
   requestAnimationFrame(() => scrollToSection(healthBody, anchor));
 }
@@ -1406,8 +1446,14 @@ function render() {
   if (typeof sel === "object" && sel) scrollToAnchor(sel.flow != null ? FLOWS[sel.flow].page : sel.page);
   else if (typeof sel === "string" && !sel.startsWith("L") && tab === "page") scrollToAnchor(N[sel]?.page);
 }
-tabPage.onclick = () => { tab = "page"; tabPage.classList.add("on"); tabRel.classList.remove("on"); render(); };
-tabRel.onclick = () => { tab = "rel"; tabRel.classList.add("on"); tabPage.classList.remove("on"); render(); };
+const tabsBox = document.querySelector(".tabs");
+tabPage.onclick = () => { tab = "page"; tabPage.classList.add("on"); tabRel.classList.remove("on"); segInd(tabsBox); render(); };
+tabRel.onclick = () => { tab = "rel"; tabRel.classList.add("on"); tabPage.classList.remove("on"); segInd(tabsBox); render(); };
+segInd(tabsBox);
+/* 面板拖宽、窗口变化都会改变按钮几何，指示器跟着容器尺寸重测 */
+const segRO = new ResizeObserver(() => { segInd(tabsBox); segInd(flowbar); });
+segRO.observe(tabsBox);
+if (FLOWS.length) segRO.observe(flowbar);
 
 /* ── 聚焦 ── */
 function focusSet(set) {
@@ -1596,12 +1642,13 @@ function fitHome() {
 const HOME = fitHome();
 let vb = { ...HOME }, homeView = true;
 const applyVB = () => svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-document.getElementById("btnReset").onclick = () => { stopFlowVisual(); select(null); vb = { ...HOME }; homeView = true; applyVB(); };
+document.getElementById("btnReset").onclick = () => { stopFlowVisual(); select(null); vbT = null; vb = { ...HOME }; homeView = true; applyVB(); };
 new ResizeObserver(() => { if (homeView) applyVB(); }).observe(stage);
 let pan = null, moved = false, pinch = null;
 const touches = new Map();
 stage.addEventListener("pointerdown", e => {
   if (e.target.closest(".b") || e.target.closest(".lk") || e.target.closest("#flowbar")) return;
+  if (vbT) { vb = { ...vbT }; vbT = null; applyVB(); }   // 手势接管前先把追赶中的缩放落定
   touches.set(e.pointerId, [e.clientX, e.clientY]);
   stage.setPointerCapture(e.pointerId);
   if (touches.size === 2) {   // 双指捿合：以按下时取景为基准缩放
@@ -1649,11 +1696,13 @@ stage.addEventListener("pointerup", e => {
 stage.addEventListener("wheel", e => {
   e.preventDefault();
   const k = e.deltaY > 0 ? 1.12 : 1 / 1.12;
+  const b = vbT || vb;   // 连续滚轮在目标上复利，锚点映射才不漂
   const r = svg.getBoundingClientRect();
-  const mx = vb.x + (e.clientX - r.left) / r.width * vb.w;
-  const my = vb.y + (e.clientY - r.top) / r.height * vb.h;
-  vb = { x: mx - (mx - vb.x) * k, y: my - (my - vb.y) * k, w: vb.w * k, h: vb.h * k };
-  homeView = false; applyVB();
+  const mx = b.x + (e.clientX - r.left) / r.width * b.w;
+  const my = b.y + (e.clientY - r.top) / r.height * b.h;
+  const t = { x: mx - (mx - b.x) * k, y: my - (my - b.y) * k, w: b.w * k, h: b.h * k };
+  homeView = false;
+  if (motionOK) vbT = t; else { vb = t; applyVB(); }
 }, { passive: false });
 
 applyVB();
