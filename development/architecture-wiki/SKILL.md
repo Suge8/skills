@@ -2,6 +2,7 @@
 name: architecture-wiki
 disable-model-invocation: true
 description: 在目标仓库建立并维护 docs/architecture/：Markdown wiki 事实源 + 自包含可视化 + verify 过期检查接入 lint/CI，附死代码/循环依赖/热点体检页。
+compatibility: 需要 Node.js 18+ 与 git；JS/TS 仓库的依赖图另需 bun 或 npm。
 ---
 
 # Architecture Wiki

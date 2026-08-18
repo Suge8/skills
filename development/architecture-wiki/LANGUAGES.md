@@ -17,7 +17,7 @@
 
 | 语言 | 命令 |
 | --- | --- |
-| JS/TS | `npx -y knip@latest --reporter json --include files,exports,cycles` |
+| JS/TS | `npx -y knip@5 --reporter json --include files,exports,cycles` |
 | Go | `go run golang.org/x/tools/cmd/deadcode@latest ./...` |
 | Rust | `cargo +nightly udeps`（未用依赖；死代码由编译器 dead_code 告警承担） |
 | Python | `vulture .`（需 pip 安装，先询问用户） |
