@@ -348,6 +348,14 @@ function checkData(d) {
     }
   }
   for (const n of nodes) {
+    // 坐标没有合理默认值：缺了会算出 NaN，SVG 会静默丢弃图形而不报错
+    for (const k of ["x", "y"])
+      if (typeof n[k] !== "number" || !Number.isFinite(n[k]))
+        errors.push(`data.json: node ${n.code} missing numeric ${k}`);
+    for (const k of ["w", "d", "h"])
+      if (n[k] !== undefined && (typeof n[k] !== "number" || !(n[k] > 0)))
+        errors.push(`data.json: node ${n.code} invalid ${k} (must be a positive number)`);
+    if (!n.name) errors.push(`data.json: node ${n.code} missing name`);
     if (!touched.has(n.code))
       errors.push(`data.json: orphan node ${n.code} (no link or flow touches it)`);
     if (n.page && !existsSync(join(wikiDir, n.page.split("#")[0])))
@@ -365,6 +373,7 @@ function checkData(d) {
       errors.push(`data.json: node ${n.code} outside district ${dd.id}`);
   }
   checkCrossings(d, nodes);
+  checkAisles(d, nodes, districts);
   // Geometry red lines (slightly looser than RENDER.md recommendations).
   for (let i = 0; i < nodes.length; i++)
     for (let j = i + 1; j < nodes.length; j++) {
@@ -397,6 +406,31 @@ function segHitsRect(ax, ay, bx, by, x0, y0, x1, y1) {
   };
   const sides = [[x0, y0, x1, y0], [x1, y0, x1, y1], [x1, y1, x0, y1], [x0, y1, x0, y0]];
   return sides.some(([sx, sy, ex, ey]) => segsIntersect(ax, ay, bx, by, sx, sy, ex, ey));
+}
+/* 没有航点却横穿无关分区的连线：不阻断，但提示——这是布局排成对角线的典型信号 */
+function checkAisles(d, nodes, districts) {
+  const NM = {}; nodes.forEach((n) => NM[n.code] = n);
+  const center = (n) => [n.x + (n.w ?? 1.1) / 2, n.y + (n.d ?? 1.1) / 2];
+  const edges = [
+    ...(d.links || []).map((l) => ({ ...l, tag: `${l.from}→${l.to}` })),
+    ...(d.flows || []).flatMap((f) => (f.steps || []).map((s) => ({ ...s, tag: `${f.title}/${s.from}→${s.to}` }))),
+  ];
+  const hits = [];
+  for (const e of edges) {
+    if (e.via?.length) continue;   // 已经手工路由过的不管
+    const a = NM[e.from], b = NM[e.to];
+    if (!a || !b) continue;
+    const [p, q] = [center(a), center(b)];
+    let crossed = 0;
+    for (const dd of districts) {
+      if (dd.id === a.district || dd.id === b.district) continue;
+      const [x, y, w, h] = dd.r;
+      if (segHitsRect(p[0], p[1], q[0], q[1], x, y, x + w, y + h)) crossed++;
+    }
+    if (crossed >= 2) hits.push(`${e.tag}（穿 ${crossed} 区）`);   // 穿一个区是正常跨区，穿两个以上才是斜贯全图
+  }
+  if (hits.length)
+    notices.push(`${hits.length} 条连线斜贯多个无关分区（加 via 航点走通道，或把分区沿 x 重排不要堆成对角线）：${hits.slice(0, 5).join("、")}${hits.length > 5 ? " …" : ""}`);
 }
 function checkCrossings(d, nodes) {
   const NM = {}; nodes.forEach((n) => NM[n.code] = n);

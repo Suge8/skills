@@ -522,7 +522,7 @@ bindCollapse("handleNav", "nav-off", "导航栏");
 bindCollapse("handleAside", "aside-off", "面板");
 
 /* ── 数据索引 ── */
-const N = {}; DATA.nodes.forEach(n => { n.w ??= 1.1; n.d ??= 1.1; N[n.code] = n; });
+const N = {}; DATA.nodes.forEach(n => { n.w ??= 1.1; n.d ??= 1.1; n.h ??= 0.8; N[n.code] = n; });
 const HEALTH_SECTIONS = { dead: "死代码", cycles: "循环依赖", hotspot: "高危热点", breaks: "断点" };
 const healthTip = n => "体检：" + n.health.map(h => HEALTH_SECTIONS[h] || h).join("、");
 const DIST = {}; DATA.districts.forEach(d => DIST[d.id] = d);
