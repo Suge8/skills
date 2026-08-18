@@ -63,11 +63,14 @@
   header button.primary { background: var(--accent); color: #FFF; border-color: transparent; }
   header button.primary:hover { background: var(--accent-deep); }
   header button:not(.primary):hover { background: var(--surface); }
+  /* 体检入口：文字用墨色，分级色（--hc）只落在底色、图标与分数上 */
   header button.vitals-btn {
-    border-color: color-mix(in srgb, var(--warn) 32%, transparent); color: var(--warn);
+    --hc: var(--ink-soft);
+    background: color-mix(in srgb, var(--hc) 10%, transparent); border-color: transparent;
   }
-  header button.vitals-btn:hover { background: color-mix(in srgb, var(--warn) 8%, transparent); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
-  header button.vitals-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
+  header button.vitals-btn:hover { background: color-mix(in srgb, var(--hc) 18%, transparent); }
+  header button.vitals-btn .ic { color: var(--hc); }
+  header button.vitals-btn .score { font: 700 12px var(--mono); color: var(--hc); font-variant-numeric: tabular-nums; }
 
   dialog#healthDlg {
     border: none; padding: 0; background: none; overflow: visible;
@@ -87,9 +90,10 @@
   }
   .hmodal .hclose:hover { background: var(--surface); color: var(--ink); }
   .hmodal .hhead {
-    display: flex; align-items: center; gap: 9px; color: var(--warn);
+    display: flex; align-items: center; gap: 9px; color: var(--ink);
     font: 700 19px/1.3 var(--serif); margin: 0 0 14px;
   }
+  .hmodal .hhead .ic { color: var(--hc, var(--ink)); }
   dialog#healthDlg[open] .hmodal { animation: hin .2s cubic-bezier(.16, 1, .3, 1); }
   @keyframes hin { from { opacity: 0; transform: translateY(8px) scale(.985); } }
   main { flex: 1; display: flex; min-height: 0; gap: 10px; padding: 10px 12px 12px; position: relative; }
@@ -105,27 +109,29 @@
   }
   .handle:hover { width: 28px; background: var(--surface); color: var(--accent-deep); }
   .handle .ic { width: 13px; height: 13px; transition: transform .22s; }
-  #handleNav {
-    left: calc(12px + var(--navw)); border-left: none; border-radius: 0 24px 24px 0;
-    box-shadow: 2px 0 10px rgba(20, 20, 19, .07);
-  }
-  body.nav-off #handleNav { left: 0; }
+  /* 展开时向面板方向压 1px 盖住面板边框且不带阴影，半圆与面板融为一体；收起悬浮在屏幕边缘时才需要投影 */
+  #handleNav { left: calc(12px + var(--navw) - 1px); border-left: none; border-radius: 0 24px 24px 0; }
+  body.nav-off #handleNav { left: 0; box-shadow: 2px 0 10px rgba(20, 20, 19, .07); }
   body.nav-off #handleNav .ic { transform: rotate(180deg); }
-  #handleAside {
-    right: calc(12px + var(--asidew)); border-right: none; border-radius: 24px 0 0 24px;
-    box-shadow: -2px 0 10px rgba(20, 20, 19, .07);
-  }
+  #handleAside { right: calc(12px + var(--asidew) - 1px); border-right: none; border-radius: 24px 0 0 24px; }
   #handleAside .ic { transform: rotate(180deg); }
-  body.aside-off #handleAside { right: 0; }
+  body.aside-off #handleAside { right: 0; box-shadow: -2px 0 10px rgba(20, 20, 19, .07); }
   body.aside-off #handleAside .ic { transform: rotate(0deg); }
   /* 跨断点是布局模式切换（挤占 ↔ 覆盖），定位机制不同无法平滑，瞬间切换比半吊子动画干净 */
   body.no-anim nav, body.no-anim aside, body.no-anim .handle { transition: none; }
+  /* 拖宽把手：6px 命中区不变，可视指示是居中的小圆条 */
   #asideResize {
-    position: absolute; z-index: 25; top: 10px; bottom: 12px; width: 6px; border-radius: 3px;
+    position: absolute; z-index: 25; top: 10px; bottom: 12px; width: 6px;
     right: calc(12px + var(--asidew) - 3px); cursor: col-resize;
-    transition: right .24s cubic-bezier(.2, 0, 0, 1), background .15s;
+    transition: right .24s cubic-bezier(.2, 0, 0, 1);
   }
-  #asideResize:hover, #asideResize.on { background: color-mix(in srgb, var(--accent) 32%, transparent); }
+  #asideResize::after {
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 3px; height: 44px; border-radius: 2px;
+    background: color-mix(in srgb, var(--accent) 60%, transparent);
+    opacity: 0; transition: opacity .15s;
+  }
+  #asideResize:hover::after, #asideResize.on::after { opacity: 1; }
   body.aside-off #asideResize { display: none; }
   body.resizing nav, body.resizing aside, body.resizing .handle, body.resizing #asideResize { transition: none; }
   nav, #stage, aside {
@@ -196,13 +202,12 @@
     color: var(--ink-soft); padding: 5px 12px; border-radius: 9px; cursor: pointer; white-space: nowrap;
   }
   #flowbar button.on { background: var(--accent); color: #FFF; }
-  /* 图例：虚实两种边是不同语义，不解释等于没编码 */
+  /* 图例：虚实两种边是不同语义，不解释等于没编码。无壳居中，纯注记不抢画布 */
   #legend {
-    position: absolute; right: 12px; bottom: 12px; z-index: 4;
-    display: flex; align-items: center; gap: 15px;
-    background: var(--card); border: 1px solid var(--line); border-radius: 11px;
-    padding: 8px 14px; font: 600 11.5px var(--sans); color: var(--ink);
-    box-shadow: 0 2px 10px rgba(20, 20, 19, .07);
+    position: absolute; left: 50%; transform: translateX(-50%); bottom: 12px; z-index: 4;
+    display: flex; align-items: center; gap: 22px;
+    font: 600 11px var(--sans); color: var(--ink-soft);
+    letter-spacing: .02em; pointer-events: none;
   }
   #legend span { display: flex; align-items: center; gap: 7px; }
   #legend svg { width: 26px; height: 8px; flex-shrink: 0; }
@@ -310,7 +315,9 @@
   #panel .md-body li::marker { color: var(--accent); }
   .vitals {
     display: flex; gap: 14px; align-items: center; margin: 2px 0 16px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+    background: color-mix(in srgb, var(--hc, var(--ink)) 8%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--hc, var(--ink)) 22%, transparent);
+    border-radius: 14px; padding: 14px;
   }
   .gauge { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
   .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -382,7 +389,7 @@
       transition: transform .26s cubic-bezier(.2, 0, 0, 1);
     }
     body.nav-off nav { margin: 0; opacity: 1; transform: translateX(calc(-100% - 40px)); }
-    #handleNav { left: min(78vw, 320px); }
+    #handleNav { left: calc(min(78vw, 320px) - 1px); }
     body.nav-off #handleNav { left: 0; }
   }
   @media (max-width: 820px) {
@@ -394,7 +401,7 @@
       transition: transform .26s cubic-bezier(.2, 0, 0, 1);
     }
     body.aside-off aside { margin: 0; opacity: 1; transform: translateX(calc(100% + 40px)); }
-    #handleAside { right: min(88vw, 360px); }
+    #handleAside { right: calc(min(88vw, 360px) - 1px); }
     body.aside-off #handleAside { right: 0; }
   }
   @media (max-width: 700px) {
@@ -441,7 +448,7 @@
 <symbol id="ic-sparkle" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><path d="M84.27,171.73l-55.09-20.3a7.92,7.92,0,0,1,0-14.86l55.09-20.3,20.3-55.09a7.92,7.92,0,0,1,14.86,0l20.3,55.09,55.09,20.3a7.92,7.92,0,0,1,0,14.86l-55.09,20.3-20.3,55.09a7.92,7.92,0,0,1-14.86,0Z"/><line x1="176" y1="16" x2="176" y2="64"/><line x1="224" y1="72" x2="224" y2="104"/><line x1="152" y1="40" x2="200" y2="40"/><line x1="208" y1="88" x2="240" y2="88"/></symbol>
 <symbol id="ic-bell" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><path d="M96,192a32,32,0,0,0,64,0"/><path d="M56,104a72,72,0,0,1,144,0c0,35.82,8.3,64.6,14.9,76A8,8,0,0,1,208,192H48a8,8,0,0,1-6.88-12C47.71,168.6,56,139.81,56,104Z"/></symbol>
 <symbol id="ic-play" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><path d="M72,39.88V216.12a8,8,0,0,0,12.15,6.69l144.08-88.12a7.82,7.82,0,0,0,0-13.38L84.15,33.19A8,8,0,0,0,72,39.88Z"/></symbol>
-<symbol id="ic-stepfwd" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><line x1="200" y1="40" x2="200" y2="216"/><path d="M56,47.88V208.12a8,8,0,0,0,12.19,6.65L196.3,134.65a7.83,7.83,0,0,0,0-13.3L68.19,41.23A8,8,0,0,0,56,47.88Z"/></symbol>
+<symbol id="ic-stepfwd" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><line x1="216" y1="40" x2="216" y2="216"/><line x1="32" y1="128" x2="168" y2="128"/><polyline points="104 64 168 128 104 192"/></symbol>
 <symbol id="ic-reset" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><polyline points="24 56 24 104 72 104"/><path d="M67.59,192A88,88,0,1,0,65.77,65.77L24,104"/></symbol>
 <symbol id="ic-doc" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><path d="M200,224H56a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h96l56,56V216A8,8,0,0,1,200,224Z"/><polyline points="152 32 152 88 208 88"/><line x1="96" y1="136" x2="160" y2="136"/><line x1="96" y1="168" x2="160" y2="168"/></symbol>
 <symbol id="ic-chevron" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"><polyline points="160 208 80 128 160 48"/></symbol>
@@ -475,7 +482,7 @@
 <symbol id="ic-sparkle-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"/></symbol>
 <symbol id="ic-bell-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216Z"/></symbol>
 <symbol id="ic-play-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></symbol>
-<symbol id="ic-stepfwd-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M208,40V216a8,8,0,0,1-16,0V146.77L72.43,221.55A15.95,15.95,0,0,1,48,208.12V47.88A15.95,15.95,0,0,1,72.43,34.45L192,109.23V40a8,8,0,0,1,16,0Z"/></symbol>
+<symbol id="ic-stepfwd-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M224,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0ZM181.66,122.34l-72-72A8,8,0,0,0,96,56v64H40a8,8,0,0,0,0,16H96v64a8,8,0,0,0,13.66,5.66l72-72A8,8,0,0,0,181.66,122.34Z"/></symbol>
 <symbol id="ic-reset-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L60.63,81.29l17,17A8,8,0,0,1,72,112H24a8,8,0,0,1-8-8V56A8,8,0,0,1,29.66,50.3L49.31,70,60.25,60A96,96,0,0,1,224,128Z"/></symbol>
 <symbol id="ic-doc-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,176H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm0-32H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm-8-56V44l44,44Z"/></symbol>
 <symbol id="ic-chevron-fill" viewBox="0 0 256 256" fill="currentColor"><path d="M163.06,40.61a8,8,0,0,0-8.72,1.73l-80,80a8,8,0,0,0,0,11.32l80,80A8,8,0,0,0,168,208V48A8,8,0,0,0,163.06,40.61Z"/></symbol>
@@ -510,6 +517,27 @@ const WIKI = DATA.wiki || {};
 let activeFlow = -1;   // -1 = 总览：只画结构边，不画场景箭头
 
 const ic = (name, s = 13) => `<svg class="ic" style="width:${s}px;height:${s}px"><use href="#ic-${name}"/></svg>`;
+
+/* 体检评分：公式固化在模板，agent 只提供工具产出的计数（DATA.health）。
+   死文件/死导出按每百源文件密度扣分（大小仓库同尺）；循环与断裂按绝对条数扣（应恒为零）；疑似未确认，低权。
+   分级：≥90 健康（绿），75–89 尚可（金），60–74 亚健康（橙），<60 高危（红）。 */
+const HEALTH_GRADES = [[90, "健康", "var(--accent)"], [75, "尚可", "#B08F4C"], [60, "亚健康", "#C9704A"], [0, "高危", "var(--warn)"]];
+function healthScore() {
+  const h = DATA.health;
+  if (!h) return null;
+  const n = h.files || 100;
+  const cuts = [
+    [Math.min(25, (h.dead ?? 0) / n * 500), `清理 ${h.dead} 个死文件`],
+    [Math.min(15, (h.deadExports ?? 0) / n * 8), `删除 ${h.deadExports} 个未用导出`],
+    [Math.min(25, (h.cycles ?? 0) * 6), `拆开 ${h.cycles} 条循环依赖`],
+    [Math.min(25, (h.breaks ?? 0) * 8), `修复 ${h.breaks} 处断裂引用`],
+    [Math.min(5, (h.suspects ?? 0) * .5), `逐一确认 ${h.suspects} 个疑似死文件`],
+  ];
+  const score = Math.max(0, Math.round(100 - cuts.reduce((s, [c]) => s + c, 0)));
+  const [, grade, color] = HEALTH_GRADES.find(([t]) => score >= t);
+  return { score, grade, color, cuts };
+}
+const HS = healthScore();   // 全局健康分：按钮与体检卡共用，无 health 数据时为 null
 const icSwap = (name, s = 13) => `<span class="isw" style="width:${s}px;height:${s}px">` +
   `<svg class="ic io" style="width:${s}px;height:${s}px"><use href="#ic-${name}"/></svg>` +
   `<svg class="ic if" style="width:${s}px;height:${s}px"><use href="#ic-${name}-fill"/></svg></span>`;
@@ -528,9 +556,9 @@ document.getElementById("hdr").innerHTML =
   `<div class="statbar">` + DATA.meta.stats.map(([k, v, tip]) =>
     `<div class="stat"${tip ? ` title="${tip}"` : ""}>${ic(statIcon(k), 12)}<span class="k">${k}</span><span class="v">${v}</span></div>`
   ).join(`<span class="sep"></span>`) + `</div>` +
-  // 体检入口紧跟统计条，与品牌→统计条同一间距
+  // 体检入口紧跟统计条，分级色与分数直接上按钮，不点开也知道健康度
   (WIKI["health.md"]
-    ? `<button id="btnHealth" class="vitals-btn compact" title="体检报告">${ic("shield")}<span class="lb">体检报告</span><span class="dot"></span></button>`
+    ? `<button id="btnHealth" class="vitals-btn compact" title="体检报告"${HS ? ` style="--hc:${HS.color}"` : ""}>${ic("shield")}<span class="lb">体检报告</span>${HS ? `<span class="score">${HS.score}</span>` : ""}</button>`
     : "") +
   `<div class="spacer"></div>
    <div class="ops">
@@ -1208,22 +1236,9 @@ function pageTitle(pageRef) {
   const m = (WIKI[page] || "").replace(/^---\n[\s\S]*?\n---\n?/, "").match(/^#\s+(.+)$/m);
   return m ? m[1] : page.replace(/\.md$/, "");
 }
-/* 体检评分：公式固化在模板，agent 只提供工具产出的计数（DATA.health）。
-   死文件/死导出按每百源文件密度扣分（大小仓库同尺）；循环与断裂按绝对条数扣（应恒为零）；疑似未确认，低权。 */
 function vitalsCard() {
-  const h = DATA.health;
-  if (!h) return "";
-  const n = h.files || 100;
-  const cuts = [
-    [Math.min(25, (h.dead ?? 0) / n * 500), `清理 ${h.dead} 个死文件`],
-    [Math.min(15, (h.deadExports ?? 0) / n * 8), `删除 ${h.deadExports} 个未用导出`],
-    [Math.min(25, (h.cycles ?? 0) * 6), `拆开 ${h.cycles} 条循环依赖`],
-    [Math.min(25, (h.breaks ?? 0) * 8), `修复 ${h.breaks} 处断裂引用`],
-    [Math.min(5, (h.suspects ?? 0) * .5), `逐一确认 ${h.suspects} 个疑似死文件`],
-  ];
-  const score = Math.max(0, Math.round(100 - cuts.reduce((s, [c]) => s + c, 0)));
-  const [grade, color] = score >= 90 ? ["健康", "var(--accent)"] : score >= 75 ? ["尚可", "#B08F4C"]
-    : score >= 60 ? ["亚健康", "#C9704A"] : ["高危", "var(--warn)"];
+  if (!HS) return "";
+  const h = DATA.health, { score, grade, color, cuts } = HS;
   const advice = cuts.filter(([c]) => c >= 1).sort((a, b) => b[0] - a[0]).slice(0, 2)
     .map(([c, t]) => `<div>${t} <b style="color:${color}">≈ +${Math.round(c)} 分</b></div>`)
     .join("") || `<div>零死码零断裂，保持住就是满分状态</div>`;
@@ -1253,6 +1268,7 @@ function scrollToSection(root, name) {
   if (h) h.scrollIntoView({ block: "start" });
 }
 function openHealth(anchor) {
+  if (HS) healthBody.style.setProperty("--hc", HS.color);   // 分级色透给标题图标与评分卡背景
   healthBody.innerHTML = `<button class="hclose" title="关闭">${ic("x")}</button>` +
     `<div class="hhead">${ic("shield", 18)}<span>${pageTitle("health.md")}</span></div>` +
     vitalsCard() + mdRender(WIKI["health.md"] || "");
