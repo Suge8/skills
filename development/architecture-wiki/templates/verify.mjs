@@ -326,6 +326,14 @@ function checkData(d) {
       if (typeof v !== "number" || v < 0) errors.push(`data.json: health.${k} must be a non-negative number`);
   const nodes = d.nodes || [], districts = d.districts || [];
   const flows = d.flows || [];
+  // 分区矩形是后面所有几何检查的地基：它不合法时给可读报错，而不是让后续解构崩掉
+  const badR = new Set();
+  for (const dd of districts)
+    if (!Array.isArray(dd.r) || dd.r.length !== 4 || dd.r.some((v) => typeof v !== "number" || !Number.isFinite(v))) {
+      errors.push(`data.json: district ${dd.id} needs r: [x, y, w, h] with four finite numbers`);
+      badR.add(dd.id);
+    }
+  const geo = districts.filter((dd) => !badR.has(dd.id));
   if (d.files && (typeof d.files !== "object" || Array.isArray(d.files) ||
       Object.values(d.files).some((v) => typeof v !== "number" || v < 0)))
     errors.push("data.json: files must be an object mapping repo-relative path -> line count");
@@ -371,12 +379,12 @@ function checkData(d) {
     }
     const dd = districts.find((x) => x.id === n.district);
     if (!dd) { errors.push(`data.json: node ${n.code} unknown district ${n.district}`); continue; }
+    if (badR.has(dd.id)) continue;
     const [x, y, w, h] = dd.r, nw = n.w ?? 1.1, nd = n.d ?? 1.1;
     if (n.x < x || n.y < y || n.x + nw > x + w || n.y + nd > y + h)
       errors.push(`data.json: node ${n.code} outside district ${dd.id}`);
   }
-  checkCrossings(d, nodes);
-  checkAisles(d, nodes, districts);
+  if (geo.length) { checkCrossings(d, nodes, geo); checkAisles(d, nodes, geo); }
   // Geometry red lines (slightly looser than RENDER.md recommendations).
   for (let i = 0; i < nodes.length; i++)
     for (let j = i + 1; j < nodes.length; j++) {
@@ -386,13 +394,13 @@ function checkData(d) {
       if (xg < 1.3 && yg < 1.1)
         errors.push(`data.json: nodes ${a.code}/${b.code} too close (xgap ${xg.toFixed(1)}, ygap ${yg.toFixed(1)}; need xgap>=1.3 or ygap>=1.1)`);
     }
-  for (let i = 0; i < districts.length; i++)
-    for (let j = i + 1; j < districts.length; j++) {
-      const [ax, ay, aw, ah] = districts[i].r, [bx, by, bw, bh] = districts[j].r;
+  for (let i = 0; i < geo.length; i++)
+    for (let j = i + 1; j < geo.length; j++) {
+      const [ax, ay, aw, ah] = geo[i].r, [bx, by, bw, bh] = geo[j].r;
       const xg = Math.max(ax - (bx + bw), bx - (ax + aw));
       const yg = Math.max(ay - (by + bh), by - (ay + ah));
       if (xg < 1.5 && yg < 1.5)
-        errors.push(`data.json: districts ${districts[i].id}/${districts[j].id} need a >=1.5 aisle`);
+        errors.push(`data.json: districts ${geo[i].id}/${geo[j].id} need a >=1.5 aisle`);
     }
 }
 
@@ -437,8 +445,14 @@ function checkAisles(d, nodes, districts) {
 }
 /* 绕行航点建议：避障是几何计算，不该让写 wiki 的人手算坐标。
    候选取各楼四边中点与四角的外侧，选两段都不穿楼、绕路最短的那个。*/
-function suggestVia(p, q, nodes, skip) {
+function suggestVia(p, q, nodes, skip, districts) {
   const G = 0.9;
+  // 航点可以走分区之间的通道（通道就在分区外），但不能飘到整张图外面
+  const bx0 = Math.min(...districts.map((dd) => dd.r[0])) - 0.5;
+  const by0 = Math.min(...districts.map((dd) => dd.r[1])) - 0.5;
+  const bx1 = Math.max(...districts.map((dd) => dd.r[0] + dd.r[2])) + 0.5;
+  const by1 = Math.max(...districts.map((dd) => dd.r[1] + dd.r[3])) + 0.5;
+  const inBounds = (m) => m[0] >= bx0 && m[0] <= bx1 && m[1] >= by0 && m[1] <= by1;
   const cands = [];
   for (const n of nodes) {
     const [x0, y0, x1, y1] = rectOf(n, 0);
@@ -457,13 +471,13 @@ function suggestVia(p, q, nodes, skip) {
   });
   let best = null, bestCost = Infinity;
   for (const m of cands) {
-    if (insideAny(m) || blocked(p, m) || blocked(m, q)) continue;
+    if (!inBounds(m) || insideAny(m) || blocked(p, m) || blocked(m, q)) continue;
     const cost = Math.hypot(m[0] - p[0], m[1] - p[1]) + Math.hypot(q[0] - m[0], q[1] - m[1]);
     if (cost < bestCost) { bestCost = cost; best = m; }
   }
   return best;
 }
-function checkCrossings(d, nodes) {
+function checkCrossings(d, nodes, districts) {
   const NM = {}; nodes.forEach((n) => NM[n.code] = n);
   const center = (n) => [n.x + (n.w ?? 1.1) / 2, n.y + (n.d ?? 1.1) / 2];
   const edges = [
@@ -482,7 +496,7 @@ function checkCrossings(d, nodes) {
         if (segHitsRect(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], x0, y0, x1, y1)) { hit.push(n.code); break; }
     }
     if (!hit.length) continue;
-    const via = suggestVia(center(a), center(b), nodes, new Set([e.from, e.to]));
+    const via = suggestVia(center(a), center(b), nodes, new Set([e.from, e.to]), districts);
     errors.push(`data.json: ${e.tag} crosses ${hit.join("/")} footprint — ` + (via
       ? `改成 "via": [[${via[0].toFixed(1)}, ${via[1].toFixed(1)}]]`
       : `周围无可行绕路，需重排节点`));

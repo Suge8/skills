@@ -1017,7 +1017,7 @@ const panel = document.getElementById("panel");
 const tabPage = document.getElementById("tabPage"), tabRel = document.getElementById("tabRel");
 /* 两类文件清单职责不同，分开命名：
    关键出处 = sources，支撑论断的锚点，参与哈希漂移检查
-   管辖范围 = 页面 covers 展开，责任田边界，参与认领对账（粒度是页，同页的多栋楼共享同一范围）*/
+   范围 = 页面 covers 展开，责任田边界，参与认领对账（粒度是页，同页的多栋楼共享同一范围）*/
 const FILES = DATA.files || {};          // { 仓库相对路径: 行数 }
 const FILE_KEYS = Object.keys(FILES);
 const linesOf = fs => fs.reduce((s, f) => s + (FILES[f] || 0), 0);
@@ -1043,7 +1043,7 @@ function coversOf(pageRef) {
   for (const l of m[1].split("\n")) {
     if (/^covers:\s*$/.test(l)) { on = true; continue; }
     if (!on) continue;
-    const it = l.match(/^\s+-\s+(\S+)\s*$/);
+    const it = l.match(/^\s+-\s+(.+?)\s*$/);   // 与 verify 的认领对账同步则：取整行剩余，路径含空格也不会提前截断
     if (it) out.push(it[1]); else break;
   }
   return out;
