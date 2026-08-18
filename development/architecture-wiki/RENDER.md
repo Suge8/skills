@@ -26,7 +26,7 @@
       "page": "system.md#控制面" }   // page 可选：分区可点选，面板渲染该小节；不填则只显示图数据派生的区内模块与跨区往来
   ],
   "nodes": [
-    { "code": "G2", "district": "go", "name": "auth 域", "short": "认证",  // code 是图上门牌：分区首字母+序号，不自造缩写；short ≤4 字
+    { "code": "G2", "district": "go", "name": "auth 域", "short": "认证",  // code 是图上门牌：分区首字母+序号，不自造缩写；short 要能放进地面名牌，一般 2–4 字、最多 6 字（再长相邻名牌会互相挤压）
       "icon": "lock", "form": "box", "x": 6.4, "y": 7.4, "h": 0.8,       // w/d 默认 1.1
       "count": 12,                                                        // 仅群组节点（slabs）标数量
       "page": "modules/auth.md",                                          // 面板「介绍」tab 渲染此页；可带 #小节标题 锚点；多节点可指同一页不同锚点
@@ -36,7 +36,7 @@
   "links": [   // 静态结构关系：覆盖 code-map 聚合后的全部模块级依赖，多条文件级 import 合并为一条；细虚线，hover 显示 label
     { "from": "A", "to": "B", "label": "说明", "what": "可选详情", "via": [[1, 2]] }
   ],
-  "flows": [   // 多场景运行流：每个真实入口（HTTP API、CLI、队列消费者、定时任务…）至少一条，同类入口可合并；每条 5–12 步；顶部悬浮 tab 切换，点 tab 时面板渲染 page 指向的 data-flow.md 小节
+  "flows": [   // 多场景运行流：每个真实入口（HTTP API、CLI、队列消费者、定时任务…）至少一条，同类入口可合并；步数由真实调用链决定——一条流程讲一件完整的事，长到一屏看不完先想想是不是两件事；顶部悬浮 tab 切换，点 tab 时面板渲染 page 指向的 data-flow.md 小节
     { "title": "用户下单", "page": "data-flow.md#用户下单（HTTP）", "steps": [
       { "from": "A", "to": "B", "title": "步骤名", "what": "这一步发生了什么",
         "sources": ["src/call-site.ts"], "via": [] }   // sources 必填：这一步的调用点证据
