@@ -1,6 +1,6 @@
 ---
 name: ui-picks
-description: 个人 UI 库选型表：需要动效组件、图标动效、canvas 特效、AI 聊天界面、字体搭配等能力时查表选库，按指定方式安装最新版本；用户说"选型库 / 我的库 / 用什么库"时也使用。
+description: 个人 UI 库选型表：需要动效组件、图标动效、canvas 特效、AI 聊天界面、界面音效、字体搭配等能力时查表选库，按指定方式安装最新版本；用户说"选型库 / 我的库 / 用什么库"时也使用。
 ---
 
 # UI Picks
@@ -41,7 +41,7 @@ description: 个人 UI 库选型表：需要动效组件、图标动效、canvas
 
 - 19 个高完成度交互原语，覆盖思考态、流式回答、人工审批、工具调用、聊天、数据表和 AI 编辑器；站点 [beautiful-ui-five.vercel.app](https://beautiful-ui-five.vercel.app/)。
 - 获取：每个示例右上角直接 Copy code 或 View code；无 llms.txt、registry 和 CLI，只能按站内组件目录人工选取。源码会引用站点 CSS token、共享 atoms，部分组件另需 `glimm`、`liveline` 或 `iconoir-react`，落地时按实际 import 补齐并接入项目设计系统。
-- 红线：站点未公开 LICENSE 或使用条款，商用复制前先确认授权；示例里的 mock 数据、定时状态流和主题类名不是生产实现，必须换成真实业务状态并补 reduced-motion。
+- 授权：MIT（站点 /license 页，2026-08 验证），商用可复制。红线：示例里的 mock 数据、定时状态流和主题类名不是生产实现，必须换成真实业务状态并补 reduced-motion。
 - 分工：这里只取 AI 交互的视觉与状态表达；线程、流式传输、工具协议等 chat runtime 仍用 assistant-ui，通用产品控件用 Fluid Functionalism。
 
 ### Canvas UI — WebGL / shader 特效叠在可交互的真实 DOM 上
@@ -60,13 +60,19 @@ description: 个人 UI 库选型表：需要动效组件、图标动效、canvas
 
 - 任意 stroke 图标平滑变形到另一个（menu→X、play→pause 等），可中断弹簧物理，零配置零依赖 ~6-8KB；站点 [morphicons.com](https://www.morphicons.com)，机读 <https://www.morphicons.com/llms.txt>（完整 API 在 llms-full.txt）。
 - 安装：`npm i morphicons`，按框架取 `morphicons/react|vue|svelte|react-native|dom` 入口；图标以数据形式导入（装 `lucide` 包，不是 `lucide-react` 组件）。SSR 干净、默认 `aria-hidden`、自动尊重 reduced-motion。
-- 红线：只支持 stroke 图标（Lucide/Tabler/Heroicons outline/Iconoir 等）；filled 图标（Material Symbols、Phosphor fill）能解析但变形效果不对。非 24×24 网格的包先用 `fitIcon` 重排一次。
+- 红线：只支持 stroke 图标（Lucide/Tabler/Heroicons outline/Iconoir 等）；非 24×24 网格的包先用 `fitIcon` 重排一次。
 
 ### assistant-ui — 产品内 AI 聊天界面（React/TS）
 
 - 线程、流式输出、Markdown、工具调用 UI 等 ChatGPT 级交互；站点 [assistant-ui.com](https://www.assistant-ui.com)，文档读 <https://www.assistant-ui.com/llms.txt>。
 - 安装：已有项目 `npx assistant-ui@latest init`，新项目 `npx assistant-ui@latest create`；或直接装 `@assistant-ui/react` + 对应 runtime 包（如 `@assistant-ui/react-ai-sdk`）。
 - 属于产品 UI：样式与密度对齐项目设计系统，不套库默认主题了事。
+
+### UI SFX — 语义化界面音效（Web Audio / 跨端音频文件）
+
+- 78 个语义 cue（success、drop、processing、level-up 等）× 12 套音色人格，按交互语义调用、换 pack 不改交互代码；站点 [uisfx.com](https://uisfx.com)，机读读 <https://uisfx.com/docs/agent-guide.md>（另有可直接复制的接线提示词 `/agent-prompt.txt`）。
+- 安装 `npm i uisfx`：`createUISFX({ pack, preferences: {} })` + 首次可信交互里 `await ui.unlock()`（绕开自动播放限制），运行时 12KB 零依赖、本地合成不拉音频；React Native / 原生 / 引擎侧改用包内 `uisfx/sounds/{pack}/{cue}.mp3|ogg` 与 `uisfx/manifest`。代码 MIT、音频 CC0。
+- 红线：音效只强化已有的可见反馈，成功/警告/错误必须各自有视觉区分；提供持久静音开关（`setEnabled`），loop cue 随可见状态结束即 `stop()`，密集界面里 hover 音保持安静或关闭。
 
 ### 字体来源 — Fontshare（拉丁）+ 中文免费梯队（CJK）
 
