@@ -6,7 +6,7 @@ compatibility: 需要 Node.js 18+；按后端配置 BRAVE_SEARCH_API_KEY、EXA_A
 
 # Web search
 
-按问题选择一个最窄后端，不为同一查询并行调用多个搜索源。命令中的脚本路径相对本 skill 目录，执行时解析为绝对路径。
+按问题选择搜索后端，可为同一查询并行调用多个搜索源。命令中的脚本路径相对本 skill 目录，执行时解析为绝对路径。
 
 ## Brave：精确网页搜索
 
@@ -34,7 +34,7 @@ node exa-search.mjs "query" --code
 
 ## Context7：当前官方库文档
 
-用于根据项目锁定版本核对框架或 SDK 的官方 API。一次只问一个明确问题。
+用于根据项目锁定版本核对框架或 SDK 的官方 API。
 
 ```bash
 python3 scripts/context7_cli.py query \
