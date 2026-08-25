@@ -5,7 +5,7 @@
 - `matt/`：Matt Pocock 工程与生产力工作流的完整中文译本。
 - `frontend/`：前端设计与 UI polish。
 - `operations/`：运维连接、远程操作、Herdr 终端与桌面自动化；多 Agent 编排由 FireCode `/master` 负责。
-- `search/`：Brave、Exa、Context7 的统一搜索入口。
+- `web-search/`：Brave、Exa、Context7 的统一网络与文档搜索入口。
 - `search-skills/`：按需定位冷归档 Skill。
 
 ## 手动 Skill

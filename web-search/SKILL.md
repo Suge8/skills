@@ -1,10 +1,10 @@
 ---
-name: search
-description: 搜索当前网页、代码上下文和库文档：精确关键词、时效内容与准确 URL 用 Brave，语义/代码搜索用 Exa，当前版本官方 API 用 Context7。不用于本地代码搜索。
+name: web-search
+description: 网络搜索和文档搜索
 compatibility: 需要 Node.js 18+；按后端配置 BRAVE_SEARCH_API_KEY、EXA_API_KEY 或 npx ctx7。
 ---
 
-# Search
+# Web search
 
 按问题选择一个最窄后端，不为同一查询并行调用多个搜索源。命令中的脚本路径相对本 skill 目录，执行时解析为绝对路径。
 
