@@ -15,6 +15,8 @@
 | 需求 | Skill |
 |---|---|
 | 项目骨架、文档与验证链体检 | `project-setup` |
+| 项目宣传物料与演示图 | `promo` |
+| GSAP 动画实现参考 | `gsap` |
 | 提交、版本、Tag 与发布 | `ship` |
 | 想法或计划压力测试，并同步 ADR 与术语表 | `grill-with-docs` |
 | 超过一个会话的大型决策工作 | `wayfinder` |

@@ -1,6 +1,6 @@
 ---
 name: search-skills
-description: 仅当用户明确要求使用归档 Skill 时触发；从冷归档索引定位对应入口。
+description: 仅当用户明确要求使用归档 Skill 时触发；从归档库搜索 Skill。
 ---
 
 # Search archived skills
