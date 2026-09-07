@@ -115,4 +115,4 @@ default、hover、selected、disabled 不做多份资源。SVG 用 `currentColor
 - MDN：[`currentcolor`](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value)
 - W3C WAI：[Decorative Images](https://www.w3.org/WAI/tutorials/images/decorative/)
 - W3C i18n：[Bidi CSS and markup](https://www.w3.org/International/questions/qa-bidi-css-markup)
-- jakubkrehel/skills（MIT）：better-ui / icons
+- jakubkrehel/skills（MIT）：icons

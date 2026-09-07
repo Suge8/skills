@@ -87,7 +87,7 @@ Typography must survive the reader changing it: zoom, a larger browser font size
 | Captions | `13px` |
 | Floor | Rarely below `12px` |
 
-When text appears low-contrast, use `better-colors` to measure the rendered foreground/background pair and `better-accessibility` to classify the applicable requirement. Changing the project's colors remains a design decision unless the user asks for remediation.
+When text appears low-contrast, use `reference/colors/` to measure the rendered foreground/background pair and `reference/accessibility/` to classify the applicable requirement. Changing the project's colors remains a design decision unless the user asks for remediation.
 
 ## Font smoothing
 

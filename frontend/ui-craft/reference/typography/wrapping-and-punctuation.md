@@ -50,7 +50,7 @@ Keyboard characters are not always the best characters:
 ## Internationalization
 
 - Set the `lang` attribute so browsers choose the right quotes, hyphenation and pronunciation.
-- Set `dir` at the document or content boundary where direction changes. Spatial mirroring and the logical-property table live in `better-layout`.
+- Set `dir` at the document or content boundary where direction changes. Spatial mirroring and the logical-property table live in `SKILL.md` › 排版与间距.
 
 Two refinements for mixed-direction text:
 
