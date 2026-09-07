@@ -1,6 +1,6 @@
 ---
 name: ui-picks
-description: 个人 UI 库选型表；需要动效特效、微交互组件、AI 聊天界面、界面音效或字体时先查表再选库
+description: UI 库选型表，涉及 UI 修改可根据项目现有组件以及选型库按需选取，包括动效特效、微交互组件、AI 聊天界面、界面音效或字体
 ---
 
 # UI Picks
@@ -32,6 +32,13 @@ description: 个人 UI 库选型表；需要动效特效、微交互组件、AI 
 - Button、Dialog、Select、Tabs、Table 等产品控件，含 AI 聊天视觉件（ChatMessage、ThinkingIndicator 等）；动效传达语义、hover 即预览。系统文档 [fluidfunctionalism.com/docs](https://www.fluidfunctionalism.com/docs)，机读清单 <https://www.fluidfunctionalism.com/r/registry.json>。
 - 获取：`npx shadcn@latest add https://www.fluidfunctionalism.com/r/<组件>.json`，源码复制分发；`/r/base/` 路径只有部分组件，用 `/r/`。
 - 分工：这里是纯视觉组件；需要线程、流式、工具调用等 chat runtime 时用 assistant-ui，两者可搭配。
+
+### Appica UI — 全套产品控件整包（React 19 / Tailwind v4 / Base UI）
+
+- 表单校验、日期/时间/颜色/组合框、Data Table、Toast、Drawer 等 70+ 控件，主题、暗色、RTL、reduced-motion 内建；附带 Border Beam、Gradient Glow、Text Animate 等装饰件与约 5000 图标包。机读 <https://appica.dev/llms.txt>，文档页加 `.md` 取纯文本，MIT。
+- 安装：`pnpm add @appica/ui-react`，全局样式里 `@import '@appica/ui-react/styles.css'` 并加 `@source '../node_modules/@appica/ui-react/dist'`（相对该 CSS 文件的真实路径，写裸包名会静默失效、整体无样式）；按子路径逐个导入 `@appica/ui-react/button`。
+- 红线：React 19 与 Tailwind v4 是硬门槛，不降级适配；它自带按角色命名的 token（`bg-background-muted` 这类），项目已有 shadcn token 时两套体系不能并存，选定一套。
+- 分工：项目是 shadcn / 复制源码风格或只要少数控件用 Fluid Functionalism；chat runtime 仍用 assistant-ui。
 
 ### Beautiful UI — AI-native 产品界面原语（React / TypeScript）
 
@@ -85,7 +92,3 @@ description: 个人 UI 库选型表；需要动效特效、微交互组件、AI 
 
 - UI 正文选 MiSans / 阿里巴巴普惠体 3.0 / HarmonyOS Sans（大厂定制体，免费池屏显天花板）；标题出彩用得意黑（OFL，官方明确不适合正文和手机界面）；文艺/阅读用霞鹜文楷、思源宋体。新字体筛选看[猫啃网](https://www.maoken.com)；要 Fontshare 级惊艳只能走商业授权（字由/方正）。
 - 中文 webfont 必须分包（单文件 10-20MB）：自托管用[中文网字计划](https://chinese-font.netlify.app/zh-cn/)的 `cn-font-split` 切包，或其字图 CDN（域名迁移中以官网为准）。它只当分包工具，字体池不做质量筛选。
-
-## 加新库
-
-只收自己真用过且认可的库。每个库三到四行：名称 + 场景一句话与机读入口、获取命令与站点没写明的陷阱、该库独有的红线或与表内库的分工。通用门槛（ui-craft、reduced-motion、内容层）由使用规则承担，组件数量与枚举清单以机读源为准，都不入表。
