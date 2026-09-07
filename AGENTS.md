@@ -15,6 +15,7 @@
 | 需求 | Skill |
 |---|---|
 | 项目骨架、文档与验证链体检 | `project-setup` |
+| 建立或改善验证链：测试入口、行为覆盖、静态门 | `set-test-chain` |
 | 项目宣传物料与演示图 | `promo` |
 | 转化文案：标题、Hero、CTA、落地页 | `copywriting` |
 | 去除文稿 AI 味 | `stop-slop` |
