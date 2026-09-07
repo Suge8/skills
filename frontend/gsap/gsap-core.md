@@ -29,32 +29,32 @@ CSS 动画对于非常简单的过渡非常有用。当您需要时，首选 GSA
 - **gsap.set(targets, vars)** — 立即应用（持续时间 0）。
 始终在 vars 对象中使用**驼峰命名法**的属性名称（例如 `backgroundColor`、`marginTop`、`rotationX`、`scaleY`）。
 ## 常见变量
-- **持续时间** — 秒（默认 0.5）。
-- **延迟** — 开始前几秒。
+- **duration** — 秒（默认 0.5）。
+- **delay** — 开始前几秒。
 - **ease** — 字符串或函数。首选内置：`"power1.out"`（默认）、`"power3.inOut"`、`"back.out(1.7)"`、`"elastic.out(1, 0.3)"`、`"none"`。
-- **交错** — 数字（之间的秒数），例如 `0.1` 或对象：`{ amount: 0.3, from: "center" }`、`{ each: 0.1, from: "random" }`。
-- **覆盖** — `false`（默认）、`true`（立即终止相同目标的所有活动补间）或 `"auto"`（当补间首次渲染时，仅终止同一目标的其他**活动**补间中的单个重叠属性）。
-- **重复** — 数字或 `-1` 表示无限。
+- **stagger** — 数字（之间的秒数），例如 `0.1` 或对象：`{ amount: 0.3, from: "center" }`、`{ each: 0.1, from: "random" }`。
+- **overwrite** — `false`（默认）、`true`（立即终止相同目标的所有活动补间）或 `"auto"`（当补间首次渲染时，仅终止同一目标的其他**活动**补间中的单个重叠属性）。
+- **repeat** — 数字或 `-1` 表示无限。
 - **yoyo** — 布尔值；随着重复，交替方向。
 - **onComplete**、**onStart**、**onUpdate** — 回调；范围为动画实例本身（补间或时间轴）。
 - **immediateRender** — 当 `true`（**from()** 和 **fromTo()** 的默认值）时，补间的开始状态会在创建补间后立即应用（避免无样式内容的闪烁，并且可以很好地与交错时间线配合使用）。当**多个 from() 或 fromTo() 补间**针对同一元素的相同属性时，请在后面的补间设置 **immediateRender: false** ，以便第一个补间的结束状态在运行之前不会被覆盖；否则第二个动画可能不可见。
 ## 变换和 CSS 属性
 GSAP 的 CSSPlugin（包含在核心中）对 DOM 元素进行动画处理。对 CSS 属性使用 **camelCase**（例如 `fontSize`、`backgroundColor`）。与原始 `transform` 字符串相比，更喜欢 GSAP 的 **转换别名**：它们以一致的顺序应用（平移 → 缩放 → 旋转 X/Y → 倾斜 → 旋转），性能更高，并且跨浏览器可靠地工作。
 **转换别名（优于translateX()、rotate()等）：**
-| GSAP 财产 |等效 CSS / 注释 |
+| GSAP 属性 |等效 CSS / 注释 |
 |---------------|------------------------|
-| `x`、`y`、`z` |翻译X/Y/Z（默认单位：px）|
-| `xPercent`、`yPercent` |将 X/Y 转换为 %；用于基于百分比的移动； SVG 工作 |
-| `scale`、`scaleX`、`scaleY` |规模; `scale` 设置 X 和 Y |
-| __保留_9__ |旋转（默认：deg；或 `"1.25rad"`）|
-| `rotationX`、`rotationY` | 3D 旋转（rotationZ = 旋转）|
+| `x`、`y`、`z` |translateX/Y/Z（默认单位：px）|
+| `xPercent`、`yPercent` |按百分比平移 X/Y；用于基于百分比的移动； SVG 工作 |
+| `scale`、`scaleX`、`scaleY` |缩放； `scale` 设置 X 和 Y |
+| `rotation` |旋转（默认：deg；或 `"1.25rad"`）|
+| `rotationX`、`rotationY` | 3D 旋转（rotationZ = rotation）|
 | `skewX`、`skewY` |偏斜（度或弧度字符串）|
-| __保留_15__ |变换原点（例如 `"left top"`、`"50% 50%"`）|
+| `transformOrigin` |变换原点（例如 `"left top"`、`"50% 50%"`）|
 相对值有效：`x: "+=20"`、`rotation: "-=30"`。默认单位：x/y（以 px 为单位），旋转（以度为单位）。
 - **autoAlpha** — 优先于 `opacity` 进行淡入/淡出。当值为`0`时，GSAP还设置`visibility: hidden`（更好的渲染并且没有指针事件）；当非零时，`visibility` 设置为 `inherit`。避免留下不可见的元素来阻止点击。
 - **CSS 变量** — GSAP 可以对自定义属性进行动画处理（例如 `"--hue": 180`、`"--size": 100`）。在支持 CSS 变量的浏览器中受支持。
 - **svgOrigin** _（仅限 SVG）_ — 与 `transformOrigin` 类似，但位于 SVG 的 **全局** 坐标空间中（例如 `svgOrigin: "250 100"`）。当多个 SVG 元素应围绕公共点旋转或缩放时使用。只能使用 `svgOrigin` 或 `transformOrigin` 之一。无百分比值；单位可选。
-- **定向旋转** — 将后缀附加到旋转值（字符串）：**`_short`**（最短路径）、**`_cw`**（顺时针）、**`_ccw`**（逆时针）。适用于 `rotation`、`rotationX`、`rotationY`。示例：`rotation: "-170_short"`（顺时针 20°，而不是逆时针 340°）； __保留_18__。
+- **定向旋转** — 将后缀附加到旋转值（字符串）：**`_short`**（最短路径）、**`_cw`**（顺时针）、**`_ccw`**（逆时针）。适用于 `rotation`、`rotationX`、`rotationY`。示例（当前旋转为 170°）：`rotation: "-170_short"`（顺时针 20°，而不是逆时针 340°）； [定向旋转示例](https://gsap.com/docs/v3/GSAP/CorePlugins/CSS#directionalrotation)。
 - **clearProps** — 以逗号分隔的属性名称列表（或 `"all"` / `true`），用于在补间完成时从元素的内联样式中**删除**。当类或其他 CSS 应该在动画之后接管时使用。清除任何与转换相关的属性（例如 `x`、`scale`、`rotation`）会清除**整个**转换。
 ```javascript
 gsap.to(".box", { x: 100, rotation: "360_cw", duration: 1 });
@@ -73,7 +73,7 @@ gsap.to(".item", {
 ```
 或者使用高级选项的对象语法，例如如何将每个连续的交错量应用于目标数组 (`from: "random" | "start" | "center" | "end" | "edges" | (index)`)
 ### 了解更多
-__保留_0__
+[Staggers](https://gsap.com/resources/getting-started/Staggers/)
 ## 缓动
 除非需要自定义曲线，否则请使用字符串缓动：
 ```javascript

@@ -25,7 +25,7 @@ useGSAP(() => {
 ```
 - ✅ 传递 **scope** （引用或元素），以便像 `.box` 这样的选择器的范围限定到该根。
 - ✅ 卸载时自动运行清理（恢复动画和 ScrollTriggers）。
-- ✅ 使用钩子返回值中的 **contextSafe** 来包装回调（例如 onComplete），以便它们在卸载后不执行任何操作并避免 React 警告。
+- ✅ 使用钩子返回值中的 **contextSafe** 来包装稍后执行的回调，使其中创建的 GSAP 对象被上下文记录并可随之恢复；它不会自动移除事件监听器或阻止回调执行。
 ## 目标参考
 使用**refs**，以便 GSAP 在渲染后以实际 DOM 节点为目标。不要依赖可能在重新渲染时匹配多个或错误元素的选择器字符串，除非定义了 `scope` 。使用 useGSAP，将 ref 作为 **scope** 传递；使用 useEffect，将其作为第二个参数传递给 `gsap.context()`。对于多个元素，请使用对容器和查询子元素的引用，或使用引用数组。
 ## 依赖数组、作用域和 revertOnUpdate
@@ -50,7 +50,7 @@ useEffect(() => {
   return () => ctx.revert();
 }, []);
 ```
-- ✅ 传递**范围**（ref 或元素）作为第二个参数，以便选择器的范围限于该节点。
+- ✅ 传递 **scope**（ref 或元素）作为第二个参数，以便选择器的范围限于该节点。
 - ✅ **始终**返回调用 **ctx.revert()** 的清理。
 ## 上下文安全回调
 如果与 GSAP 相关的对象是在 useGSAP 执行后运行的函数（如指针事件处理程序）内创建的，则它们不会在卸载/重新渲染时恢复，因为它们不在上下文中。使用 **contextSafe** （来自 useGSAP）来实现这些功能：
@@ -88,7 +88,7 @@ GSAP 在浏览器中运行。 SSR 期间不要调用 gsap 或 ScrollTrigger。
 - 如果在顶层导入 GSAP，请确保应用程序在服务器渲染期间不会执行 gsap.* 或 ScrollTrigger.*。如果考虑到 tree-shaking 或包大小，则可以选择在 useEffect 中动态导入。
 ## 最佳实践
 - ✅ 更喜欢 `@gsap/react` 中的 **useGSAP()** 而不是 `useEffect()`/`useLayoutEffect()`；当 `useGSAP` 不是一个选项时，在 `useEffect` 中使用 **gsap.context()** + **ctx.revert()** 。
-- ✅ 对目标使用 refs 并传递**范围**，因此选择器仅限于组件。
+- ✅ 对目标使用 refs 并传递 **scope**，因此选择器仅限于组件。
 - ✅ 仅在客户端运行 GSAP（useGSAP 或 useEffect）；在 SSR 期间不要调用 gsap 或 ScrollTrigger。
 ## 不要
 - ❌ 通过**没有范围的选择器**作为目标；始终在 useGSAP 或 gsap.context() 中传递 **scope** （引用或元素），因此像 `.box` 这样的选择器仅限于该根，并且不匹配组件外部的元素。
@@ -96,4 +96,4 @@ GSAP 在浏览器中运行。 SSR 期间不要调用 gsap 或 ScrollTrigger。
 - ❌ 跳过清理；始终在效果返回中恢复上下文或终止补间/滚动触发器，以避免未安装节点上的泄漏和更新。
 - ❌在SSR期间运行GSAP或ScrollTrigger；将所有使用保留在仅限客户端的生命周期内（例如 useGSAP）。
 ### 了解更多
-__保留_0__
+[GSAP 与 React](https://gsap.com/resources/React/)

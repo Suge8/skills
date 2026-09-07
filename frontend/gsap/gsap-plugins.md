@@ -31,8 +31,7 @@ gsap.to(scrollContainer, { duration: 1, scrollTo: { x: "max" } });
 **ScrollToPlugin — 关键配置（scrollTo 对象）：**
 |选项 |描述 |
 |--------|-------------|
-| `x`、`y` |目标滚动位置（数字），或 `"max"` 以获得最大 |
-| __保留_3__ |要滚动到的选择器或元素（用于滚动到视图）|
+| `x`、`y` |目标滚动位置（数字）、`"max"`（最大滚动位置），或要滚动到的选择器/元素 |
 | `offsetX`、`offsetY` |距目标位置的偏移量（以像素为单位）|
 ### 滚动更平滑
 平滑滚动包装器（平滑原生滚动）。需要 ScrollTrigger 和特定的 DOM 结构（内容包装器 + 平滑包装器）。当需要平滑的动量式滚动时使用。请参阅 GSAP 文档进行设置；在 ScrollTrigger 之后注册。 DOM 结构如下所示：
@@ -59,13 +58,13 @@ Flip.from(state, { duration: 0.5, ease: "power2.inOut" });
 **Flip — 关键配置 (Flip.from vars):**
 |选项 |描述 |
 |--------|-------------|
-| __保留_0__ |在翻转过程中使用 `position: absolute` （默认值：`false`） |
-| __保留_3__ |如果为 true，则仅测量子级的第一级（对于嵌套转换更好）|
-| __保留_4__ |当 true 时，缩放元素以适应（避免拉伸）；默认 `true` |
-| __保留_6__ |如果为 true，则仅对位置/比例进行动画处理（更快，不太准确）|
+| `absolute` |在翻转过程中使用 `position: absolute` （默认值：`false`） |
+| `nested` |当父子元素都在目标中时，设为 `true` 以补偿嵌套位移，避免移动量叠加|
+| `scale` |为 `true` 时通过 scale 改变尺寸；默认 `false`，改用 width/height |
+| `simple` |为 `true` 时跳过适配旋转、缩放和倾斜容器的位置计算；仅在不存在这些变换时使用|
 | `duration`、`ease` |标准补间选项 |
 #### 更多信息
-__保留_0__
+[Flip.from()](https://gsap.com/docs/v3/Plugins/Flip/static.from())
 ### 可拖动
 使元素可通过鼠标/触摸进行拖动、旋转或投掷。用于滑块、卡片、可重新排序列表或任何拖动交互。
 ```javascript
@@ -77,12 +76,12 @@ Draggable.create(".knob", { type: "rotation" });
 **可拖动 - 关键配置选项：**
 |选项 |描述 |
 |--------|-------------|
-| __保留_0__ | `"x"`、`"y"`、`"x,y"`、`"rotation"`、`"scroll"` |
-| __保留_6__ |限制拖动的元素、选择器或 `{ minX, maxX, minY, maxY }` |
-| __保留_8__ | `true` 启用投掷/动量（需要 InertiaPlugin）|
-| __保留_10__ | 0–1；拖动超过界限时的阻力|
-| __保留_11__ |拖动期间的 CSS 光标 |
-| `onDragStart`、`onDrag`、`onDragEnd` |回调；接收事件和目标|
+| `type` | `"x"`、`"y"`、`"x,y"`、`"rotation"`、`"scroll"` |
+| `bounds` |限制拖动的元素、选择器或 `{ minX, maxX, minY, maxY }` |
+| `inertia` | `true` 启用投掷/动量（需要 InertiaPlugin）|
+| `edgeResistance` | 0–1；拖动超过界限时的阻力|
+| `activeCursor` |拖动期间的 CSS 光标 |
+| `onDragStart`、`onDrag`、`onDragEnd` |回调；默认 `this` 为 Draggable 实例，可读取 `this.pointerEvent` 和 `this.target`；参数可用对应的 `onDragStartParams`、`onDragParams`、`onDragEndParams` 配置|
 | `onThrowUpdate`、`onThrowComplete` |惯性激活时的回调 |
 ### 惯性（InertiaPlugin）
 与 Draggable 一起使用以获取释放后的动量，或跟踪任何对象的任何属性的惯性/速度，以便它可以使用简单的补间无缝滑行到停止位置。使用 `inertia: true` 时向 Draggable 注册：
@@ -115,10 +114,10 @@ Observer.create({
 **观察者 - 关键配置选项：**
 |选项 |描述 |
 |--------|-------------|
-| __保留_0__ |要观察的元素或选择器 |
+| `target` |要观察的元素或选择器 |
 | `onUp`、`onDown`、`onLeft`、`onRight` |当滑动/滚动超过该方向的公差时回调 |
-| __保留_5__ |检测到方向之前的像素；默认 10 |
-| __保留_6__ | `"touch"`、`"pointer"` 或 `"wheel"`（默认值：`"touch,pointer"`）|
+| `tolerance` |触发方向/变化回调所需的最小位移（像素）；默认 `1e-9`，示例显式设置为 `10` |
+| `type` | 逗号分隔的 `"wheel"`、`"touch"`、`"scroll"`、`"pointer"`；默认 `"wheel,touch,pointer"`|
 ## 文本
 ### 分割文本
 将元素的文本拆分为字符、单词和/或线条（每个都在其自己的元素中）以实现交错或按单元动画。在逐字符、逐字或逐行制作文本动画时使用。返回具有 **chars**、**words**、**lines** 的实例（当设置 `mask` 时，还返回 **masks**）。使用 **revert()** 恢复原始标记或让 **gsap.context()** 恢复。与 **gsap.context()**、**matchMedia()** 和 **useGSAP()** 集成。 API：**SplitText.create(target, vars)**（目标 = 选择器、元素或数组）。
@@ -142,20 +141,20 @@ SplitText.create(".split", {
 **SplitText — 关键配置（SplitText.create vars）：**
 |选项 |描述 |
 |--------|-------------|
-| **类型** |以逗号分隔：`"chars"`、`"words"`、`"lines"`。默认 `"chars,words,lines"`。仅分割性能所需的内容（例如 `"words, chars"` 如果不使用行）。避免仅使用字符而没有单词/行，或使用 **smartWrap: true** 来防止奇怪的换行符。 |
+| **type** |以逗号分隔：`"chars"`、`"words"`、`"lines"`。默认 `"chars,words,lines"`。仅分割性能所需的内容（例如 `"words, chars"` 如果不使用行）。避免仅使用字符而没有单词/行，或使用 **smartWrap: true** 来防止奇怪的换行符。 |
 | **charsClass**、**wordsClass**、**linesClass** |每个分割元素上的 CSS 类。追加 `"++"` 以添加递增的类（例如 `linesClass: "line++"` → `line1`、`line2`、...）。 |
-| **咏叹调** | `"auto"`（默认）、`"hidden"` 或 `"none"`。辅助功能：`"auto"` 在 split 元素上添加 `aria-label`，在 line/word/char 元素上添加 `aria-hidden`，以便屏幕阅读器读取标签； `"hidden"` 对读者隐藏所有内容； `"none"` 使 aria 保持不变。如果必须公开嵌套链接/语义，请使用 `"none"` 加上仅限屏幕阅读器的副本。 |
-| **自动分割** |当 `true` 时，当字体完成加载或元素宽度更改（并且行被分割）时恢复并重新分割，避免错误的换行符。 **动画必须在 onSplit() 内部创建**，以便它们针对新分割的元素； **从 **onSplit()** 返回**动画，以便在重新分割时自动清理和时间同步。 |
-| **onSplit（自我）** |分割完成时的回调（如果 **autoSplit** 为 `true`，则每次重新分割时）。接收 SplitText 实例。返回 GSAP 补间或时间线可以在重新分割时自动恢复/同步该动画。 |
-| **面具** | `"lines"`、`"words"` 或 `"chars"`。使用 `overflow: clip` 将每个单元包装在一个额外的元素中，以实现遮罩/显示效果。只有一种类型；访问实例的 **masks** 数组上的包装器（如果设置了类，则使用类 `-mask` ）。 |
-| **标签** |包装元素标签；默认 `"div"`。使用 `"span"` 进行内联（注意：旋转/缩放等变换可能不会在某些浏览器中的内联元素上呈现）。 |
-| **深度切片** |当 `true` （默认）时，跨多行的嵌套元素（例如 `<strong>`）将被细分，因此行不会垂直拉伸。仅适用于分割线时。 |
-| **忽略** |选择器或元素保持不分割（例如 `ignore: "sup"`）。 |
-| **智能包裹** |仅拆分 **字符** 时，将单词包装在 `white-space: nowrap` 范围内以避免中间单词换行。如果单词或行被分割，则忽略。默认 `false`。 |
-| **字分隔符** |字边界：字符串（默认 `" "`）、RegExp 或 `{ delimiter: RegExp, replaceWith: string }` 用于自定义拆分（例如，主题标签的零宽度连接符或非拉丁语）。 |
-| **prepareText（文本，父级）** |接收原始文本和父元素的函数；在分割之前返回修改后的文本（例如，为没有空格的语言插入分隔标记）。 |
-| **属性索引** |当 `true` 时，在每个分割元素上添加带有索引的 CSS 变量（例如 `--word: 1`、`--char: 2`）。 |
-| **减少空白** |折叠连续空格；默认 `true`。从 v3.13.0 开始，还支持换行符，并且可以为 `<pre>` 插入 `<br>`。 |
+| **aria** | `"auto"`（默认）、`"hidden"` 或 `"none"`。辅助功能：`"auto"` 在 split 元素上添加 `aria-label`，在 line/word/char 元素上添加 `aria-hidden`，以便屏幕阅读器读取标签； `"hidden"` 对读者隐藏所有内容； `"none"` 使 aria 保持不变。如果必须公开嵌套链接/语义，请使用 `"none"` 加上仅限屏幕阅读器的副本。 |
+| **autoSplit** |当 `true` 时，当字体完成加载或元素宽度更改（并且行被分割）时恢复并重新分割，避免错误的换行符。 **动画必须在 onSplit() 内部创建**，以便它们针对新分割的元素； **从 **onSplit()** 返回**动画，以便在重新分割时自动清理和时间同步。 |
+| **onSplit(self)** |分割完成时的回调（如果 **autoSplit** 为 `true`，则每次重新分割时）。接收 SplitText 实例。返回 GSAP 补间或时间线可以在重新分割时自动恢复/同步该动画。 |
+| **mask** | `"lines"`、`"words"` 或 `"chars"`。使用 `overflow: clip` 将每个单元包装在一个额外的元素中，以实现遮罩/显示效果。只有一种类型；访问实例的 **masks** 数组上的包装器（如果设置了类，则使用类 `-mask` ）。 |
+| **tag** |包装元素标签；默认 `"div"`。使用 `"span"` 进行内联（注意：旋转/缩放等变换可能不会在某些浏览器中的内联元素上呈现）。 |
+| **deepSlice** |当 `true` （默认）时，跨多行的嵌套元素（例如 `<strong>`）将被细分，因此行不会垂直拉伸。仅适用于分割线时。 |
+| **ignore** |选择器或元素保持不分割（例如 `ignore: "sup"`）。 |
+| **smartWrap** |仅拆分 **字符** 时，将单词包装在 `white-space: nowrap` 范围内以避免中间单词换行。如果单词或行被分割，则忽略。默认 `false`。 |
+| **wordDelimiter** |字边界：字符串（默认 `" "`）、RegExp 或 `{ delimiter: RegExp, replaceWith: string }` 用于自定义拆分（例如，主题标签的零宽度连接符或非拉丁语）。 |
+| **prepareText(text, parent)** |接收原始文本和父元素的函数；在分割之前返回修改后的文本（例如，为没有空格的语言插入分隔标记）。 |
+| **propIndex** |当 `true` 时，在每个分割元素上添加带有索引的 CSS 变量（例如 `--word: 1`、`--char: 2`）。 |
+| **reduceWhiteSpace** |折叠连续空格；默认 `true`。从 v3.13.0 开始，还支持换行符，并且可以为 `<pre>` 插入 `<br>`。 |
 | **onRevert** |实例恢复时的回调。 |
 **提示：** 仅拆分动画内容（例如，如果仅对单词进行动画处理，则跳过字符）。对于自定义字体，在加载后进行分割（例如 `document.fonts.ready.then(...)`）或使用 **autoSplit: true** 和 **onSplit()**。为了避免分割字符时字距调整，请使用 CSS `font-kerning: none; text-rendering: optimizeSpeed;`。避免 `text-wrap: balance`；它会干扰分裂。 SplitText 不支持 SVG `<text>`。
 **了解更多：** [SplitText](https://gsap.com/docs/v3/Plugins/SplitText/)
@@ -206,17 +205,17 @@ gsap.to("#diamond", {
 **MorphSVG — 关键配置（morphSVG 对象）：**
 |选项 |描述 |
 |--------|-------------|
-| **形状** | _（必需。）_ 目标形状：选择器、元素或原始路径字符串。 |
-| **类型** | `"linear"`（默认）或 `"rotational"`。旋转使用角度/长度插值，可以避免变形过程中的扭结；当线性看起来错误时尝试一下。 |
-| **地图** |段的匹配方式：`"size"`（默认）、`"position"` 或 `"complexity"`。当开始/结束段未对齐时使用；如果都不起作用，则分成多个路径并对每个路径进行变形。 |
-| **形状索引** |起始路径中的点映射到结束路径中的第一个点的偏移（避免形状“交叉”或反转）。单段路径的数量； **数组** 用于多段（例如 `[5, 1, -8]`）。负数反转该部分。使用 **shapeIndex: "log"** 一次记录自动计算的值，然后将数字/数组粘贴到补间中。 **findShapeIndex(start, end)**（单独的实用程序）提供交互式 UI 来查找合适的值。仅适用于闭合路径。 |
-| **平滑** | （v3.14+）。添加平滑点。数字（例如 `80`）、`"auto"` 或对象：`{ points: 40 \| "auto", redraw: true \| false, persist: true \| false }`。 `redraw: false` 保留原始锚点（完美的保真度，较小的均匀间距）。 `persist: false` 在补间结束时删除添加的点。当默认变形看起来锯齿状或不自然时使用。 |
-| **曲线模式** |布尔值（v3.14+）。插入控制手柄角度/长度而不是原始 x/y，以避免曲线上扭结。尝试一下变形是否有中间变形扭结。 |
-| **起源** | **类型的旋转原点：“旋转”**。字符串： `"50% 50%"` （默认）或 `"20% 60%, 35% 90%"` 对于不同的开始/结束来源。 |
-| **精确** |输出路径数据的小数位；默认 `2`。 |
-| **预编译** |预先计算的路径字符串数组（或使用 **precompile: "log"** 一次，从控制台复制）。跳过昂贵的启动计算；用于非常复杂的变形。仅适用于 `<path>` （首先转换多边形/折线）。 |
-| **渲染** |函数（rawPath，target）调用每个更新 - 例如绘制到画布上。 RawPath 是一个段数组（每个段 = 交替 x,y 三次贝塞尔坐标数组）。 |
-| **更新目标** |当使用 **render** （例如仅画布）时，设置 **updateTarget: false** 以便原始 `<path>` 不会更新。 **MorphSVGPlugin.defaultUpdateTarget** 设置默认值。 |
+| **shape** | _（必需。）_ 目标形状：选择器、元素或原始路径字符串。 |
+| **type** | `"linear"`（默认）或 `"rotational"`。旋转使用角度/长度插值，可以避免变形过程中的扭结；当线性看起来错误时尝试一下。 |
+| **map** |段的匹配方式：`"size"`（默认）、`"position"` 或 `"complexity"`。当开始/结束段未对齐时使用；如果都不起作用，则分成多个路径并对每个路径进行变形。 |
+| **shapeIndex** |起始路径中的点映射到结束路径中的第一个点的偏移（避免形状“交叉”或反转）。单段路径的数量； **数组** 用于多段（例如 `[5, 1, -8]`）。负数反转该部分。使用 **shapeIndex: "log"** 一次记录自动计算的值，然后将数字/数组粘贴到补间中。 **findShapeIndex(start, end)**（单独的实用程序）提供交互式 UI 来查找合适的值。仅适用于闭合路径。 |
+| **smooth** | （v3.14+）。添加平滑点。数字（例如 `80`）、`"auto"` 或对象：`{ points: 40 \| "auto", redraw: true \| false, persist: true \| false }`。 `redraw: false` 保留原始锚点（完美的保真度，较小的均匀间距）。 `persist: false` 在补间结束时删除添加的点。当默认变形看起来锯齿状或不自然时使用。 |
+| **curveMode** |布尔值（v3.14+）。插入控制手柄角度/长度而不是原始 x/y，以避免曲线上扭结。尝试一下变形是否有中间变形扭结。 |
+| **origin** | `type: "rotational"` 的旋转原点。字符串： `"50% 50%"` （默认）或 `"20% 60%, 35% 90%"` 对于不同的开始/结束来源。 |
+| **precision** |输出路径数据的小数位；默认 `2`。 |
+| **precompile** |预先计算的路径字符串数组（或使用 **precompile: "log"** 一次，从控制台复制）。跳过昂贵的启动计算；用于非常复杂的变形。仅适用于 `<path>` （首先转换多边形/折线）。 |
+| **render** |函数（rawPath，target）调用每个更新 - 例如绘制到画布上。 RawPath 是一个段数组（每个段 = 交替 x,y 三次贝塞尔坐标数组）。 |
+| **updateTarget** |当使用 **render** （例如仅画布）时，设置 **updateTarget: false** 以便原始 `<path>` 不会更新。 **MorphSVGPlugin.defaultUpdateTarget** 设置默认值。 |
 **实用工具：** **MorphSVGPlugin.convertToPath(selector | element)** 将圆/矩形/椭圆/线/多边形/折线转换为 DOM 中的 `<path>` 。 **MorphSVGPlugin.rawPathToString(rawPath)** 和 **stringToRawPath(d)** 在路径字符串和原始数组之间进行转换。该插件将原始 `d` 存储在目标上（例如，用于补间：`morphSVG: "#originalId"` 或相同元素）。
 **提示：** 对于扭曲或倒转的变形，设置 **shapeIndex** （使用 `"log"` 或 findShapeIndex()）。对于多段路径，**shapeIndex** 是一个数组（每段一个值）。仅当第一帧较慢时才进行预编译；它不会修复补间期间的卡顿（简化 SVG 或根据需要减小大小）。
 **了解更多：** [MorphSVG](https://gsap.com/docs/v3/Plugins/MorphSVGPlugin)
@@ -233,11 +232,11 @@ gsap.to(".dot", {
 **MotionPath — 关键配置（motionPath 对象）：**
 |选项 |描述 |
 |--------|-------------|
-| __保留_0__ | SVG 路径元素、选择器或路径数据字符串 |
-| __保留_1__ |将目标对齐到 | 的路径元素或选择器
-| __保留_2__ | `[x, y]` 原点 (0–1)；默认 `[0.5, 0.5]` |
-| __保留_5__ |旋转元素以遵循路径切线 |
-| __保留_6__ | 0–2；路径平滑|
+| `path` | SVG 路径元素、选择器或路径数据字符串 |
+| `align` |将目标对齐到的路径元素或选择器 |
+| `alignOrigin` | `[x, y]` 对齐点 (0–1)；`[0.5, 0.5]` 表示中心，并非默认值；省略时根据目标的 xPercent/yPercent 推导 |
+| `autoRotate` |旋转元素以遵循路径切线 |
+| `curviness` | 仅用于点数组路径的曲率；默认 `1`，`0` 为直线，`2` 更弯曲（并非上限）|
 ### 运动路径助手
 MotionPath 的可视化编辑器（对齐、偏移）。在开发过程中使用来调整路径对齐。
 ```javascript
@@ -312,4 +311,4 @@ gsap.to(sprite, { pixi: { x: 200, y: 100, scale: 1.5 }, duration: 1 });
 - ❌ 在补间或 API 中使用插件，无需先注册 (**gsap.registerPlugin()**)。
 - ❌ 将 GSDevTools 或仅用于开发的插件交付到生产环境。
 ### 了解更多
-__保留_0__
+[GSAP 插件](https://gsap.com/docs/v3/Plugins/)
