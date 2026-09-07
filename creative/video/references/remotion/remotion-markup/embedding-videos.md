@@ -38,7 +38,7 @@ export const MyComposition = () => {
 
 ## 修剪
 
-使用 `trimBefore` 和 `trimAfter` 删除视频的部分内容。值以秒为单位。
+使用 `trimBefore` 和 `trimAfter` 删除视频的部分内容。值以帧为单位，秒数需乘以合成的 `fps`；`trimBefore` 是起点，`trimAfter` 是源媒体中的结束位置，而非保留时长。
 
 ```tsx
 const { fps } = useVideoConfig();

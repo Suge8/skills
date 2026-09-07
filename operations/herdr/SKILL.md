@@ -122,7 +122,7 @@ herdr agent start reviewer --kind pi --pane <returned-pane-id> -- <agent-args...
 通过 agent 界面提交工作：
 
 ```bash
-herdr agent prompt reviewer "审查当前 diff，只报告可执行的发现。" --wait --timeout 120000
+herdr agent prompt reviewer "审查当前 diff，只报告可执行的发现。" --wait --timeout 60000
 ```
 
 `agent prompt` 会按 pane 的实时 bracketed-paste 模式原子地提交文本和编码后的回车；对 working 中的 agent 也可提交（排队语义），给忙碌 worker 追加指令无需等 idle。常规工作用 `--wait` 就够：它等待第一个稳定的 `idle`、`done` 或 `blocked` 状态。不要用 `--until` 重复这些默认值。
@@ -132,7 +132,7 @@ herdr agent prompt reviewer "审查当前 diff，只报告可执行的发现。"
 `--until` 只用于特定状态的工作流，比如等一个已在运行的 agent 请求输入：
 
 ```bash
-herdr agent wait reviewer --until blocked --timeout 120000
+herdr agent wait reviewer --until blocked --timeout 60000
 ```
 
 不带 `--until` 的独立 `agent wait` 与 `agent prompt --wait` 使用相同的稳定状态默认值。
@@ -165,7 +165,7 @@ herdr pane split --current --direction right --cwd "$PWD" --no-focus
 
 ```bash
 herdr pane run <returned-pane-id> "just test"
-herdr pane wait-output <returned-pane-id> --match "test result" --timeout 120000
+herdr pane wait-output <returned-pane-id> --match "test result" --timeout 60000
 herdr pane read <returned-pane-id> --source recent-unwrapped --lines 120
 ```
 

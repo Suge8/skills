@@ -40,7 +40,7 @@ export const MyComposition = () => {
 
 ## 修剪
 
-使用 `trimBefore` 和 `trimAfter` 删除部分音频。值以框架为单位。
+使用 `trimBefore` 和 `trimAfter` 删除部分音频。值以帧为单位，秒数需乘以合成的 `fps`；`trimBefore` 是起点，`trimAfter` 是源媒体中的结束位置，而非保留时长。
 
 ```tsx
 const { fps } = useVideoConfig();

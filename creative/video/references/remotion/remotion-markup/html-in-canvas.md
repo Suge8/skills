@@ -116,4 +116,4 @@ const onPaint: HtmlInCanvasOnPaint = useCallback(({ elementImage }) => {
 
 ## 异步`onPaint`
 
-`onPaint`可能是`async`。 Remotion 通过`delayRender()` 保持框架打开，直到承诺解决。对于 `createImageBitmap` 的多通道效果很有用。
+`onPaint`可能是`async`。 Remotion 通过`delayRender()` 等待当前帧渲染，直到 Promise 完成。对于 `createImageBitmap` 的多通道效果很有用。
