@@ -11,7 +11,7 @@ import urllib.request
 from pathlib import Path
 
 ENDPOINT = "https://chatgpt.com/backend-api/codex/responses"
-DEFAULT_MODEL = "gpt-5.4"
+DEFAULT_MODEL = "gpt-5.6-sol"
 
 
 def load_auth(path: Path) -> tuple[str, str]:
@@ -20,7 +20,9 @@ def load_auth(path: Path) -> tuple[str, str]:
     access_token = tokens.get("access_token")
     account_id = tokens.get("account_id")
     if not access_token or not account_id:
-        raise RuntimeError(f"missing tokens.access_token or tokens.account_id in {path}")
+        raise RuntimeError(
+            f"missing tokens.access_token or tokens.account_id in {path}"
+        )
     return access_token, account_id
 
 
@@ -40,7 +42,9 @@ def build_payload(
     for ref in refs or []:
         mime = "image/png" if ref.suffix.lower() == ".png" else "image/jpeg"
         encoded = base64.b64encode(ref.read_bytes()).decode()
-        content.append({"type": "input_image", "image_url": f"data:{mime};base64,{encoded}"})
+        content.append(
+            {"type": "input_image", "image_url": f"data:{mime};base64,{encoded}"}
+        )
     return {
         "model": model,
         "instructions": (
@@ -120,14 +124,21 @@ def generate(args) -> dict:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate PNG via Codex hosted image_generation.")
-    parser.add_argument("prompt", nargs="?", help="Image prompt. Reads stdin when omitted.")
+    parser = argparse.ArgumentParser(
+        description="Generate PNG via Codex hosted image_generation."
+    )
+    parser.add_argument(
+        "prompt", nargs="?", help="Image prompt. Reads stdin when omitted."
+    )
     parser.add_argument("--out", required=True, type=Path, help="Output PNG path.")
     parser.add_argument("--auth", type=Path, default=Path.home() / ".codex/auth.json")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--timeout", type=int, default=240)
     parser.add_argument(
-        "--ref", action="append", type=Path, default=[],
+        "--ref",
+        action="append",
+        type=Path,
+        default=[],
         help="Reference image path. Repeatable.",
     )
     parser.add_argument("--size", help="e.g. 1024x1024, 1024x1536, 1536x1024")
@@ -148,12 +159,17 @@ def main() -> int:
     except urllib.error.HTTPError as error:
         body = error.read(1200).decode("utf-8", "replace")
         print(
-            json.dumps({"ok": False, "status": error.code, "error": body}, ensure_ascii=False),
+            json.dumps(
+                {"ok": False, "status": error.code, "error": body}, ensure_ascii=False
+            ),
             file=sys.stderr,
         )
         return 1
     except Exception as error:
-        print(json.dumps({"ok": False, "error": str(error)}, ensure_ascii=False), file=sys.stderr)
+        print(
+            json.dumps({"ok": False, "error": str(error)}, ensure_ascii=False),
+            file=sys.stderr,
+        )
         return 1
 
 
