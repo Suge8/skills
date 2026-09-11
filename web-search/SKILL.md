@@ -45,4 +45,4 @@ python3 scripts/context7_cli.py docs \
 
 ID 未知时用 `query`，已知时用 `docs`；缺失或歧义时先运行 `resolve`。只有需要完整输出时才加 `--top 0`。
 
-已知 URL 直接读取内容，不先搜索；需要操作 JavaScript 页面时使用 `flow-browser-use`。
+已知 URL 直接读取内容，不先搜索；需要操作 JavaScript 页面时使用 `better-browser-use`。

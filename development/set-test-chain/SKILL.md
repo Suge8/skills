@@ -102,7 +102,7 @@ Git Hook 只是本地加速器，不是事实源，因为可以被跳过且可�
 
 按接近用户真实路径的顺序选最短方法：
 
-1. **flow-browser-use**：页面、DOM、截图、console、network；
+1. **better-browser-use**：页面、DOM、截图、console、network；
 2. curl 或 CLI：直接调用并断言响应内容；
 3. 带具体断言的日志；
 4. **better-computer-use**：桌面应用或真机兜底，读取控件并截图；

@@ -4,7 +4,7 @@
 - `workflow/`：从对齐到交付按顺序使用的命令：调研、追问、规格与工单、实现、寻路、工单库配置。起源 mattpocock/skills（MIT），已分叉。
 - `development/`：被流程调用的能力与参考：测试、诊断、原型、深模块与领域词汇、面向 agent 的写作、发布、体检、架构 wiki。
 - `frontend/`：前端设计与 UI polish。
-- `operations/`：运维连接、远程操作、Herdr 终端与桌面自动化；多 Agent 编排由 FireCode `/master` 负责。
+- `operations/`：运维连接、远程操作、Herdr 终端、网页与桌面自动化；多 Agent 编排由 FireCode `/master` 负责。
 - `web-search/`：Brave、Exa、Context7 的统一网络与文档搜索入口。
 - `search-skills/`：按需定位冷归档 Skill。
 
