@@ -264,13 +264,13 @@ description: 新建、重设计、打磨或审查界面时读：密度尺寸、�
 
 ## 动效实现纪律
 
-- 优先使用项目已有 motion、GSAP 或 CSS；单个微动效用现有方案。
+- 优先使用项目已有 Motion 或 CSS；单个微动效用现有方案。
 - 只声明实际变化的属性，禁止 `transition: all`。
 - 可被快速重复触发的进出场用 transition：可中断重定向，keyframes 中断即从零重播。纯 CSS 入场优先 `@starting-style`。
 - Motion 的 `x`/`y`/`scale` 简写在主线程 rAF 运行，页面负载下会掉帧；确定性动画优先 CSS 或 WAAPI，JS 动画需要硬件加速时写完整 `transform` 字符串。
 - 拖拽跟随直接写目标元素的 `transform`；在父容器改 CSS 变量会触发全子树样式重算。
 - `will-change` 只在性能测量证明有收益时使用，并在动画后释放。
-- 同一节点的同一属性只由 CSS、Motion 或 GSAP 中一个系统控制；需要组合时拆 wrapper。
+- 同一节点的同一属性只由 CSS 或 Motion 中一个系统控制；需要组合时拆 wrapper。
 - 使用 Motion 时在应用边界设置 `MotionConfig reducedMotion="user"`，局部保留 opacity/color 替代；Presence 切换默认关闭首帧入场，列表替换或共享几何使用 layout/popLayout 等连续布局能力。
 - Tailwind v4 的独立 translate、scale、rotate 属性可能被 keyframe 的 `transform` 覆盖；组合前检查最终 computed style。
 - One-shot 动画结束后回到静态样式。使用 `fill-mode: both` 时，终态与组件状态一致。

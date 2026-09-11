@@ -21,7 +21,6 @@
 | 去除文稿 AI 味 | `stop-slop` |
 | 生成图片、海报、插图与 Logo | `gpt-image` |
 | 视频策划、Remotion 实现与生成 | `video` |
-| GSAP 动画实现参考 | `gsap` |
 | 提交、版本、Tag 与发布 | `ship` |
 | 想法或计划压力测试，并同步 ADR 与术语表 | `grill-with-docs` |
 | 超过一个会话的大型决策工作 | `wayfinder` |
