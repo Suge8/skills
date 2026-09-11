@@ -1,6 +1,6 @@
 ---
 name: better-browser-use
-description: 操作和调试网页：导航、点击、填写、snapshot、截图、console、network；需要用户登录态或反检测的站点同样用它；用户要看窗口时有头。
+description: 操作和调试网页：导航、点击、填写、snapshot、截图、console、network；需要用户登录态或反检测的站点、用户要预览 dev server 时同样用它。
 allowed-tools: Bash(./bin/bbu:*), Bash(agent-browser:*)
 ---
 
