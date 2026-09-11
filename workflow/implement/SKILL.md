@@ -1,7 +1,6 @@
 ---
 name: implement
-description: "按一张工单实现：验收测试先红后锁，再自由实现整个切片。"
-disable-model-invocation: true
+description: "实现一张工单或一项行为变更：验收测试先红后锁，再自由实现整个切片。"
 ---
 
 实现一张工单。先读 `CONTEXT.md`、规格头与所改区域的 ADR。

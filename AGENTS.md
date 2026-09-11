@@ -25,7 +25,6 @@
 | 想法或计划压力测试，并同步 ADR 与术语表 | `grill-with-docs` |
 | 超过一个会话的大型决策工作 | `wayfinder` |
 | 把已对齐的讨论变成规格头与工单，一次发布 | `to-tickets` |
-| 按规格或工单实现 | `implement` |
 | 深模块与架构加深审计 | `improve-codebase-architecture` |
 | 为仓库配置 tracker、标签与领域文档 | `setup-tracker` |
 
