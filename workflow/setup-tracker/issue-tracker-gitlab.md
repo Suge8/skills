@@ -42,6 +42,7 @@
 - **交付**：MR 描述写 `Closes #<n>`，一个 MR 对应一张工单；一个 MR 收口多张时逐行写。
 - **关闭**：合并时由 GitLab 自动关闭，不手动 `glab issue close`。不产生 MR 的工单（问题型、分流拒绝）由解决方发 note 后直接关闭。
 - **放弃**：未合并就中止时回滚认领（`--unassign`、标签换回 `<ready-for-agent>`），不把工单留在进行中。
+- **spec 收口**：子工单全部关闭后由指挥官 `glab issue close <spec>` 并 note「全部子工单已交付」。
 
 ## 发布前查重
 

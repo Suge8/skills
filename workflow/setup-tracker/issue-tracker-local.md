@@ -25,6 +25,7 @@
 - **认领**：动手前把 `Status:` 改为 `<in-progress>` 并保存。已处于 `<in-progress>` 的工单视为他人已认领，不要抢。
 - **完成**：本地 tracker 没有合并这一步，改动验证通过后直接把 `Status:` 改为 `resolved`。
 - **放弃**：未完成就中止时把 `Status:` 改回 `<ready-for-agent>`，不把工单留在进行中。
+- **spec 收口**：`issues/` 全部 `resolved` 后删除 `.scratch/<feature-slug>/` 整个目录；规格内容已由实现、提交历史与 ADR 承载。
 
 ## 发布前查重
 

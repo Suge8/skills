@@ -41,6 +41,7 @@ GitHub 的 issue 和 PR 共享同一个编号空间，因此单独的 `#42` 可�
 - **交付**：PR 描述写 `Closes #<n>`，一个 PR 对应一张工单；一个 PR 收口多张时逐行写。
 - **关闭**：合并时由 GitHub 自动关闭，不手动 `gh issue close`。不产生 PR 的工单（问题型、分流拒绝）由解决方评论后直接关闭。
 - **放弃**：未合并就中止时回滚认领 `gh issue edit <n> --remove-assignee @me --add-label "<ready-for-agent>" --remove-label "<in-progress>"`，不把工单留在进行中。
+- **spec 收口**：子工单全部关闭后由指挥官 `gh issue close <spec> --comment "全部子工单已交付"`；GitHub 不会自动关闭父 issue。
 
 ## 发布前查重
 
