@@ -1,6 +1,6 @@
 # skills
 
-coding agent 的 skill 集：流程命令、开发能力、前端、创作、运维、网络搜索。落点是所有 agent 共用的 `~/.agents/skills`，Pi、Claude Code、Codex 等都从这里读。
+个人 coding agent 的 skill 集：流程命令、开发能力、前端、创作、运维、网络搜索。
 
 ```bash
 git clone https://github.com/Suge8/skills ~/.agents/skills
