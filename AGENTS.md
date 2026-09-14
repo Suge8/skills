@@ -8,6 +8,8 @@
 - `web-search/`：Brave、Exa、Context7 的统一网络与文档搜索入口。
 - `search-skills/`：按需定位冷归档 Skill。
 
+两个 skill 随各自的代码仓库发布，不在本仓库里：桌面控制 `better-computer-use` 来自 [Suge8/better-computer-use](https://github.com/Suge8/better-computer-use)（`pi install "$(npm root -g)/better-computer-use"`），`architecture-wiki` 来自 [Suge8/architecture-wiki](https://github.com/Suge8/architecture-wiki)（`pi install git:github.com/Suge8/architecture-wiki`）。
+
 ## 手动 Skill
 
 以下 Skill 关闭了自动触发，只在用户点名或本表指引时使用；其余 Skill 按 description 自动路由。
