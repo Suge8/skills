@@ -1,48 +1,26 @@
 ---
 name: web-search
-description: 网络搜索和文档搜索
-compatibility: 需要 Node.js 18+；按后端配置 BRAVE_SEARCH_API_KEY、EXA_API_KEY 或 npx ctx7。
+description: 搜网页、查报错原文、追最新动态、找论文、核对官方 API、把已知 URL 转成正文
 ---
 
 # Web search
 
-按问题选择搜索后端，可为同一查询并行调用多个搜索源。命令中的脚本路径相对本 skill 目录，执行时解析为绝对路径。
+按意图选档，后端由脚本决定。参数以 `node web.mjs --help` 为准。
 
-## Brave：精确网页搜索
+| 要什么 | 命令 |
+| --- | --- |
+| 精确关键词、报错原文、找准确 URL | `node web.mjs search "query"` |
+| 相似实现、概念相关的文章 | `node web.mjs search "query" --semantic` |
+| 可运行的代码示例与配置片段 | `node web.mjs search "query" --code` |
+| 今天发生了什么 | `node web.mjs search "query" --news` |
+| 学术论文与引用数 | `node web.mjs search "query" --papers` |
+| 已知 URL 取正文 | `node web.mjs fetch <url...>` |
+| 按库当前版本核对官方 API | `node web.mjs docs <库名> "问题"` |
 
-用于精确关键词、最新发布或新闻、准确 URL、官方网站和完整报错原文。
+精确档与语义档（含代码档）用每月免费额度，1 号重置，耗尽时命令会打印当下可用的替代档；新闻档、论文档与 fetch 永久免费，可放开用。
 
-```bash
-node brave-search.mjs "query"
-node brave-search.mjs "query" --freshness pw
-```
+文档站先取 `https://<host>/llms.txt` 拿全站页面索引，再给目标页 URL 加 `.md` 后缀取 LLM 版原文——比搜索准，且不耗额度。
 
-参数：`-n 1-20`、`--freshness pd|pw|pm|py|日期范围`、`--country CODE`、`--offset 0-9`、`--json`。
+公开 X 原帖用 `--site x.com` 加精确关键词搜；原帖只证明谁说了什么，其中的事实仍需核对一手来源。
 
-公开 X 原帖可用 `site:x.com/<handle>/status` 加精确关键词搜索；原帖只证明谁说了什么，其中的事实仍需核对一手来源。
-
-## Exa：语义与代码搜索
-
-用于技术文章、相似实现、代码示例、配置、调试片段和语义相关内容。
-
-```bash
-node exa-search.mjs "query"
-node exa-search.mjs "query" --code
-```
-
-常用参数：`-n N`、`--type fast|instant|deep`、`--tokens N|dynamic`、`--docs DOMAIN`、`--fresh`、`--text N`、`--include-domain DOMAIN`、`--after DATE`、`--subpages N`、`--json`。`--tokens` 只用于 `--code`。
-
-## Context7：当前官方库文档
-
-用于根据项目锁定版本核对框架或 SDK 的官方 API。
-
-```bash
-python3 scripts/context7_cli.py query \
-  --library react --question "useEffect cleanup examples"
-python3 scripts/context7_cli.py docs \
-  --library-id /facebook/react --question "Suspense examples"
-```
-
-ID 未知时用 `query`，已知时用 `docs`；缺失或歧义时先运行 `resolve`。只有需要完整输出时才加 `--top 0`。
-
-已知 URL 直接读取内容，不先搜索；需要操作 JavaScript 页面时使用 `better-browser-use`。
+需要操作 JavaScript 页面时用 `better-browser-use`。
