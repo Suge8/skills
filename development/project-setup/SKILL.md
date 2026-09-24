@@ -14,7 +14,7 @@ description: 项目骨架与文档一致性体检：初始化、半途补缺、�
 - 有无 UI（前端框架、src-tauri、routes 目录等信号）
 - 开源信号（LICENSE 存在？git remote 是公开仓库？用户说过要开源？）
 - 现有文档盘点：AGENTS.md、CONTEXT.md、README、CONTRIBUTING、SECURITY、CHANGELOG、docs/adr/，以及已有的 PRD、roadmap、DESIGN.md
-- 验证链现状：有没有 Agent 可独立运行的验证入口、通过价值门的行为测试，以及已配置但未接入的 formatter/lint/typecheck（对照 set-test-chain 的 references/toolchains.md 判断）
+- 验证链现状：有没有 Agent 可独立运行的验证入口、过 better-test 价值门的行为测试，以及已配置但未接入的 formatter/lint/typecheck（对照 [references/toolchains.md](references/toolchains.md) 判断）
 
 ## Step 2 — 体检表
 
@@ -33,7 +33,7 @@ description: 项目骨架与文档一致性体检：初始化、半途补缺、�
 
 **位置总原则**：高频入口（README/LICENSE/CHANGELOG/AGENTS/CONTEXT）在根；低频社区件在 `.github/`；深度内容（PRD、DESIGN、adr 和开发文档）在 `docs/`。已存在于其他合法位置的不迁移——位置不是问题，双份才是。
 
-**体检项（只报告，绝不动手）**：验证链是否达到 set-test-chain 的“首次建链”标准。不达标就在表里写一行现状 + 推荐动作，让用户拿去找 set-test-chain 建；不因缺少可选静态工具直接推荐安装。
+**体检项（只报告，绝不动手）**：验证链是否达到 [references/toolchains.md](references/toolchains.md) 的「合格验证链」标准。不达标就在表里写一行现状 + 推荐动作，推荐动作按该文件的「建链的最小形状」写到能直接交给 agent 执行；不因缺少可选静态工具直接推荐安装。
 
 ## Step 3 — 分节确认
 

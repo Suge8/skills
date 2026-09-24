@@ -75,3 +75,21 @@ test("calculateTotal sums line items", () => {
   expect(calculateTotal([{ price: 10 }, { price: 5 }])).toBe(15);
 });
 ```
+
+**外观当行为**：断言布局数值和 class，重构样式就挂，真正点不到按钮时却可能照样通过。
+
+```typescript
+// BAD: Layout numbers and class names are appearance, not behavior
+test("toolbar fits on mobile", async () => {
+  render(<Toolbar />, { viewport: { width: 390 } });
+  expect(container.scrollWidth).toBeLessThanOrEqual(390);
+  expect(screen.getByTestId("save")).toHaveClass("btn-compact");
+});
+
+// GOOD: The viewport sets the scene; the assertion completes a user task
+test("user can save from the toolbar on mobile", async () => {
+  render(<Toolbar />, { viewport: { width: 390 } });
+  await user.click(screen.getByRole("button", { name: "Save" }));
+  expect(await screen.findByRole("status")).toBeVisible();
+});
+```
