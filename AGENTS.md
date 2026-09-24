@@ -7,7 +7,7 @@
 - `operations/`：运维连接、远程操作、Herdr 终端、网页与桌面自动化；多 Agent 编排由 FireCode `/master` 负责。
 - `web-search/`：联网搜索与取正文：Anthropic、OpenAI 官方搜索聚合（凭据取自 pi 登录），TinyFish 快速结果列表与正文抓取。
 
-两个 skill 随各自的代码仓库发布，不在本仓库里，用 symlink 接进来：桌面控制 `better-computer-use` 来自 [Suge8/better-computer-use](https://github.com/Suge8/better-computer-use)（`ln -s "$(npm root -g)/better-computer-use/skills/better-computer-use" operations/better-computer-use`），`architecture-wiki` 来自 [Suge8/architecture-wiki](https://github.com/Suge8/architecture-wiki)（clone 后 `ln -s <clone>/skills/architecture-wiki development/architecture-wiki`）。symlink 不入库。
+两个 skill 随各自的代码仓库发布，不在本仓库里，用 symlink 接进来：桌面控制 `better-computer-use` 来自 [Suge8/better-computer-use](https://github.com/Suge8/better-computer-use)（clone 后 `ln -s <clone>/skills/better-computer-use operations/better-computer-use`），`architecture-wiki` 来自 [Suge8/architecture-wiki](https://github.com/Suge8/architecture-wiki)（clone 后 `ln -s <clone>/skills/architecture-wiki development/architecture-wiki`）。symlink 不入库。
 
 ## 手动 Skill
 
